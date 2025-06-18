@@ -123,7 +123,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)FrameWork\FrameWork\Code;$(SolutionDir)FrameWork\FrameWork\Dependencies\Includes;$(SolutionDir)Utilities\1Y1G Splits Manager\Code;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -248,7 +248,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="SplitsMgr\Game.cpp" />
     <ClCompile Include="SplitsMgr\main.cpp" />
+    <ClCompile Include="SplitsMgr\SplitsManager.cpp" />
+    <ClCompile Include="SplitsMgr\SplitsManagerApp.cpp" />
+    <ClCompile Include="SplitsMgr\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Data\XMLFiles\Resources">
@@ -262,6 +266,12 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Data\res.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SplitsMgr\Game.h" />
+    <ClInclude Include="SplitsMgr\SplitsManager.h" />
+    <ClInclude Include="SplitsMgr\SplitsManagerApp.h" />
+    <ClInclude Include="SplitsMgr\Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
