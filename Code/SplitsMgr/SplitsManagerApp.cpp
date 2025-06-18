@@ -1,8 +1,10 @@
 #include <fstream>
+#include <regex>
 
 #include <Externals/json/json.h>
 
 #include <FZN/Managers/FazonCore.h>
+#include <FZN/Tools/Logging.h>
 
 #include "SplitsManagerApp.h"
 
@@ -31,7 +33,7 @@ namespace SplitsMgr
 
 		ImGui::SetNextWindowPos( { 0.f, 0.f } );
 		ImGui::SetNextWindowSize( window_size );
-		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_IndentSpacing, 35.f );
+		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_IndentSpacing, 20.f );
 		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_WindowRounding, 0.f );
 		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_WindowBorderSize, 0.f );
 		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
@@ -71,9 +73,12 @@ namespace SplitsMgr
 				ImGui::Separator();
 
 				if( ImGui::MenuItem( "Save LSS" ) )
-				{}
+					_save_lss();
 
 				if( ImGui::MenuItem( "Save JSON" ) )
+				{}
+
+				if( ImGui::MenuItem( "Save All" ) )
 				{}
 
 				ImGui::EndMenu();
@@ -136,6 +141,34 @@ namespace SplitsMgr
 		GetOpenFileName( &open_file_name );
 
 		if( open_file_name.lpstrFile[ 0 ] != '\0' )
+		{
+			m_lss_path = open_file_name.lpstrFile;
 			m_splits_mgr.read_lss( open_file_name.lpstrFile );
+		}
+	}
+
+	void SplitsManagerApp::_save_lss()
+	{
+		tinyxml2::XMLDocument dest_file{};
+		m_splits_mgr.write_lss( dest_file );
+
+		if( dest_file.SaveFile( m_lss_path.string().c_str() ) )
+		{
+			FZN_COLOR_LOG( fzn::DBG_MSG_COL_RED, "Failure : %s (%s)", dest_file.ErrorName(), dest_file.ErrorStr() );
+			return;
+		}
+
+		FZN_DBLOG( "Saved .lss file at '%s'", m_lss_path.string().c_str() );
+
+		auto file = std::ifstream{ m_lss_path.string() };
+		std::string data( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
+		file.close();
+
+		data = std::regex_replace( data, std::regex{ "&gt;" }, ">" );
+		data = std::regex_replace( data, std::regex{ "&lt;" }, "<" );
+
+		auto out_file = std::ofstream{ m_lss_path.string() };
+		if( out_file.is_open() )
+			out_file << data.c_str();
 	}
 }

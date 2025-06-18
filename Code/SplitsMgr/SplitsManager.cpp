@@ -32,7 +32,7 @@ namespace SplitsMgr
 		if( run == nullptr )
 			return;
 
-		m_game_icon_desc = "<![CDATA[" + Utils::get_xml_child_element_text( run, "GameIcon" ) + "]]>";
+		m_game_icon_desc = "\<![CDATA[" + Utils::get_xml_child_element_text( run, "GameIcon" ) + "]]\>";
 		m_game_name = Utils::get_xml_child_element_text( run, "GameName" );
 		m_category = Utils::get_xml_child_element_text( run, "CategoryName" );
 		m_layout_path = Utils::get_xml_child_element_text( run, "LayoutPath" );
@@ -59,9 +59,27 @@ namespace SplitsMgr
 
 	}
 
-	void SplitsManager::write_lss()
+	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
 	{
+		tinyxml2::XMLElement* run{ _document.NewElement( "Run" ) };
+		run->SetAttribute( "version", "1.7.0" );
+		_document.InsertEndChild( run );
 
+		Utils::create_xml_child_element_with_text( _document, run, "GameIcon", m_game_icon_desc );
+		Utils::create_xml_child_element_with_text( _document, run, "GameName", m_game_name );
+		Utils::create_xml_child_element_with_text( _document, run, "CategoryName", m_category );
+		Utils::create_xml_child_element_with_text( _document, run, "LayoutPath", m_layout_path );
+		Utils::create_xml_child_element_with_text( _document, run, "Offset", "00:00:00" );
+		Utils::create_xml_child_element_with_text( _document, run, "AttemptCount", fzn::Tools::Sprintf( "%u", m_nb_sessions ) );
+
+		tinyxml2::XMLElement* segments{ _document.NewElement( "Segments" ) };
+
+		for( Game& game : m_games )
+		{
+			game.write_game( _document, segments );
+		}
+
+		run->InsertEndChild( segments );
 	}
 
 	void SplitsManager::write_json()

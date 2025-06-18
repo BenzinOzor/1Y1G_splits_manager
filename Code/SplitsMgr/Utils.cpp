@@ -21,5 +21,15 @@ namespace SplitsMgr
 
 			return {};
 		}
+
+		void create_xml_child_element_with_text( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _container, std::string_view _child_name, std::string_view _text )
+		{
+			if( _container == nullptr )
+				return;
+
+			tinyxml2::XMLElement* new_elem{ _document.NewElement( _child_name.data() ) };
+			new_elem->SetText( _text.data() );
+			_container->InsertEndChild( new_elem );
+		}
 	}
 }

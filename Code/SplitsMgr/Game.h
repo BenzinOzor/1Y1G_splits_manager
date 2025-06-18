@@ -7,7 +7,8 @@
 
 namespace tinyxml2
 {
-class XMLElement;
+	class XMLElement;
+	class XMLDocument;
 }
 
 namespace SplitsMgr
@@ -27,6 +28,7 @@ namespace SplitsMgr
 		void display();
 
 		tinyxml2::XMLElement* parse_game( tinyxml2::XMLElement* _element );
+		void write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments );
 
 	private:
 		std::string m_name;

@@ -5,6 +5,12 @@
 
 #include "Game.h"
 
+
+namespace tinyxml2
+{
+	class XMLDocument;
+}
+
 namespace SplitsMgr
 {
 	class SplitsManager
@@ -17,7 +23,7 @@ namespace SplitsMgr
 		void read_lss( std::string_view _path );
 		void read_json( std::string_view _path );
 
-		void write_lss();
+		void write_lss( tinyxml2::XMLDocument& _document );
 		void write_json();
 
 	private:

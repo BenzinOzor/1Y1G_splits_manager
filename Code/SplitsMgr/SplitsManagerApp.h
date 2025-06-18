@@ -31,6 +31,7 @@ namespace SplitsMgr
 		void _save_options();
 
 		void _load_lss();
+		void _save_lss();
 
 		std::filesystem::path m_lss_path;
 		std::filesystem::path m_json_path;
