@@ -19,8 +19,8 @@ namespace SplitsMgr
 {
 	struct Split
 	{
-		uint32_t m_index{ 0 };
-		std::string m_name;
+		uint32_t m_split_index{ 0 };
+		uint32_t m_session_index{ 0 };
 		SplitTime m_run_time;
 		SplitTime m_segment_time;
 	};
@@ -35,9 +35,25 @@ namespace SplitsMgr
 		bool contains_split_index( uint32_t _index ) const;
 
 		/**
+		* @brief Get the time of the run at the given split index.
+		* @param _split_index The index of the split at which we want the run time.
+		* @return The run time corresponding to the given split index.
+		**/
+		SplitTime get_split_run_time( uint32_t _split_index ) const;
+
+		/**
+		* @brief Update the last split available on the game because a session has just been made.
+		* @param _run_time The new (total) run time tu put in the split.
+		* @param _segment_time The time of this split. The previous one isn't necessarily in the same game so it has to be given.
+		* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
+		**/
+		void update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished );
+		void update_split_indexes();
+
+		/**
 		* @brief Parse splits file to fill the games sessions.
-		* @param [in] _element Pointer to the current xml element. Will be modified while retrieving splits informations.
-		* @param [in,out] _split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
+		* @param [in]		_element Pointer to the current xml element. Will be modified while retrieving splits informations.
+		* @param [in,out]	_split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
 		**/
 		tinyxml2::XMLElement* parse_game( tinyxml2::XMLElement* _element, uint32_t& _split_index );
 

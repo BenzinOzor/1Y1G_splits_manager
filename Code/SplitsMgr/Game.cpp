@@ -12,6 +12,7 @@
 
 namespace SplitsMgr
 {
+	static constexpr float current_game_text_size = 120.f;
 	static constexpr float split_index_column_size = 28.f;		// ImGui::CalcTextSize( "9999" ).x
 	static constexpr float session_column_size = 84.f;			// ImGui::CalcTextSize( "session 9999" ).x
 	static constexpr float segment_time_column_size = 150.f;
@@ -32,10 +33,7 @@ namespace SplitsMgr
 		
 		if( is_current_game )
 		{
-			const float text_size = ImGui::CalcTextSize( "- Current Game - " ).x;
-			ImGui::SameLine();
-			ImGui::Text( "" );
-			ImGui::SameLine( ImGui::GetContentRegionAvail().x - text_size );
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - current_game_text_size );
 			ImGui::Text( "- Current Game -" );
 			ImGui::PopStyleColor( 4 );
 		}
@@ -67,9 +65,9 @@ namespace SplitsMgr
 					for( Split& split : m_splits )
 					{
 						ImGui::TableNextColumn();
-						ImGui::Text( "%u", split.m_index );
+						ImGui::Text( "%u", split.m_split_index );
 						ImGui::TableNextColumn();
-						ImGui::Text( "%s", split.m_name.c_str() );
+						ImGui::Text( "session %u", split.m_session_index );
 						ImGui::TableNextColumn();
 						ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
 						ImGui::TableNextColumn();
@@ -80,7 +78,7 @@ namespace SplitsMgr
 				{
 					ImGui::TableNextColumn();
 					const Split& split = m_splits.front();
-					ImGui::Text( "%u", split.m_index );
+					ImGui::Text( "%u", split.m_split_index );
 					ImGui::TableNextColumn();
 					ImGui::TableNextColumn();
 					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
@@ -115,13 +113,51 @@ namespace SplitsMgr
 		if( m_splits.empty() )
 			return false;
 
-		return m_splits.front().m_index <= _index && m_splits.back().m_index >= _index;
+		return m_splits.front().m_split_index <= _index && m_splits.back().m_split_index >= _index;
+	}
+
+	/**
+	* @brief Get the time of the run at the given split index.
+	* @param _split_index The index of the split at which we want the run time.
+	* @return The run time corresponding to the given split index.
+	**/
+	SplitTime Game::get_split_run_time( uint32_t _split_index ) const
+	{
+		if( auto it_split = std::ranges::find( m_splits, _split_index, &Split::m_split_index ); it_split != m_splits.end() )
+			return it_split->m_run_time;
+
+		return {};
+	}
+
+	/**
+	* @brief Update the last split available on the game because a session has just been made.
+	* @param _run_time The new (total) run time tu put in the split.
+	* @param _segment_time The time of this split. The previous one isn't necessarily in the same game so it has to be given.
+	* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
+	**/
+	void Game::update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished )
+	{
+		Split& last_split{ m_splits.back() };
+		last_split.m_run_time = _run_time;
+		last_split.m_segment_time = _segment_time;
+
+		if( _game_finished )
+			return;
+
+		Split new_split{ .m_split_index = last_split.m_split_index + 1, .m_session_index = last_split.m_session_index + 1 };
+		m_splits.push_back( new_split );
+	}
+
+	void Game::update_split_indexes()
+	{
+		for( Split& split : m_splits )
+			++split.m_split_index;
 	}
 
 	/**
 	* @brief Parse splits file to fill the games sessions.
-	* @param [in,out] _element Pointer to the current xml element. Will be modified while retrieving splits informations.
-	* @param [in,out] _split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
+	* @param [in]		_element Pointer to the current xml element. Will be modified while retrieving splits informations.
+	* @param [in,out]	_split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
 	**/
 	tinyxml2::XMLElement* Game::parse_game( tinyxml2::XMLElement* _element, uint32_t& _split_index )
 	{
@@ -142,11 +178,7 @@ namespace SplitsMgr
 
 			Split new_split{ _split_index };
 
-			if( split_name.at( 0 ) == '-' )
-			{
-				split_name = split_name.substr( 1 );
-			}
-			else if( split_name.at( 0 ) == '{' )
+			if( split_name.at( 0 ) == '{' )
 			{
 				std::regex reg( "\\{(.*)\\} (.*)" );
 				std::smatch matches;
@@ -161,15 +193,13 @@ namespace SplitsMgr
 				// This is the closing subsplit of the game.
 				parsing_game = false;
 			}
-			else
+			else if( split_name.at( 0 ) != '-' )
 			{
 				m_name = split_name;
 
 				// The game is only this split.
 				parsing_game = false;
 			}
-
-			new_split.m_name = split_name;
 			
 			if( std::string icon = Utils::get_xml_child_element_text( segment, "Icon" ); icon.empty() == false )
 				m_icon_desc = "<![CDATA[" + icon + "]]>";
@@ -186,6 +216,7 @@ namespace SplitsMgr
 				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "RealTime" ) );
 			}
 
+			new_split.m_session_index = m_splits.size() + 1;
 			m_splits.push_back( new_split );
 
 			segment = segment->NextSiblingElement( "Segment" );
@@ -228,7 +259,7 @@ namespace SplitsMgr
 		{
 			tinyxml2::XMLElement* split{ _document.NewElement( "Segment" ) };
 
-			Utils::create_xml_child_element_with_text( _document, split, "Name", m_splits.front().m_name.c_str() );
+			Utils::create_xml_child_element_with_text( _document, split, "Name", m_name.c_str() );
 			Utils::create_xml_child_element_with_text( _document, split, "Icon", m_icon_desc.c_str() );
 
 			if( m_estimation == SplitTime{} )
@@ -260,12 +291,12 @@ namespace SplitsMgr
 
 			if( &split == &m_splits.back() )
 			{
-				split_name = "{" + m_name + "} " + split.m_name;
+				split_name = "{" + m_name + "} " + fzn::Tools::Sprintf( "session %u", split.m_session_index );
 				Utils::create_xml_child_element_with_text( _document, segment, "Icon", m_icon_desc.c_str() );
 			}
 			else
 			{
-				split_name = "-" + split.m_name;
+				split_name = "-" + fzn::Tools::Sprintf( "session %u", split.m_session_index );
 				Utils::create_xml_child_element_with_text( _document, segment, "Icon", "" );
 			}
 

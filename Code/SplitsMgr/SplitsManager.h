@@ -28,7 +28,15 @@ namespace SplitsMgr
 		void write_json();
 
 	private:
-		std::string _get_current_game();
+		void _get_current_game();
+		void _update_sessions( bool _game_finished );
+
+		/**
+		* @brief Get the time of the run at the given split index.
+		* @param _split_index The index of the split at which we want the run time.
+		* @return The run time corresponding to the given split index.
+		**/
+		SplitTime _get_split_run_time( uint32_t _split_index ) const;
 
 		std::string m_game_icon_desc;
 		std::string m_game_name;
@@ -37,8 +45,11 @@ namespace SplitsMgr
 		uint32_t m_nb_sessions{ 0 };	// Determined from the number of splits, then written in the .lss. Never read so it's always the number of split when starting a new session.
 
 		std::vector< Game > m_games;
+		Game* m_current_game{ nullptr };
 
 		uint32_t m_current_split{ 0 };
 		SplitTime m_run_time{};
+
+		bool m_sessions_updated{ false };	// True if all the sessions have been updated with the right splits created.
 	};
 } // SplitsMgr
