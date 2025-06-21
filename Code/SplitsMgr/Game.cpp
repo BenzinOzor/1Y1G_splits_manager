@@ -12,8 +12,9 @@
 
 namespace SplitsMgr
 {
-	static constexpr float split_index_column_size = 28.f;	// ImGui::CalcTextSize( "9999" ).x
-	static constexpr float session_column_size = 84;		// ImGui::CalcTextSize( "session 9999" ).x
+	static constexpr float split_index_column_size = 28.f;		// ImGui::CalcTextSize( "9999" ).x
+	static constexpr float session_column_size = 84.f;			// ImGui::CalcTextSize( "session 9999" ).x
+	static constexpr float segment_time_column_size = 150.f;
 
 	void Game::display()
 	{
@@ -54,11 +55,12 @@ namespace SplitsMgr
 			}
 
 			ImGui::Indent();
-			if( ImGui::BeginTable( "splits_infos", 3 ) )
+			if( ImGui::BeginTable( "splits_infos", 4 ) )
 			{
 				ImGui::TableSetupColumn( "split_index", ImGuiTableColumnFlags_WidthFixed, split_index_column_size );
 				ImGui::TableSetupColumn( "session", ImGuiTableColumnFlags_WidthFixed, session_column_size );
-				ImGui::TableSetupColumn( "time", ImGuiTableColumnFlags_WidthFixed );
+				ImGui::TableSetupColumn( "time", ImGuiTableColumnFlags_WidthStretch );
+				ImGui::TableSetupColumn( "segment_time", ImGuiTableColumnFlags_WidthFixed, segment_time_column_size );
 
 				if( m_splits.size() > 1 )
 				{
@@ -70,6 +72,8 @@ namespace SplitsMgr
 						ImGui::Text( "%s", split.m_name.c_str() );
 						ImGui::TableNextColumn();
 						ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
+						ImGui::TableNextColumn();
+						ImGui::Text( std::format( "{:%H:%M:%S}", split.m_segment_time ).c_str() );
 					}
 				}
 				else
@@ -80,6 +84,8 @@ namespace SplitsMgr
 					ImGui::TableNextColumn();
 					ImGui::TableNextColumn();
 					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
+					ImGui::TableNextColumn();
+					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_segment_time ).c_str() );
 				}
 				ImGui::EndTable();
 			}
@@ -196,7 +202,7 @@ namespace SplitsMgr
 	* @param [in,out] _it_splits The current iterator in the times read from the json file. Will be incremented while reading the times for the splits.
 	* @return True if all the splits have retrieved a time. False if at least one doesn't have a time, meaning the timer stopped here and there's no need to go further.
 	**/
-	bool Game::parse_split_times( Json::Value::iterator& _it_splits )
+	bool Game::parse_split_times( Json::Value::iterator& _it_splits, SplitTime& _last_time )
 	{
 		for( Split& split : m_splits )
 		{
@@ -205,6 +211,9 @@ namespace SplitsMgr
 			// If the run time indicates 0, we're at
 			if( split.m_run_time == SplitTime{} )
 				return false;
+
+			split.m_segment_time = split.m_run_time - _last_time;
+			_last_time = split.m_run_time;
 
 			++_it_splits;
 		}

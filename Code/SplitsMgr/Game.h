@@ -46,7 +46,7 @@ namespace SplitsMgr
 		* @param [in,out] _it_splits The current iterator in the times read from the json file. Will be incremented while reading the times for the splits.
 		* @return True if all the splits have retrieved a time. False if at least one doesn't have a time, meaning the timer stopped here and there's no need to go further.
 		**/
-		bool parse_split_times( Json::Value::iterator& _it_splits );
+		bool parse_split_times( Json::Value::iterator& _it_splits, SplitTime& _last_time );
 		void write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments );
 
 	private:

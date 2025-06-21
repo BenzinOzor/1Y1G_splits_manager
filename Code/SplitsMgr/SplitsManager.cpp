@@ -96,11 +96,12 @@ namespace SplitsMgr
 		Json::Value splits = root[ "Splits" ];
 
 		Json::Value::iterator it = splits.begin();
+		SplitTime run_time{};
 
 		for( Game& game : m_games )
 		{
 			// This game didn't fill all its splits, no need to go further.
-			if( game.parse_split_times( it ) == false )
+			if( game.parse_split_times( it, run_time ) == false )
 				return;
 		}
 	}

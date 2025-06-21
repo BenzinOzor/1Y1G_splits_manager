@@ -129,6 +129,7 @@
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)FrameWork\FrameWork\Dependencies\Libs\Fmod\;$(SolutionDir)FrameWork\FrameWork\Dependencies\Libs\FrameWork\$(Configuration)\;$(SolutionDir)FrameWork\FrameWork\Dependencies\Libs\SFML\$(Configuration)\;$(SolutionDir)FrameWork\FrameWork\Dependencies\Libs\TinyXML2\$(Configuration)\;$(SolutionDir)FrameWork\FrameWork\Dependencies\Libs\LuaPlus\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-network-d.lib;fmod_vc.lib;tinyxml2d.lib;FrameWork_d.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <PreBuildEvent>
       <Command>call "$(SolutionDir)FrameWork\Scripts\CopyDllsToBinaries.bat" $(SolutionDir) FrameWork FrameWork Utilities $(ProjectName) $(Configuration)</Command>

@@ -13,7 +13,7 @@
 #include "SplitsManagerApp.h"
 
 
-int main()
+int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
 	fzn::FazonCore::CreateInstance( { "1Y1G Splits Manager", FZNProjectType::Application } );
 
