@@ -25,6 +25,7 @@ namespace SplitsMgr
 		void display();
 
 		uint32_t get_current_split_index() const;
+		bool has_json_been_opened() const { return m_json_path.empty() == false; }
 
 	private:
 		/**
@@ -68,3 +69,5 @@ namespace SplitsMgr
 		SplitsManager m_splits_mgr;
 	};
 }
+
+extern SplitsMgr::SplitsManagerApp* g_splits_app;

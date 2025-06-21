@@ -7,33 +7,84 @@
 #include <FZN/UI/ImGui.h>
 
 #include "Game.h"
+#include "SplitsManagerApp.h"
 
 
 namespace SplitsMgr
 {
+	static constexpr float split_index_column_size = 28.f;	// ImGui::CalcTextSize( "9999" ).x
+	static constexpr float session_column_size = 84;		// ImGui::CalcTextSize( "session 9999" ).x
+
 	void Game::display()
 	{
-		if( ImGui::CollapsingHeader( m_name.c_str() ) )
+		const bool is_current_game = g_splits_app->has_json_been_opened() && contains_split_index( g_splits_app->get_current_split_index() );
+
+		if( is_current_game )
 		{
-			ImGui::PushID( m_name.c_str() );
-			ImGui::Indent();
-			if( m_splits.size() > 1 )
+			ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::black );
+			ImGui::PushStyleColor( ImGuiCol_Header, ImGui_fzn::color::light_yellow );
+			ImGui::PushStyleColor( ImGuiCol_HeaderHovered, ImGui_fzn::color::bright_yellow );
+			ImGui::PushStyleColor( ImGuiCol_HeaderActive, ImGui_fzn::color::white );
+		}
+
+		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current_game ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
+		
+		if( is_current_game )
+		{
+			const float text_size = ImGui::CalcTextSize( "- Current Game - " ).x;
+			ImGui::SameLine();
+			ImGui::Text( "" );
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - text_size );
+			ImGui::Text( "- Current Game -" );
+			ImGui::PopStyleColor( 4 );
+		}
+
+		if( header_open )
+		{
+			if( is_current_game )
 			{
-				for( Split& split : m_splits )
-				{
-					ImGui::Text( "%u - %s -", split.m_index, split.m_name.c_str() );
-					ImGui::SameLine();
-					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
-				}
-			}
-			else
-			{
-				const Split& split = m_splits.front();
-				ImGui::Text( "%u -", split.m_index );
-				ImGui::SameLine();
-				ImGui::Text( std::format("{:%H:%M:%S}", split.m_run_time ).c_str() );
+				const ImVec2 rect_top_left{ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - ImGui::GetStyle().ItemSpacing.y };
+
+				ImVec2 rect_size{ ImGui::GetContentRegionAvail().x, 0.f };
+
+				rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeightWithSpacing() * m_splits.size();
+				rect_size.y += ImGui::GetStyle().ItemSpacing.y * 2.f + ImGui::GetFrameHeightWithSpacing();
+
+				ImGui_fzn::rect_filled( { rect_top_left, rect_size }, { 0.58f, 0.43f, 0.03f, 1.f } );
 			}
 
+			ImGui::Indent();
+			if( ImGui::BeginTable( "splits_infos", 3 ) )
+			{
+				ImGui::TableSetupColumn( "split_index", ImGuiTableColumnFlags_WidthFixed, split_index_column_size );
+				ImGui::TableSetupColumn( "session", ImGuiTableColumnFlags_WidthFixed, session_column_size );
+				ImGui::TableSetupColumn( "time", ImGuiTableColumnFlags_WidthFixed );
+
+				if( m_splits.size() > 1 )
+				{
+					for( Split& split : m_splits )
+					{
+						ImGui::TableNextColumn();
+						ImGui::Text( "%u", split.m_index );
+						ImGui::TableNextColumn();
+						ImGui::Text( "%s", split.m_name.c_str() );
+						ImGui::TableNextColumn();
+						ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
+					}
+				}
+				else
+				{
+					ImGui::TableNextColumn();
+					const Split& split = m_splits.front();
+					ImGui::Text( "%u", split.m_index );
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
+				}
+				ImGui::EndTable();
+			}
+
+			ImGui::PushID( m_name.c_str() );
 			if( ImGui::BeginTable( "add_session_table", 2 ) )
 			{
 				ImGui::TableSetupColumn( "input_text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );

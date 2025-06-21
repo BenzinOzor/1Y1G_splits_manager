@@ -10,6 +10,8 @@
 #include "SplitsManagerApp.h"
 
 
+SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
+
 namespace SplitsMgr
 {
 	/**
@@ -18,6 +20,8 @@ namespace SplitsMgr
 	SplitsManagerApp::SplitsManagerApp()
 	{
 		g_pFZN_Core->AddCallback( this, &SplitsManagerApp::display, fzn::DataCallbackType::Display );
+
+		g_splits_app = this;
 	}
 
 	SplitsManagerApp::~SplitsManagerApp()
@@ -218,7 +222,7 @@ namespace SplitsMgr
 
 		if( open_file_name.lpstrFile[ 0 ] != '\0' )
 		{
-			m_lss_path = open_file_name.lpstrFile;
+			m_json_path = open_file_name.lpstrFile;
 			m_splits_mgr.read_json( open_file_name.lpstrFile );
 		}
 	}
