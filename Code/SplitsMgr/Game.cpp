@@ -7,7 +7,6 @@
 #include <FZN/UI/ImGui.h>
 
 #include "Game.h"
-#include "Utils.h"
 
 
 namespace SplitsMgr
@@ -16,33 +15,63 @@ namespace SplitsMgr
 	{
 		if( ImGui::CollapsingHeader( m_name.c_str() ) )
 		{
+			ImGui::PushID( m_name.c_str() );
 			ImGui::Indent();
 			if( m_splits.size() > 1 )
 			{
 				for( Split& split : m_splits )
 				{
-					ImGui::Text( "%s - ", split.m_name.c_str() );
+					ImGui::Text( "%u - %s -", split.m_index, split.m_name.c_str() );
 					ImGui::SameLine();
-					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_played ).c_str() );
+					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
 				}
 			}
 			else
 			{
-				ImGui::Text( std::format("{:%H:%M:%S}", m_splits.front().m_played ).c_str() );
+				const Split& split = m_splits.front();
+				ImGui::Text( "%u -", split.m_index );
+				ImGui::SameLine();
+				ImGui::Text( std::format("{:%H:%M:%S}", split.m_run_time ).c_str() );
 			}
 
-			ImGui::Button( "Add Session", { ImGui::GetContentRegionAvail().x, 0.f } );
+			if( ImGui::BeginTable( "add_session_table", 2 ) )
+			{
+				ImGui::TableSetupColumn( "input_text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );
+				ImGui::TableSetupColumn( "button", ImGuiTableColumnFlags_WidthFixed );
+
+				ImGui::TableNextColumn();
+				ImGui::PushItemWidth( -1 );
+				ImGui::InputTextWithHint( "##new_session_time", "00:00:00", &m_new_session_time );
+				ImGui::PopItemWidth();
+
+				ImGui::TableNextColumn();
+				ImGui::Button( "Add" );
+				ImGui::EndTable();
+			}
 			ImGui::Unindent();
+			ImGui::PopID();
 		}
 	}
 
-	tinyxml2::XMLElement* Game::parse_game( tinyxml2::XMLElement* _element )
+	bool Game::contains_split_index( uint32_t _index ) const
+	{
+		if( m_splits.empty() )
+			return false;
+
+		return m_splits.front().m_index <= _index && m_splits.back().m_index >= _index;
+	}
+
+	/**
+	* @brief Parse splits file to fill the games sessions.
+	* @param [in,out] _element Pointer to the current xml element. Will be modified while retrieving splits informations.
+	* @param [in,out] _split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
+	**/
+	tinyxml2::XMLElement* Game::parse_game( tinyxml2::XMLElement* _element, uint32_t& _split_index )
 	{
 		if( _element == nullptr )
 			return nullptr;
 
 		tinyxml2::XMLElement* segment = _element;
-
 		bool parsing_game{ true };
 
 		SplitTime estimate{};
@@ -54,7 +83,7 @@ namespace SplitsMgr
 			if( split_name.empty() )
 				return segment->NextSiblingElement( "Segment" );
 
-			Split new_split{};
+			Split new_split{ _split_index };
 
 			if( split_name.at( 0 ) == '-' )
 			{
@@ -91,22 +120,43 @@ namespace SplitsMgr
 			// Best segments are used for game time estimations.
 			if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
 			{
-				std::string best_time = Utils::get_xml_child_element_text( best_time_el, "RealTime" );
+				/*std::string best_time = Utils::get_xml_child_element_text( best_time_el, "RealTime" );
 				std::stringstream stream;
 				stream << best_time;
 				SplitTime session_estimate{};
 				std::chrono::from_stream( stream, "%H:%M:%S", session_estimate );
-				estimate += session_estimate;
+				estimate += session_estimate;*/
+				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "RealTime" ) );
 			}
 
 			m_splits.push_back( new_split );
 
 			segment = segment->NextSiblingElement( "Segment" );
+			++_split_index;
 		}
 
 		m_estimation = estimate;
 
 		return segment;
+	}
+
+	/**
+	* @brief Parse split times for this game. Will iterate in the array as long as it has splits.
+	* @param [in,out] _it_splits The current iterator in the times read from the json file. Will be incremented while reading the times for the splits.
+	* @return True if all the splits have retrieved a time. False if at least one doesn't have a time, meaning the timer stopped here and there's no need to go further.
+	**/
+	bool Game::parse_split_times( Json::Value::iterator& _it_splits )
+	{
+		for( Split& split : m_splits )
+		{
+			split.m_run_time = Utils::get_time_from_string( (*_it_splits)[ "Time" ].asString() );
+
+			// If the run time indicates 0, we're at
+			if( split.m_run_time == SplitTime{} )
+				return false;
+
+			++_it_splits;
+		}
 	}
 
 	void Game::write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments )

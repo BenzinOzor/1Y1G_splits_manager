@@ -1,3 +1,7 @@
+#include <format>
+
+#include <Externals/json/json.h>
+
 #include <FZN/Tools/Logging.h>
 #include <FZN/Tools/Tools.h>
 
@@ -9,6 +13,26 @@ namespace SplitsMgr
 {
 	void SplitsManager::display()
 	{
+		if( m_games.empty() )
+			return;
+
+		ImGui::NewLine();
+		std::string title = m_game_name + " - " + m_category;
+		ImGui::SetWindowFontScale( 2.f );
+		ImVec2 text_size = ImGui::CalcTextSize( title.c_str() );
+		ImGui::Text("");
+		ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - text_size.x * 0.5f );
+		ImGui::Text( title.c_str() );
+		ImGui::SetWindowFontScale( 1.f );
+		ImGui::NewLine();
+		ImGui::Text( "Current game: %s (%u)", _get_current_game().c_str(), m_current_split );
+
+		ImGui::Text( "Current run time:" );
+		ImGui::SameLine();
+		ImGui::Text( std::format( "{:%H:%M:%S}", m_run_time ).c_str() );
+
+		ImGui::Separator();
+
 		for( Game& game : m_games )
 		{
 			game.display();
@@ -43,12 +67,13 @@ namespace SplitsMgr
 			return;
 
 		tinyxml2::XMLElement* segment = segments->FirstChildElement( "Segment" );
+		uint32_t split_index{ 0 };
 
 		while( segment != nullptr )
 		{
 			auto game = Game{};
 
-			segment = game.parse_game( segment );
+			segment = game.parse_game( segment, split_index );
 
 			m_games.push_back( game );
 		}
@@ -56,7 +81,28 @@ namespace SplitsMgr
 
 	void SplitsManager::read_json( std::string_view _path )
 	{
+		auto file = std::ifstream{ _path.data() };
 
+		if( file.is_open() == false )
+			return;
+
+		auto root = Json::Value{};
+
+		file >> root;
+		
+		m_current_split = root[ "CurrentSplitIndex" ].asUInt();
+		m_run_time = Utils::get_time_from_string( root[ "CurrentTime" ].asString() );
+
+		Json::Value splits = root[ "Splits" ];
+
+		Json::Value::iterator it = splits.begin();
+
+		for( Game& game : m_games )
+		{
+			// This game didn't fill all its splits, no need to go further.
+			if( game.parse_split_times( it ) == false )
+				return;
+		}
 	}
 
 	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
@@ -85,5 +131,16 @@ namespace SplitsMgr
 	void SplitsManager::write_json()
 	{
 
+	}
+
+	std::string SplitsManager::_get_current_game()
+	{
+		for( Game& game : m_games )
+		{
+			if( game.contains_split_index( m_current_split ) )
+				return game.get_name();
+		}
+
+		return {};
 	}
 }

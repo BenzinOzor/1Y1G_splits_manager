@@ -1,3 +1,4 @@
+#include <functional>
 #include <fstream>
 #include <regex>
 
@@ -58,38 +59,54 @@ namespace SplitsMgr
 		ImGui::PopStyleColor( 2 );
 	}
 
+	uint32_t SplitsManagerApp::get_current_split_index() const
+	{
+		return m_splits_mgr.get_current_split_index();
+	}
+
+	/**
+	* @brief Display the window menu bar.
+	**/
 	void SplitsManagerApp::_display_menu_bar()
 	{
+		auto menu_item = [&]( const char* _label, bool _disable, std::function< void(void) > _fct )
+		{
+			if( _disable )
+				ImGui::BeginDisabled();
+
+			if( ImGui::MenuItem( _label ) )
+				_fct();
+
+			if( _disable )
+				ImGui::EndDisabled();
+		};
+
 		if( ImGui::BeginMainMenuBar() )
 		{
 			if( ImGui::BeginMenu( "File" ) )
 			{
-				if( ImGui::MenuItem( "Load LSS" ) )
-					_load_lss();
+				const bool lss_invalid = m_lss_path.empty();
+				const bool json_invalid = m_json_path.empty();
 
-				if( ImGui::MenuItem( "Load JSON" ) )
-				{}
+				menu_item( "Load LSS", false, [&]() { _load_lss(); } );
+				menu_item( "Load JSON", lss_invalid, [&]() { _load_json(); } );
 
 				ImGui::Separator();
 
-				if( ImGui::MenuItem( "Save LSS" ) )
-					_save_lss();
-
-				if( ImGui::MenuItem( "Save JSON" ) )
-				{}
-
-				if( ImGui::MenuItem( "Save All" ) )
-				{}
+				menu_item( "Save LSS", lss_invalid, [&]() { _save_lss(); } );
+				menu_item( "Save JSON", json_invalid, [&]() { _save_json(); } );
+				menu_item( "Save All", lss_invalid || json_invalid, [&]() { _save_lss(); _save_json(); } );
 
 				ImGui::EndMenu();
 			}
-
-			ImGui::Text( "Sessions: %d", m_splits_mgr.get_nb_sessions() );
 
 			ImGui::EndMainMenuBar();
 		}
 	}
 
+	/**
+	* @brief Read the saved options file in the Fazon Apps folder.
+	**/
 	void SplitsManagerApp::_load_options()
 	{
 		auto file = std::ifstream{ g_pFZN_Core->GetSaveFolderPath() + "/options.json" };
@@ -120,11 +137,17 @@ namespace SplitsMgr
 		m_options_datas.m_bindings = g_pFZN_InputMgr->GetActionKeys();*/
 	}
 
+	/**
+	* @brief Write the saved options file in the Fazon Apps folder.
+	**/
 	void SplitsManagerApp::_save_options()
 	{
 
 	}
 
+	/**
+	* @brief Read the splits file used for 1Y1G.
+	**/
 	void SplitsManagerApp::_load_lss()
 	{
 		char file[ 100 ];
@@ -147,6 +170,9 @@ namespace SplitsMgr
 		}
 	}
 
+	/**
+	* @brief Write the splits file once it's done being edited.
+	**/
 	void SplitsManagerApp::_save_lss()
 	{
 		tinyxml2::XMLDocument dest_file{};
@@ -171,4 +197,35 @@ namespace SplitsMgr
 		if( out_file.is_open() )
 			out_file << data.c_str();
 	}
+
+	/**
+	* @brief Read the json containing the exported times of the current 1Y1G.
+	**/
+	void SplitsManagerApp::_load_json()
+	{
+		char file[ 100 ];
+		OPENFILENAME open_file_name;
+		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+
+		open_file_name.lStructSize = sizeof( open_file_name );
+		open_file_name.hwndOwner = NULL;
+		open_file_name.lpstrFile = file;
+		open_file_name.lpstrFile[ 0 ] = '\0';
+		open_file_name.nMaxFile = sizeof( file );
+		open_file_name.lpstrFileTitle = NULL;
+		open_file_name.nMaxFileTitle = 0;
+		GetOpenFileName( &open_file_name );
+
+		if( open_file_name.lpstrFile[ 0 ] != '\0' )
+		{
+			m_lss_path = open_file_name.lpstrFile;
+			m_splits_mgr.read_json( open_file_name.lpstrFile );
+		}
+	}
+
+	void SplitsManagerApp::_save_json()
+	{
+
+	}
+
 }

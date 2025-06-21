@@ -31,5 +31,16 @@ namespace SplitsMgr
 			new_elem->SetText( _text.data() );
 			_container->InsertEndChild( new_elem );
 		}
+
+		SplitTime get_time_from_string( std::string_view _time, std::string_view _format /*= "%H:%M:%S" */ )
+		{
+			std::stringstream stream;
+			stream << _time;
+			std::chrono::duration<int, std::milli> ret_time{};
+			std::chrono::from_stream( stream, _format.data(), ret_time );
+
+			return ret_time;
+		}
+
 	}
 }
