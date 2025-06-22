@@ -30,11 +30,21 @@ namespace SplitsMgr
 		}
 
 		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current_game ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
-		
+
+		if( m_time != SplitTime{} )
+		{
+			std::string game_time{ std::format( "{:%H:%M:%S} ", m_time ) };
+			const float game_time_width{ ImGui::CalcTextSize( game_time.c_str() ).x };
+
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - game_time_width );
+			ImGui::Text( game_time.c_str() );
+		}
+
 		if( is_current_game )
 		{
-			ImGui::SameLine( ImGui::GetContentRegionAvail().x - current_game_text_size );
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - current_game_text_size * 0.5f );
 			ImGui::Text( "- Current Game -" );
+
 			ImGui::PopStyleColor( 4 );
 		}
 
@@ -245,6 +255,8 @@ namespace SplitsMgr
 
 			split.m_segment_time = split.m_run_time - _last_time;
 			_last_time = split.m_run_time;
+
+			m_time += split.m_segment_time;
 
 			++_it_splits;
 		}

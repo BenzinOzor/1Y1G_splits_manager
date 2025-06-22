@@ -71,6 +71,7 @@ namespace SplitsMgr
 		std::string m_name;
 		std::string m_icon_desc;
 		SplitTime m_estimation;
+		SplitTime m_time;			// The timer for the game duration.
 
 		Splits m_splits;
 
