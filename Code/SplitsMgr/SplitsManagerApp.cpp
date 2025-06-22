@@ -21,6 +21,16 @@ namespace SplitsMgr
 	{
 		g_pFZN_Core->AddCallback( this, &SplitsManagerApp::display, fzn::DataCallbackType::Display );
 
+		_load_options();
+
+		if( m_lss_path.empty() == false )
+		{
+			m_splits_mgr.read_lss( m_lss_path.string() );
+
+			if( m_json_path.empty() == false )
+				m_splits_mgr.read_json( m_json_path.string() );
+		}
+
 		g_splits_app = this;
 	}
 
@@ -98,7 +108,13 @@ namespace SplitsMgr
 				ImGui::Separator();
 
 				menu_item( "Save LSS", lss_invalid, [&]() { _save_lss(); } );
+
+				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_lss_path.string().c_str() ) );
+
 				menu_item( "Save JSON", json_invalid, [&]() { _save_json(); } );
+
+				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_json_path.string().c_str() ) );
+
 				menu_item( "Save All", lss_invalid || json_invalid, [&]() { _save_lss(); _save_json(); } );
 
 				ImGui::EndMenu();
@@ -122,23 +138,8 @@ namespace SplitsMgr
 
 		file >> root;
 
-		/*auto load_color = [&root]( const char* _color_name, ImVec4& _color )
-		{
-			_color.x = root[ _color_name ][ ColorChannel::red ].asUInt() / 255.f;
-			_color.y = root[ _color_name ][ ColorChannel::green ].asUInt() / 255.f;
-			_color.z = root[ _color_name ][ ColorChannel::blue ].asUInt() / 255.f;
-			_color.w = root[ _color_name ][ ColorChannel::alpha ].isNull() ? 1.f : root[ _color_name ][ ColorChannel::alpha ].asUInt() / 255.f;
-		};
-
-		load_color( "canvas_color", m_options_datas.m_canvas_background_color );
-		load_color( "area_highlight_color", m_options_datas.m_area_highlight_color );
-		load_color( "grid_color", m_options_datas.m_grid_color );
-
-		m_options_datas.m_area_highlight_thickness = root[ "area_highlight_thickness" ].asFloat();
-		m_options_datas.m_grid_same_color_as_canvas = root[ "grid_same_color_as_canvas" ].asBool();
-		m_options_datas.m_show_grid = root[ "show_grid" ].asBool();
-
-		m_options_datas.m_bindings = g_pFZN_InputMgr->GetActionKeys();*/
+		m_lss_path	= root[ "lss_path" ].asString();
+		m_json_path = root[ "json_path" ].asString();
 	}
 
 	/**
@@ -146,7 +147,17 @@ namespace SplitsMgr
 	**/
 	void SplitsManagerApp::_save_options()
 	{
+		auto file = std::ofstream{ g_pFZN_Core->GetSaveFolderPath() + "/options.json" };
+		auto root = Json::Value{};
+		Json::StreamWriterBuilder writer_builder;
 
+		writer_builder.settings_["emitUTF8"] = true;
+		std::unique_ptr<Json::StreamWriter> writer( writer_builder.newStreamWriter() );
+
+		root[ "lss_path" ] = m_lss_path.string().c_str();
+		root[ "json_path" ] = m_json_path.string().c_str();
+
+		writer->write( root, &file );
 	}
 
 	/**
@@ -172,6 +183,8 @@ namespace SplitsMgr
 			m_lss_path = open_file_name.lpstrFile;
 			m_splits_mgr.read_lss( open_file_name.lpstrFile );
 		}
+
+		_save_options();
 	}
 
 	/**
@@ -225,6 +238,8 @@ namespace SplitsMgr
 			m_json_path = open_file_name.lpstrFile;
 			m_splits_mgr.read_json( open_file_name.lpstrFile );
 		}
+
+		_save_options();
 	}
 
 	void SplitsManagerApp::_save_json()

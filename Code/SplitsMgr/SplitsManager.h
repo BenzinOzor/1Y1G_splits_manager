@@ -20,8 +20,9 @@ namespace SplitsMgr
 	public:
 		void display();
 
-		uint32_t get_nb_sessions() const			{ return m_nb_sessions; }
-		uint32_t get_current_split_index() const	{ return m_current_split; }
+		Game*		get_current_game() const		{ return m_current_game; }
+		uint32_t	get_nb_sessions() const			{ return m_nb_sessions; }
+		uint32_t	get_current_split_index() const	{ return m_current_split; }
 
 		void read_lss( std::string_view _path );
 		void read_json( std::string_view _path );

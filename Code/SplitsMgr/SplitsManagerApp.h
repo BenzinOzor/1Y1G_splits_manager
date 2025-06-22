@@ -24,8 +24,8 @@ namespace SplitsMgr
 		**/
 		void display();
 
-		uint32_t get_current_split_index() const;
-		bool has_json_been_opened() const { return m_json_path.empty() == false; }
+		Game*		get_current_game() const		{ return m_splits_mgr.get_current_game(); }
+		uint32_t	get_current_split_index() const;
 
 	private:
 		/**

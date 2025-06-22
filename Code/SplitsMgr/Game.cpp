@@ -19,7 +19,8 @@ namespace SplitsMgr
 
 	void Game::display()
 	{
-		const bool is_current_game = g_splits_app->has_json_been_opened() && contains_split_index( g_splits_app->get_current_split_index() );
+		const Game* current_game{ g_splits_app->get_current_game() };
+		const bool is_current_game = current_game != nullptr && current_game->get_name() == m_name;
 
 		if( is_current_game )
 		{
