@@ -135,6 +135,13 @@ namespace SplitsMgr
 		}
 
 		_get_current_game();
+
+		if( m_current_split == 0 )
+			return;
+
+		// If the previous split has the same time as the run time, it means the sessions can't be updated or it will create a segment time of 00:00:00
+		if( _get_split_run_time( m_current_split - 1 ) == m_run_time )
+			m_sessions_updated = true;
 	}
 
 	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
@@ -160,9 +167,15 @@ namespace SplitsMgr
 		run->InsertEndChild( segments );
 	}
 
-	void SplitsManager::write_json()
+	void SplitsManager::write_json( Json::Value& _root )
 	{
+		_root[ "CurrentSplitIndex" ] = m_current_split;
+		_root[ "CurrentTime" ] = std::format( "{:%H:%M:%S}", m_run_time ).c_str();
 
+		for( const Game& game : m_games )
+		{
+			game.write_split_times( _root );
+		}
 	}
 
 	void SplitsManager::_get_current_game()

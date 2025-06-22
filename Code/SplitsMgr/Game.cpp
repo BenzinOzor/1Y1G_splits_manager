@@ -320,4 +320,24 @@ namespace SplitsMgr
 			_segments->InsertEndChild( segment );
 		}
 	}
+
+	void Game::write_split_times( Json::Value& _root ) const
+	{
+		auto get_split_name = [ this ]( const Split& _split )
+		{
+			if( m_splits.size() == 1 )
+				return m_name;
+
+			if( _split.m_session_index < m_splits.size() )
+				return std::format( "-session {}", _split.m_session_index );
+
+			return fzn::Tools::Sprintf( "{%s} session %u", m_name.c_str(), _split.m_session_index );
+		};
+
+		for( const Split& split : m_splits )
+		{
+			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = split.m_run_time != SplitTime{} ? std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() : Json::Value{};
+			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
+		}
+	}
 }

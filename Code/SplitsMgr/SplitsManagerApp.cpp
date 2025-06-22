@@ -229,7 +229,16 @@ namespace SplitsMgr
 
 	void SplitsManagerApp::_save_json()
 	{
+		auto file = std::ofstream{ m_json_path };
+		auto root = Json::Value{};
+		Json::StyledWriter json_writer;
 
+		root[ "TimingMethod" ] = 0;
+		root[ "CurrentSplitTime" ] = Json::Value{};
+
+		m_splits_mgr.write_json( root );
+
+		file << root;
 	}
 
 }

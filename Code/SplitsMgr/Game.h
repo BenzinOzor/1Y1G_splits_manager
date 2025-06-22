@@ -65,6 +65,8 @@ namespace SplitsMgr
 		bool parse_split_times( Json::Value::iterator& _it_splits, SplitTime& _last_time );
 		void write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments );
 
+		void write_split_times( Json::Value& _root ) const;
+
 	private:
 		std::string m_name;
 		std::string m_icon_desc;

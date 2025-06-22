@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <Externals/json/json.h>
+
 #include "Game.h"
 
 
@@ -25,7 +27,7 @@ namespace SplitsMgr
 		void read_json( std::string_view _path );
 
 		void write_lss( tinyxml2::XMLDocument& _document );
-		void write_json();
+		void write_json( Json::Value& _root );
 
 	private:
 		void _get_current_game();
