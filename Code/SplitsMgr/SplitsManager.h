@@ -6,6 +6,7 @@
 #include <Externals/json/json.h>
 
 #include "Game.h"
+#include "Event.h"
 
 
 namespace tinyxml2
@@ -18,11 +19,22 @@ namespace SplitsMgr
 	class SplitsManager
 	{
 	public:
+		SplitsManager();
+		~SplitsManager();
+
 		void display();
+		void on_event();
 
 		Game*		get_current_game() const		{ return m_current_game; }
 		uint32_t	get_nb_sessions() const			{ return m_nb_sessions; }
 		uint32_t	get_current_split_index() const	{ return m_current_split; }
+
+		/**
+		* @brief Get the time of the run at the given split index.
+		* @param _split_index The index of the split at which we want the run time.
+		* @return The run time corresponding to the given split index.
+		**/
+		SplitTime get_split_run_time( uint32_t _split_index ) const;
 
 		void read_lss( std::string_view _path );
 		void read_json( std::string_view _path );
@@ -33,13 +45,8 @@ namespace SplitsMgr
 	private:
 		void _get_current_game();
 		void _update_sessions( bool _game_finished );
-
-		/**
-		* @brief Get the time of the run at the given split index.
-		* @param _split_index The index of the split at which we want the run time.
-		* @return The run time corresponding to the given split index.
-		**/
-		SplitTime _get_split_run_time( uint32_t _split_index ) const;
+		void _update_games_splits_indexes( const Game* _game );
+		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
 		std::string m_game_icon_desc;
 		std::string m_game_name;

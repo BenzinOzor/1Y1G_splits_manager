@@ -269,6 +269,7 @@
     <ResourceCompile Include="..\Data\res.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="SplitsMgr\Event.h" />
     <ClInclude Include="SplitsMgr\Game.h" />
     <ClInclude Include="SplitsMgr\SplitsManager.h" />
     <ClInclude Include="SplitsMgr\SplitsManagerApp.h" />

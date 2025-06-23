@@ -33,6 +33,8 @@ namespace SplitsMgr
 
 		const std::string& get_name() const { return m_name; }
 		bool contains_split_index( uint32_t _index ) const;
+		bool is_finished() const { return m_splits.back().m_run_time != SplitTime{}; }
+		const Splits& get_splits() const { return m_splits; }
 
 		/**
 		* @brief Get the time of the run at the given split index.
@@ -48,6 +50,10 @@ namespace SplitsMgr
 		* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
 		**/
 		void update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished );
+
+		/**
+		* @brief Increment all split indexes because a session has been added before this game.
+		**/
 		void update_split_indexes();
 
 		/**
@@ -68,6 +74,12 @@ namespace SplitsMgr
 		void write_split_times( Json::Value& _root ) const;
 
 	private:
+		/**
+		* @brief Add a new session to the game using m_new_session_time.
+		**/
+		void _add_new_session_time();
+		void _refresh_game_time();
+
 		std::string m_name;
 		std::string m_icon_desc;
 		SplitTime m_estimation;
@@ -76,5 +88,6 @@ namespace SplitsMgr
 		Splits m_splits;
 
 		std::string m_new_session_time;
+		bool m_new_session_game_finished{ false };
 	};
 }

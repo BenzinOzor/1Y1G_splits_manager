@@ -24,6 +24,8 @@ namespace SplitsMgr
 		**/
 		void display();
 
+		const SplitsManager& get_splits_manager() const { return m_splits_mgr; }
+
 		Game*		get_current_game() const		{ return m_splits_mgr.get_current_game(); }
 		uint32_t	get_current_split_index() const;
 

@@ -2,6 +2,7 @@
 
 #include <Externals/json/json.h>
 
+#include <FZN/Managers/FazonCore.h>
 #include <FZN/Tools/Logging.h>
 #include <FZN/Tools/Tools.h>
 
@@ -11,6 +12,17 @@
 
 namespace SplitsMgr
 {
+
+	SplitsManager::SplitsManager()
+	{
+		g_pFZN_Core->AddCallback( this, &SplitsManager::on_event, fzn::DataCallbackType::Event );
+	}
+
+	SplitsManager::~SplitsManager()
+	{
+		g_pFZN_Core->RemoveCallback( this, &SplitsManager::on_event, fzn::DataCallbackType::Event );
+	}
+
 	void SplitsManager::display()
 	{
 		if( m_games.empty() )
@@ -65,6 +77,44 @@ namespace SplitsMgr
 		for( Game& game : m_games )
 		{
 			game.display();
+		}
+	}
+
+	void SplitsManager::on_event()
+	{
+		const fzn::Event& fzn_event = g_pFZN_Core->GetEvent();
+
+		if( fzn_event.m_eType != fzn::Event::eUserEvent || fzn_event.m_pUserData == nullptr )
+			return;
+
+		Event* split_event = static_cast< Event* >( fzn_event.m_pUserData );
+
+		if( split_event == nullptr )
+			return;
+
+		switch( split_event->m_type )
+		{
+			case Event::Type::session_added:
+			{
+				_on_game_session_added( split_event->m_game_event );
+				break;
+			}
+		};
+	}
+
+	/**
+	* @brief Get the time of the run at the given split index.
+	* @param _split_index The index of the split at which we want the run time.
+	* @return The run time corresponding to the given split index.
+	**/
+	SplitTime SplitsManager::get_split_run_time( uint32_t _split_index ) const
+	{
+		for( const Game& game : m_games )
+		{
+			if( game.contains_split_index( _split_index ) == false )
+				continue;
+
+			return game.get_split_run_time( _split_index );
 		}
 	}
 
@@ -140,7 +190,7 @@ namespace SplitsMgr
 			return;
 
 		// If the previous split has the same time as the run time, it means the sessions can't be updated or it will create a segment time of 00:00:00
-		if( _get_split_run_time( m_current_split - 1 ) == m_run_time )
+		if( get_split_run_time( m_current_split - 1 ) == m_run_time )
 			m_sessions_updated = true;
 	}
 
@@ -195,7 +245,7 @@ namespace SplitsMgr
 		if( m_current_game == nullptr )
 			return;
 
-		const SplitTime previous_run_time{ m_current_split > 0 ? _get_split_run_time( m_current_split - 1 ) : SplitTime{} };
+		const SplitTime previous_run_time{ m_current_split > 0 ? get_split_run_time( m_current_split - 1 ) : SplitTime{} };
 		const SplitTime new_segment_time{ m_run_time - previous_run_time };
 
 		m_current_game->update_last_split( m_run_time, new_segment_time, _game_finished );
@@ -209,11 +259,21 @@ namespace SplitsMgr
 			return;
 		}
 
-		// Looping on all the games coming after the current one to update their split index.
+		_update_games_splits_indexes( m_current_game );
+
+		++m_current_split;
+	}
+
+	void SplitsManager::_update_games_splits_indexes( const Game* _game )
+	{
+		if( _game == nullptr )
+			return;
+
+		// Looping on all the games coming after the given one to update their split index.
 		bool current_game_found{ false };
 		for( Game& game : m_games )
 		{
-			if( game.get_name() == m_current_game->get_name() )
+			if( game.get_name() == _game->get_name() )
 			{
 				current_game_found = true;
 				continue;
@@ -224,23 +284,46 @@ namespace SplitsMgr
 
 			game.update_split_indexes();
 		}
-
-		++m_current_split;
 	}
 
-	/**
-	* @brief Get the time of the run at the given split index.
-	* @param _split_index The index of the split at which we want the run time.
-	* @return The run time corresponding to the given split index.
-	**/
-	SplitTime SplitsManager::_get_split_run_time( uint32_t _split_index ) const
+	void SplitsManager::_on_game_session_added( const Event::GameEvent& _event_infos )
 	{
+		_update_games_splits_indexes( _event_infos.m_game );
+
+		const Splits& event_game_splits{ _event_infos.m_game->get_splits() };
+		const Splits& current_game_splits{ m_current_game->get_splits() };
+
+		// If the added session is in a game after the current one, we don't need tu update the current split.
+		if( event_game_splits.front().m_split_index > current_game_splits.front().m_split_index )
+			return;
+
+		bool current_game_found{ false };
+		bool current_split_updated{ false };
 		for( const Game& game : m_games )
 		{
-			if( game.contains_split_index( _split_index ) == false )
+			if( game.get_name() == m_current_game->get_name() )
+			{
+				current_game_found = true;
+			}
+
+			if( current_game_found == false )
 				continue;
 
-			return game.get_split_run_time( _split_index );
+			for( const Split& split : game.get_splits() )
+			{
+				if( split.m_run_time == SplitTime{} )
+				{
+					m_current_split = split.m_split_index;
+					current_split_updated = true;
+					break;
+				}
+			}
+
+			if( current_split_updated )
+				break;
 		}
+
+		_get_current_game();
 	}
+
 }

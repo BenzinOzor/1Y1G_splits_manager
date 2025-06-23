@@ -5,7 +5,9 @@
 
 #include <FZN/Tools/Tools.h>
 #include <FZN/UI/ImGui.h>
+#include <FZN/Managers/FazonCore.h>
 
+#include "Event.h"
 #include "Game.h"
 #include "SplitsManagerApp.h"
 
@@ -100,7 +102,7 @@ namespace SplitsMgr
 			}
 
 			ImGui::PushID( m_name.c_str() );
-			if( ImGui::BeginTable( "add_session_table", 2 ) )
+			if( is_finished() == false && ImGui::BeginTable( "add_session_table", 2 ) )
 			{
 				ImGui::TableSetupColumn( "input_text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );
 				ImGui::TableSetupColumn( "button", ImGuiTableColumnFlags_WidthFixed );
@@ -111,7 +113,11 @@ namespace SplitsMgr
 				ImGui::PopItemWidth();
 
 				ImGui::TableNextColumn();
-				ImGui::Button( "Add" );
+
+				ImGui::Checkbox( "Game Finished", &m_new_session_game_finished );
+				ImGui::SameLine();
+				if( ImGui::Button( "Add" ) )
+					_add_new_session_time();
 				ImGui::EndTable();
 			}
 			ImGui::Unindent();
@@ -153,12 +159,20 @@ namespace SplitsMgr
 		last_split.m_segment_time = _segment_time;
 
 		if( _game_finished )
+		{
+			_refresh_game_time();
 			return;
+		}
 
 		Split new_split{ .m_split_index = last_split.m_split_index + 1, .m_session_index = last_split.m_session_index + 1 };
 		m_splits.push_back( new_split );
+
+		_refresh_game_time();
 	}
 
+	/**
+	* @brief Increment all split indexes because a session has been added before this game.
+	**/
 	void Game::update_split_indexes()
 	{
 		for( Split& split : m_splits )
@@ -353,4 +367,41 @@ namespace SplitsMgr
 			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
 		}
 	}
+
+	/**
+	* @brief Add a new session to the game using m_new_session_time.
+	**/
+	void Game::_add_new_session_time()
+	{
+		if( m_new_session_time.empty() )
+			return;
+
+		SplitTime new_segment_time = Utils::get_time_from_string( m_new_session_time );
+
+		if( new_segment_time == SplitTime{} )
+			return;
+
+		SplitTime run_time = m_splits.back().m_split_index > 0 ? g_splits_app->get_splits_manager().get_split_run_time( m_splits.back().m_split_index - 1 ) : SplitTime{};
+
+		if( run_time != SplitTime{} )
+			run_time += new_segment_time;
+
+		update_last_split( run_time, new_segment_time, m_new_session_game_finished );
+
+		Event* game_event = new Event( Event::Type::session_added );
+		game_event->m_game_event.m_game = this;
+		game_event->m_game_event.m_split = m_splits.back().m_split_index;
+		game_event->m_game_event.m_game_finished = m_new_session_game_finished;
+
+		g_pFZN_Core->PushEvent( game_event );
+	}
+
+	void Game::_refresh_game_time()
+	{
+		for( Split& split : m_splits )
+		{
+			m_time += split.m_segment_time;
+		}
+	}
+
 }
