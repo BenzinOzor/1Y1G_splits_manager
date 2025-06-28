@@ -36,6 +36,13 @@ namespace SplitsMgr
 		**/
 		SplitTime get_split_run_time( uint32_t _split_index ) const;
 
+		/**
+		* @brief Search for the last valid time in the "run", starting at the given game and then going back to previous ones.
+		* @param _threshold_game The game from which we start looking for a valid run time.
+		* @return The most recent valid run time. default SplitTime value if nothing has been found.
+		**/
+		SplitTime get_last_valid_run_time( const Game* _threshold_game ) const;
+
 		void read_lss( std::string_view _path );
 		void read_json( std::string_view _path );
 
@@ -43,10 +50,20 @@ namespace SplitsMgr
 		void write_json( Json::Value& _root );
 
 	private:
-		void _get_current_game();
+		void _refresh_current_game_ptr();
 		void _update_sessions( bool _game_finished );
-		void _update_games_splits_indexes( const Game* _game );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
+
+		/**
+		* @brief Update splits index and run time of games coming after the given one.
+		* @param _game The game that has been updated, and from which the update will start.
+		**/
+		void _update_games_data( const Game* _game );
+
+		/**
+		* @brief Update current split index, game, and global run time. Called after a session has been added to one of the games.
+		**/
+		void _update_run_data();
 
 		std::string m_game_icon_desc;
 		std::string m_game_name;

@@ -35,6 +35,7 @@ namespace SplitsMgr
 		bool contains_split_index( uint32_t _index ) const;
 		bool is_finished() const { return m_splits.back().m_run_time != SplitTime{}; }
 		const Splits& get_splits() const { return m_splits; }
+		SplitTime get_run_time() const;
 
 		/**
 		* @brief Get the time of the run at the given split index.
@@ -54,7 +55,7 @@ namespace SplitsMgr
 		/**
 		* @brief Increment all split indexes because a session has been added before this game.
 		**/
-		void update_split_indexes();
+		void update_data( SplitTime& _last_run_time, bool _incremeted_splits_index );
 
 		/**
 		* @brief Parse splits file to fill the games sessions.

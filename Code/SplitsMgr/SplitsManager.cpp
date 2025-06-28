@@ -118,6 +118,40 @@ namespace SplitsMgr
 		}
 	}
 
+	/**
+	* @brief Search for the last valid time in the "run", starting at the given game and then going back to previous ones.
+	* @param _threshold_game The game from which we start looking for a valid run time.
+	* @return The most recent valid run time. default SplitTime value if nothing has been found.
+	**/
+	SplitTime SplitsManager::get_last_valid_run_time( const Game* _threshold_game ) const
+	{
+		if( _threshold_game == nullptr )
+			return {};
+
+		SplitTime ret_time{};
+
+		bool game_found{ false };
+		for( int game_index{ (int)m_games.size() - 1 }; game_index >= 0; --game_index )
+		{
+			const Game& game{ m_games[ game_index ] };
+
+			if( game_found == false )
+			{
+				if( &game == _threshold_game )
+					game_found = true;
+				else
+					continue;
+			}
+
+			ret_time = game.get_run_time();
+
+			if( ret_time != SplitTime{} )
+				break;
+		}
+
+		return ret_time;
+	}
+
 	void SplitsManager::read_lss( std::string_view _path )
 	{
 		auto xml_file = tinyxml2::XMLDocument{};
@@ -134,6 +168,8 @@ namespace SplitsMgr
 
 		if( run == nullptr )
 			return;
+
+		m_games.clear();
 
 		m_game_icon_desc = "\<![CDATA[" + Utils::get_xml_child_element_text( run, "GameIcon" ) + "]]\>";
 		m_game_name = Utils::get_xml_child_element_text( run, "GameName" );
@@ -184,13 +220,13 @@ namespace SplitsMgr
 				break;
 		}
 
-		_get_current_game();
+		_refresh_current_game_ptr();
 
 		if( m_current_split == 0 )
 			return;
 
-		// If the previous split has the same time as the run time, it means the sessions can't be updated or it will create a segment time of 00:00:00
-		if( get_split_run_time( m_current_split - 1 ) == m_run_time )
+		// If the last updated run time is the same as the one read in the json, it means the sessions can't be updated or it will create a segment time of 00:00:00
+		if( run_time == m_run_time )
 			m_sessions_updated = true;
 	}
 
@@ -228,7 +264,7 @@ namespace SplitsMgr
 		}
 	}
 
-	void SplitsManager::_get_current_game()
+	void SplitsManager::_refresh_current_game_ptr()
 	{
 		for( Game& game : m_games )
 		{
@@ -245,85 +281,105 @@ namespace SplitsMgr
 		if( m_current_game == nullptr )
 			return;
 
-		const SplitTime previous_run_time{ m_current_split > 0 ? get_split_run_time( m_current_split - 1 ) : SplitTime{} };
+		const SplitTime previous_run_time{ get_last_valid_run_time( m_current_game ) };
 		const SplitTime new_segment_time{ m_run_time - previous_run_time };
 
 		m_current_game->update_last_split( m_run_time, new_segment_time, _game_finished );
 
 		m_sessions_updated = true;
 
-		if( _game_finished )
-		{
-			++m_current_split;
-			_get_current_game();
-			return;
-		}
-
-		_update_games_splits_indexes( m_current_game );
-
-		++m_current_split;
-	}
-
-	void SplitsManager::_update_games_splits_indexes( const Game* _game )
-	{
-		if( _game == nullptr )
-			return;
-
-		// Looping on all the games coming after the given one to update their split index.
-		bool current_game_found{ false };
-		for( Game& game : m_games )
-		{
-			if( game.get_name() == _game->get_name() )
-			{
-				current_game_found = true;
-				continue;
-			}
-
-			if( current_game_found == false )
-				continue;
-
-			game.update_split_indexes();
-		}
+		_update_games_data( m_current_game );
+		_update_run_data();
 	}
 
 	void SplitsManager::_on_game_session_added( const Event::GameEvent& _event_infos )
 	{
-		_update_games_splits_indexes( _event_infos.m_game );
-
-		const Splits& event_game_splits{ _event_infos.m_game->get_splits() };
-		const Splits& current_game_splits{ m_current_game->get_splits() };
-
-		// If the added session is in a game after the current one, we don't need tu update the current split.
-		if( event_game_splits.front().m_split_index > current_game_splits.front().m_split_index )
-			return;
-
-		bool current_game_found{ false };
-		bool current_split_updated{ false };
-		for( const Game& game : m_games )
-		{
-			if( game.get_name() == m_current_game->get_name() )
-			{
-				current_game_found = true;
-			}
-
-			if( current_game_found == false )
-				continue;
-
-			for( const Split& split : game.get_splits() )
-			{
-				if( split.m_run_time == SplitTime{} )
-				{
-					m_current_split = split.m_split_index;
-					current_split_updated = true;
-					break;
-				}
-			}
-
-			if( current_split_updated )
-				break;
-		}
-
-		_get_current_game();
+		_update_games_data( _event_infos.m_game );
+		_update_run_data();
 	}
 
+	/**
+	* @brief Update splits index and run time of games coming after the given one.
+	* @param _game The game that has been updated, and from which the update will start.
+	**/
+	void SplitsManager::_update_games_data( const Game* _game )
+	{
+		if( _game == nullptr )
+			return;
+
+		SplitTime run_time{};
+
+		// Looping on all the games coming after the given one to update their data.
+		bool game_found{ false };
+		const Game* prev_game{ _game };		// The game that came before the one we're updating. Needed to retrieve game state.
+		for( Game& game : m_games )
+		{
+			if( game_found == false )
+			{
+				// We found the game, but we don't want to update this one, so we continue one last time.
+				if( &game == _game )
+					game_found = true;
+
+				continue;
+			}
+
+			const SplitTime game_run_time{ prev_game->get_run_time() };
+
+			// We want to update the game run time if:
+			//  - The previous game is finished. Meaning we caught up with previously added isolated sessions with the current game.
+			const bool current_game_caught_up = _game == m_current_game && prev_game->is_finished();
+			//  - The game run time is valid. Meaning we added a session a game before the current one, and want to adapt its time with the added session time.
+			const bool valid_game_run_time = game.get_run_time() != SplitTime{};
+
+			if( current_game_caught_up || valid_game_run_time )
+				run_time = game_run_time;
+
+			// Giving a valid run time to the game will make it adapt to it. Otherwise nothing but its split index will be updated.
+			// If the game is finished, we used its last split to set the new session time and didn't create a new split, so we don't need to increment the others.
+			game.update_data( run_time, _game->is_finished() == false );
+			prev_game = &game;
+		}
+	}
+
+	/**
+	* @brief Update current split index, game, and global run time. Called after a session has been added to one of the games.
+	**/
+	void SplitsManager::_update_run_data()
+	{
+		// If the current game is still ongoing, we get the current split value from the games last split index.
+		if( m_current_game->is_finished() == false )
+		{
+			m_current_split = m_current_game->get_splits().back().m_split_index;
+
+			// Now we need to retrieve the closest valid run time to the current split.
+			m_run_time = get_last_valid_run_time( m_current_game );
+		}
+		else
+		{
+			// If the current game is finished, we need to look for the next empty split, it can be the next one or not, depending on the ammount of sessions added ahead of time.
+			bool game_found{ false };
+			for( Game& game : m_games )
+			{
+				if( game_found == false )
+				{
+					// We found the game, we want to look for our split in the next game, se we continue one last time.
+					if( &game == m_current_game )
+						game_found = true;
+
+					continue;
+				}
+
+				// If the game is finished, we can't use it as our current game, so we continue looking.
+				if( game.is_finished() )
+					continue;
+
+				// If the game isn't finished, the last split won't have a run time, so that's the one we'll use.
+				const Split& last_split{ game.get_splits().back() };
+
+				m_current_split = last_split.m_split_index;
+				m_current_game = &game;
+				m_run_time = game.get_run_time();
+			}
+		}
+	}
 }

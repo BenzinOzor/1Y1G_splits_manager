@@ -116,7 +116,7 @@ namespace SplitsMgr
 
 				ImGui::Checkbox( "Game Finished", &m_new_session_game_finished );
 				ImGui::SameLine();
-				if( ImGui::Button( "Add" ) )
+				if( ImGui_fzn::deactivable_button( "Add", m_new_session_time.empty() ) )
 					_add_new_session_time();
 				ImGui::EndTable();
 			}
@@ -131,6 +131,19 @@ namespace SplitsMgr
 			return false;
 
 		return m_splits.front().m_split_index <= _index && m_splits.back().m_split_index >= _index;
+	}
+
+	SplitsMgr::SplitTime Game::get_run_time() const
+	{
+		SplitTime last_valid_time{};
+
+		for( const Split& split : m_splits )
+		{
+			if( split.m_run_time != SplitTime{} )
+				last_valid_time = split.m_run_time;
+		}
+
+		return last_valid_time;
 	}
 
 	/**
@@ -158,25 +171,32 @@ namespace SplitsMgr
 		last_split.m_run_time = _run_time;
 		last_split.m_segment_time = _segment_time;
 
+		_refresh_game_time();
+		
 		if( _game_finished )
-		{
-			_refresh_game_time();
 			return;
-		}
 
 		Split new_split{ .m_split_index = last_split.m_split_index + 1, .m_session_index = last_split.m_session_index + 1 };
 		m_splits.push_back( new_split );
-
-		_refresh_game_time();
 	}
 
 	/**
 	* @brief Increment all split indexes because a session has been added before this game.
 	**/
-	void Game::update_split_indexes()
+	void Game::update_data( SplitTime& _last_run_time, bool _incremeted_splits_index )
 	{
 		for( Split& split : m_splits )
-			++split.m_split_index;
+		{
+			if( _incremeted_splits_index )
+				++split.m_split_index;
+
+			// If we already have a run time and a new one is given, we calculate a new run time with the given one.
+			if( split.m_run_time != SplitTime{} && _last_run_time != SplitTime{} )
+			{
+				split.m_run_time = _last_run_time + split.m_segment_time;
+				_last_run_time = split.m_run_time;
+			}
+		}
 	}
 
 	/**
@@ -378,10 +398,13 @@ namespace SplitsMgr
 
 		SplitTime new_segment_time = Utils::get_time_from_string( m_new_session_time );
 
+		m_new_session_time.clear();
+
 		if( new_segment_time == SplitTime{} )
 			return;
 
-		SplitTime run_time = m_splits.back().m_split_index > 0 ? g_splits_app->get_splits_manager().get_split_run_time( m_splits.back().m_split_index - 1 ) : SplitTime{};
+		const uint32_t last_split_index{ m_splits.back().m_split_index };
+		SplitTime run_time = g_splits_app->get_splits_manager().get_last_valid_run_time( this );
 
 		if( run_time != SplitTime{} )
 			run_time += new_segment_time;
@@ -390,7 +413,7 @@ namespace SplitsMgr
 
 		Event* game_event = new Event( Event::Type::session_added );
 		game_event->m_game_event.m_game = this;
-		game_event->m_game_event.m_split = m_splits.back().m_split_index;
+		game_event->m_game_event.m_split = last_split_index;
 		game_event->m_game_event.m_game_finished = m_new_session_game_finished;
 
 		g_pFZN_Core->PushEvent( game_event );
@@ -398,6 +421,8 @@ namespace SplitsMgr
 
 	void Game::_refresh_game_time()
 	{
+		m_time = SplitTime{};
+
 		for( Split& split : m_splits )
 		{
 			m_time += split.m_segment_time;

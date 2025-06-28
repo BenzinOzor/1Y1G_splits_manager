@@ -41,6 +41,5 @@ namespace SplitsMgr
 
 			return ret_time;
 		}
-
 	}
 }
