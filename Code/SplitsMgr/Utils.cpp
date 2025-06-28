@@ -41,5 +41,10 @@ namespace SplitsMgr
 
 			return ret_time;
 		}
+
+		bool is_time_valid( const SplitTime& _time )
+		{
+			return _time != SplitTime{};
+		}
 	}
 }

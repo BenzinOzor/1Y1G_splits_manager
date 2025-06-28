@@ -21,6 +21,9 @@ namespace SplitsMgr
 	SplitsManager::~SplitsManager()
 	{
 		g_pFZN_Core->RemoveCallback( this, &SplitsManager::on_event, fzn::DataCallbackType::Event );
+
+		for( Game& game : m_games )
+			g_pFZN_Core->RemoveCallback( &game, &Game::on_event, fzn::DataCallbackType::Event );
 	}
 
 	void SplitsManager::display()
@@ -145,7 +148,7 @@ namespace SplitsMgr
 
 			ret_time = game.get_run_time();
 
-			if( ret_time != SplitTime{} )
+			if( Utils::is_time_valid( ret_time ) )
 				break;
 		}
 
@@ -176,6 +179,11 @@ namespace SplitsMgr
 		m_category = Utils::get_xml_child_element_text( run, "CategoryName" );
 		m_layout_path = Utils::get_xml_child_element_text( run, "LayoutPath" );
 
+		const uint32_t final_year = std::stoul( m_category );
+		const uint32_t nb_games = final_year - 1990;		// substracting 1991 then adding 1, because we do a game on the first year and the last, so one more than just final year - birth year.
+
+		m_games.reserve( nb_games );
+
 		tinyxml2::XMLElement* segments = run->FirstChildElement( "Segments" );
 
 		if( segments == nullptr )
@@ -190,7 +198,9 @@ namespace SplitsMgr
 
 			segment = game.parse_game( segment, split_index );
 
-			m_games.push_back( game );
+			m_games.emplace_back( std::move( game ) );
+
+			g_pFZN_Core->AddCallback( &m_games.back(), &Game::on_event, fzn::DataCallbackType::Event );
 		}
 	}
 
@@ -221,6 +231,8 @@ namespace SplitsMgr
 		}
 
 		_refresh_current_game_ptr();
+
+		g_pFZN_Core->PushEvent( new Event( Event::Type::json_done_reading ) );
 
 		if( m_current_split == 0 )
 			return;
@@ -329,7 +341,7 @@ namespace SplitsMgr
 			//  - The previous game is finished. Meaning we caught up with previously added isolated sessions with the current game.
 			const bool current_game_caught_up = _game == m_current_game && prev_game->is_finished();
 			//  - The game run time is valid. Meaning we added a session a game before the current one, and want to adapt its time with the added session time.
-			const bool valid_game_run_time = game.get_run_time() != SplitTime{};
+			const bool valid_game_run_time = Utils::is_time_valid( game.get_run_time() );
 
 			if( current_game_caught_up || valid_game_run_time )
 				run_time = game_run_time;

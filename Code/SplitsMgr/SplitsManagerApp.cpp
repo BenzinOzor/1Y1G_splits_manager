@@ -52,8 +52,16 @@ namespace SplitsMgr
 		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_WindowRounding, 0.f );
 		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_WindowBorderSize, 0.f );
 		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
-		ImGui::PushStyleColor( ImGuiCol_WindowBg, ImVec4( 0.10f, 0.16f, 0.22f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_CheckMark, ImVec4( 0.f, 1.f, 0.f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_WindowBg,			ImVec4( 0.10f, 0.16f, 0.22f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_CheckMark,			ImVec4( 0.f, 1.f, 0.f, 1.f ) );
+
+		// Overriding those so we don't have any alpha trouble when changing the background of the games section
+		ImGui::PushStyleColor( ImGuiCol_FrameBg,			ImVec4{ 0.13f, 0.23f, 0.36f, 1.f } );
+		ImGui::PushStyleColor( ImGuiCol_FrameBgHovered,		ImVec4{ 0.16f, 0.33f, 0.53f, 1.f } );
+		ImGui::PushStyleColor( ImGuiCol_FrameBgActive,		ImVec4{ 0.21f, 0.45f, 0.73f, 1.f } );
+		ImGui::PushStyleColor( ImGuiCol_Button,				ImVec4{ 0.16f, 0.33f, 0.53f, 1.f } );
+		ImGui::PushStyleColor( ImGuiCol_ButtonHovered,		ImVec4{ 0.26f, 0.59f, 0.98f, 1.f } );
+		ImGui::PushStyleColor( ImGuiCol_ButtonActive,		ImVec4{ 0.06f, 0.53f, 0.98f, 1.f } );
 
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
 		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
@@ -70,7 +78,7 @@ namespace SplitsMgr
 		ImGui::End();
 
 		ImGui::PopStyleVar( 1 );
-		ImGui::PopStyleColor( 2 );
+		ImGui::PopStyleColor( 8 );
 	}
 
 	uint32_t SplitsManagerApp::get_current_split_index() const

@@ -14,27 +14,41 @@
 
 namespace SplitsMgr
 {
-	static constexpr float current_game_text_size = 120.f;
-	static constexpr float split_index_column_size = 28.f;		// ImGui::CalcTextSize( "9999" ).x
-	static constexpr float session_column_size = 84.f;			// ImGui::CalcTextSize( "session 9999" ).x
-	static constexpr float segment_time_column_size = 150.f;
+	static constexpr float		current_game_text_size		{ 120.f };
+	static constexpr float		split_index_column_size		{ 28.f };		// ImGui::CalcTextSize( "9999" ).x
+	static constexpr float		session_column_size			{ 84.f };		// ImGui::CalcTextSize( "session 9999" ).x
+	static constexpr float		segment_time_column_size	{ 150.f };
+
+	static constexpr ImVec4		frame_bg_current_game		{ 0.58f, 0.43f, 0.03f, 1.f };
+
+
+	static void display_split_infos( const Split& _split, bool _display_session )
+	{
+		ImGui::TableNextColumn();
+		ImGui::Text( "%u", _split.m_split_index );
+
+		ImGui::TableNextColumn();
+
+		if( _display_session )
+			ImGui::Text( "session %u", _split.m_session_index );
+
+		ImGui::TableNextColumn();
+		ImGui::Text( std::format( "{:%H:%M:%S}", _split.m_run_time ).c_str() );
+
+		ImGui::TableNextColumn();
+		ImGui::Text( std::format( "{:%H:%M:%S}", _split.m_segment_time ).c_str() );
+	}
 
 	void Game::display()
 	{
-		const Game* current_game{ g_splits_app->get_current_game() };
-		const bool is_current_game = current_game != nullptr && current_game->get_name() == m_name;
+		// Copying the current state to avoid it changing in the middle of the frame and have imgui push/pop mismatches.
+		const State game_state{ m_state };
 
-		if( is_current_game )
-		{
-			ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::black );
-			ImGui::PushStyleColor( ImGuiCol_Header, ImGui_fzn::color::light_yellow );
-			ImGui::PushStyleColor( ImGuiCol_HeaderHovered, ImGui_fzn::color::bright_yellow );
-			ImGui::PushStyleColor( ImGuiCol_HeaderActive, ImGui_fzn::color::white );
-		}
+		_push_state_colors( game_state );
 
-		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current_game ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
+		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current() ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
 
-		if( m_time != SplitTime{} )
+		if( Utils::is_time_valid( m_time ) )
 		{
 			std::string game_time{ std::format( "{:%H:%M:%S} ", m_time ) };
 			const float game_time_width{ ImGui::CalcTextSize( game_time.c_str() ).x };
@@ -43,61 +57,31 @@ namespace SplitsMgr
 			ImGui::Text( game_time.c_str() );
 		}
 
-		if( is_current_game )
+		if( is_current() )
 		{
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - current_game_text_size * 0.5f );
 			ImGui::Text( "- Current Game -" );
-
-			ImGui::PopStyleColor( 4 );
 		}
+		
+		_pop_state_colors( game_state );
 
 		if( header_open )
 		{
-			if( is_current_game )
-			{
-				const ImVec2 rect_top_left{ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - ImGui::GetStyle().ItemSpacing.y };
-
-				ImVec2 rect_size{ ImGui::GetContentRegionAvail().x, 0.f };
-
-				rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeightWithSpacing() * m_splits.size();
-				rect_size.y += ImGui::GetStyle().ItemSpacing.y * 2.f + ImGui::GetFrameHeightWithSpacing();
-
-				ImGui_fzn::rect_filled( { rect_top_left, rect_size }, { 0.58f, 0.43f, 0.03f, 1.f } );
-			}
+			_handle_game_background( game_state );
 
 			ImGui::Indent();
 			if( ImGui::BeginTable( "splits_infos", 4 ) )
 			{
-				ImGui::TableSetupColumn( "split_index", ImGuiTableColumnFlags_WidthFixed, split_index_column_size );
-				ImGui::TableSetupColumn( "session", ImGuiTableColumnFlags_WidthFixed, session_column_size );
-				ImGui::TableSetupColumn( "time", ImGuiTableColumnFlags_WidthStretch );
-				ImGui::TableSetupColumn( "segment_time", ImGuiTableColumnFlags_WidthFixed, segment_time_column_size );
+				ImGui::TableSetupColumn( "split_index",		ImGuiTableColumnFlags_WidthFixed, split_index_column_size );
+				ImGui::TableSetupColumn( "session",			ImGuiTableColumnFlags_WidthFixed, session_column_size );
+				ImGui::TableSetupColumn( "time",			ImGuiTableColumnFlags_WidthStretch );
+				ImGui::TableSetupColumn( "segment_time",	ImGuiTableColumnFlags_WidthFixed, segment_time_column_size );
 
-				if( m_splits.size() > 1 )
+				for( Split& split : m_splits )
 				{
-					for( Split& split : m_splits )
-					{
-						ImGui::TableNextColumn();
-						ImGui::Text( "%u", split.m_split_index );
-						ImGui::TableNextColumn();
-						ImGui::Text( "session %u", split.m_session_index );
-						ImGui::TableNextColumn();
-						ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
-						ImGui::TableNextColumn();
-						ImGui::Text( std::format( "{:%H:%M:%S}", split.m_segment_time ).c_str() );
-					}
+					display_split_infos( split, m_splits.size() > 1 );
 				}
-				else
-				{
-					ImGui::TableNextColumn();
-					const Split& split = m_splits.front();
-					ImGui::Text( "%u", split.m_split_index );
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() );
-					ImGui::TableNextColumn();
-					ImGui::Text( std::format( "{:%H:%M:%S}", split.m_segment_time ).c_str() );
-				}
+
 				ImGui::EndTable();
 			}
 
@@ -125,6 +109,28 @@ namespace SplitsMgr
 		}
 	}
 
+	void Game::on_event()
+	{
+		const fzn::Event& fzn_event = g_pFZN_Core->GetEvent();
+
+		if( fzn_event.m_eType != fzn::Event::eUserEvent || fzn_event.m_pUserData == nullptr )
+			return;
+
+		Event* split_event = static_cast<Event*>( fzn_event.m_pUserData );
+
+		if( split_event == nullptr )
+			return;
+
+		switch( split_event->m_type )
+		{
+			case Event::Type::json_done_reading:
+			{
+				_refresh_state();
+				break;
+			}
+		};
+	}
+
 	bool Game::contains_split_index( uint32_t _index ) const
 	{
 		if( m_splits.empty() )
@@ -139,7 +145,7 @@ namespace SplitsMgr
 
 		for( const Split& split : m_splits )
 		{
-			if( split.m_run_time != SplitTime{} )
+			if( Utils::is_time_valid( split.m_run_time ) )
 				last_valid_time = split.m_run_time;
 		}
 
@@ -172,12 +178,14 @@ namespace SplitsMgr
 		last_split.m_segment_time = _segment_time;
 
 		_refresh_game_time();
-		
-		if( _game_finished )
-			return;
 
-		Split new_split{ .m_split_index = last_split.m_split_index + 1, .m_session_index = last_split.m_session_index + 1 };
-		m_splits.push_back( new_split );
+		if( _game_finished == false )
+		{
+			Split new_split{ .m_split_index = last_split.m_split_index + 1, .m_session_index = last_split.m_session_index + 1 };
+			m_splits.push_back( new_split );
+		}
+
+		_refresh_state();
 	}
 
 	/**
@@ -191,7 +199,7 @@ namespace SplitsMgr
 				++split.m_split_index;
 
 			// If we already have a run time and a new one is given, we calculate a new run time with the given one.
-			if( split.m_run_time != SplitTime{} && _last_run_time != SplitTime{} )
+			if( Utils::is_time_valid( split.m_run_time ) && Utils::is_time_valid( _last_run_time ) )
 			{
 				split.m_run_time = _last_run_time + split.m_segment_time;
 				_last_run_time = split.m_run_time;
@@ -285,7 +293,7 @@ namespace SplitsMgr
 			split.m_run_time = Utils::get_time_from_string( (*_it_splits)[ "Time" ].asString() );
 
 			// If the run time indicates 0, we're at
-			if( split.m_run_time == SplitTime{} )
+			if( Utils::is_time_valid( split.m_run_time ) == false )
 				return false;
 
 			split.m_segment_time = split.m_run_time - _last_time;
@@ -309,7 +317,7 @@ namespace SplitsMgr
 			Utils::create_xml_child_element_with_text( _document, split, "Name", m_name.c_str() );
 			Utils::create_xml_child_element_with_text( _document, split, "Icon", m_icon_desc.c_str() );
 
-			if( m_estimation == SplitTime{} )
+			if( Utils::is_time_valid( m_estimation ) == false )
 				Utils::create_xml_child_element_with_text( _document, split, "BestSegmentTime", "" );
 			else
 			{
@@ -349,7 +357,7 @@ namespace SplitsMgr
 
 			Utils::create_xml_child_element_with_text( _document, segment, "Name", split_name.c_str() );
 			
-			if( m_estimation == SplitTime{} )
+			if( Utils::is_time_valid( m_estimation ) == false )
 				Utils::create_xml_child_element_with_text( _document, segment, "BestSegmentTime", "" );
 			else
 			{
@@ -400,13 +408,13 @@ namespace SplitsMgr
 
 		m_new_session_time.clear();
 
-		if( new_segment_time == SplitTime{} )
+		if( Utils::is_time_valid( new_segment_time ) == false )
 			return;
 
 		const uint32_t last_split_index{ m_splits.back().m_split_index };
 		SplitTime run_time = g_splits_app->get_splits_manager().get_last_valid_run_time( this );
 
-		if( run_time != SplitTime{} )
+		if( Utils::is_time_valid( run_time ) )
 			run_time += new_segment_time;
 
 		update_last_split( run_time, new_segment_time, m_new_session_game_finished );
@@ -429,4 +437,123 @@ namespace SplitsMgr
 		}
 	}
 
+	void Game::_refresh_state()
+	{
+		// If the last split doesn't have a segment time, it meas the game is still ready to recieve new sessions.
+		// If there is a segment time, it means we don't want to add sessions anymore, and the game is finished.
+		if( Utils::is_time_valid( m_splits.back().m_segment_time ) )
+		{
+			m_state = State::finished;
+			return;
+		}
+
+		// An ongoing game will have more than one split, as there is always an empty one for its next session in addition to already submitted sessions.
+		if( m_splits.size() > 1 )
+		{
+			m_state = State::ongoing;
+			return;
+		}
+
+		const Game* current_game{ g_splits_app->get_current_game() };
+
+		if( current_game != nullptr && current_game == this )
+		{
+			m_state = State::current;
+			return;
+		}
+
+		// If no condition above matched, it means the game has been untouched for now, and doesn't have any state.
+		m_state = State::none;
+	}
+
+	void Game::_push_state_colors( State _state )
+	{
+		switch( _state )
+		{
+			case State::current:
+			{
+				ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::black );
+				ImGui::PushStyleColor( ImGuiCol_Header, ImGui_fzn::color::light_yellow );
+				ImGui::PushStyleColor( ImGuiCol_HeaderHovered, ImGui_fzn::color::bright_yellow );
+				ImGui::PushStyleColor( ImGuiCol_HeaderActive, ImGui_fzn::color::white );
+				break;
+			}
+			case State::finished:
+			{
+				ImGui::PushStyleColor( ImGuiCol_Text,			ImGui_fzn::color::black );
+				ImGui::PushStyleColor( ImGuiCol_Header,			Utils::Color::finished_game_header );
+				ImGui::PushStyleColor( ImGuiCol_HeaderHovered,	Utils::Color::finished_game_header_hovered );
+				ImGui::PushStyleColor( ImGuiCol_HeaderActive,	Utils::Color::finished_game_header_active );
+				break;
+			}
+			case State::ongoing:
+			{
+				ImGui::PushStyleColor( ImGuiCol_Text,			ImGui_fzn::color::black );
+				ImGui::PushStyleColor( ImGuiCol_Header,			Utils::Color::ongoing_game_header );
+				ImGui::PushStyleColor( ImGuiCol_HeaderHovered,	Utils::Color::ongoing_game_header_hovered );
+				ImGui::PushStyleColor( ImGuiCol_HeaderActive,	Utils::Color::ongoing_game_header_active );
+				break;
+			}
+		};
+	}
+
+	void Game::_pop_state_colors( State _state )
+	{
+		switch( _state )
+		{
+			case State::current:
+			case State::finished:
+			case State::ongoing:
+			{
+				ImGui::PopStyleColor( 4 );
+				break;
+			}
+		};
+	}
+
+	void Game::_handle_game_background( State _state )
+	{
+		if( _state == State::none )
+			return;
+
+		const ImVec2 rect_top_left{ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - ImGui::GetStyle().ItemSpacing.y };
+
+		ImVec2 rect_size{ ImGui::GetContentRegionAvail().x, 0.f };
+
+		// splits lines
+		rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeightWithSpacing() * m_splits.size();
+		rect_size.y += ImGui::GetStyle().ItemSpacing.y;
+
+		// Add session line
+		if( is_current() || m_state == State::ongoing )
+			rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+
+		ImVec4 frame_bg_color{};
+
+		switch( _state )
+		{
+			case SplitsMgr::Game::State::current:
+			{
+				frame_bg_color = frame_bg_current_game;
+				break;
+			}
+			case SplitsMgr::Game::State::finished:
+			{
+				frame_bg_color = Utils::Color::finished_game_frame_bg;
+				break;
+			}
+			case SplitsMgr::Game::State::ongoing:
+			{
+				frame_bg_color = Utils::Color::ongoing_game_frame_bg;
+				break;
+			}
+			default:
+			{
+				frame_bg_color = ImGui_fzn::color::transparent;
+				break;
+			}
+		}
+
+		ImGui_fzn::rect_filled( { rect_top_left, rect_size }, frame_bg_color );
+	}
 }

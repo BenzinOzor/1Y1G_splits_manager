@@ -29,12 +29,23 @@ namespace SplitsMgr
 	class Game
 	{
 	public:
-		void display();
+		enum class State
+		{
+			none,		// No specific state, the game hasn't been played yet.
+			current,	// This is the game currently being played (the main focus, in the order of the list).
+			finished,	// Finished game, no more sessions possible.
+			ongoing,	// Sessions have been added to the game but it's not the current one.
+			COUNT
+		};
 
-		const std::string& get_name() const { return m_name; }
+		void display();
+		void on_event();
+
+		const std::string& get_name() const						{ return m_name; }
 		bool contains_split_index( uint32_t _index ) const;
-		bool is_finished() const { return m_splits.back().m_run_time != SplitTime{}; }
-		const Splits& get_splits() const { return m_splits; }
+		bool is_finished() const								{ return m_state == State::finished; }
+		bool is_current() const									{ return m_state == State::current; }
+		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
 
 		/**
@@ -80,11 +91,17 @@ namespace SplitsMgr
 		**/
 		void _add_new_session_time();
 		void _refresh_game_time();
+		void _refresh_state();
+
+		void _push_state_colors( State _state );
+		void _pop_state_colors( State _state );
+		void _handle_game_background( State _state );
 
 		std::string m_name;
 		std::string m_icon_desc;
-		SplitTime m_estimation;
-		SplitTime m_time;			// The timer for the game duration.
+		SplitTime m_estimation{};
+		SplitTime m_time{};			// The timer for the game duration.
+		State m_state{ State::none };
 
 		Splits m_splits;
 

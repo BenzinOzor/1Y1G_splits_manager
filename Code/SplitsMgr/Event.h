@@ -11,6 +11,7 @@ namespace SplitsMgr
 		enum class Type
 		{
 			session_added,		// A session has been added to a game. (m_game_event)
+			json_done_reading,	// We finished parsing the json file.
 			COUNT
 		};
 
