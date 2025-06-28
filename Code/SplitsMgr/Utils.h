@@ -20,7 +20,10 @@ namespace SplitsMgr
 	{
 		namespace Color
 		{
-			static constexpr ImVec4		frame_bg_current_game{ 0.58f, 0.43f, 0.03f, 1.f };
+			static constexpr ImVec4		current_game_frame_bg			{ 0.58f, 0.43f, 0.03f, 1.f };
+			static constexpr ImVec4		current_game_header				{ 1.f, 0.8f , 0.05f, 1.f };
+			static constexpr ImVec4		current_game_header_hovered		{ 1.f, 0.87f , 0.05f, 1.f };
+			static constexpr ImVec4		current_game_header_active		{ 1.f, 0.99f , 0.05f, 1.f };
 
 			static constexpr ImVec4		finished_game_frame_bg			{ 0.14f, 0.45f , 0.14f, 1.f };
 			static constexpr ImVec4		finished_game_header			{ 0.24f, 0.75f , 0.24f, 1.f };

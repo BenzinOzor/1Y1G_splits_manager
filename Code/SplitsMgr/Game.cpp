@@ -260,12 +260,6 @@ namespace SplitsMgr
 			// Best segments are used for game time estimations.
 			if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
 			{
-				/*std::string best_time = Utils::get_xml_child_element_text( best_time_el, "RealTime" );
-				std::stringstream stream;
-				stream << best_time;
-				SplitTime session_estimate{};
-				std::chrono::from_stream( stream, "%H:%M:%S", session_estimate );
-				estimate += session_estimate;*/
 				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "RealTime" ) );
 			}
 
@@ -439,6 +433,14 @@ namespace SplitsMgr
 
 	void Game::_refresh_state()
 	{
+		const Game* current_game{ g_splits_app->get_current_game() };
+
+		if( current_game != nullptr && current_game == this )
+		{
+			m_state = State::current;
+			return;
+		}
+
 		// If the last split doesn't have a segment time, it meas the game is still ready to recieve new sessions.
 		// If there is a segment time, it means we don't want to add sessions anymore, and the game is finished.
 		if( Utils::is_time_valid( m_splits.back().m_segment_time ) )
@@ -454,14 +456,6 @@ namespace SplitsMgr
 			return;
 		}
 
-		const Game* current_game{ g_splits_app->get_current_game() };
-
-		if( current_game != nullptr && current_game == this )
-		{
-			m_state = State::current;
-			return;
-		}
-
 		// If no condition above matched, it means the game has been untouched for now, and doesn't have any state.
 		m_state = State::none;
 	}
@@ -472,10 +466,10 @@ namespace SplitsMgr
 		{
 			case State::current:
 			{
-				ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::black );
-				ImGui::PushStyleColor( ImGuiCol_Header, ImGui_fzn::color::light_yellow );
-				ImGui::PushStyleColor( ImGuiCol_HeaderHovered, ImGui_fzn::color::bright_yellow );
-				ImGui::PushStyleColor( ImGuiCol_HeaderActive, ImGui_fzn::color::white );
+				ImGui::PushStyleColor( ImGuiCol_Text,			ImGui_fzn::color::black );
+				ImGui::PushStyleColor( ImGuiCol_Header,			Utils::Color::current_game_header );
+				ImGui::PushStyleColor( ImGuiCol_HeaderHovered,	Utils::Color::current_game_header_hovered );
+				ImGui::PushStyleColor( ImGuiCol_HeaderActive,	Utils::Color::current_game_header_active );
 				break;
 			}
 			case State::finished:
