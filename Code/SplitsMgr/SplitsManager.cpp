@@ -48,6 +48,8 @@ namespace SplitsMgr
 		ImGui::SameLine();
 		ImGui::Text( std::format( "{:%H:%M:%S}", m_run_time ).c_str() );
 
+		ImGui::Text( "Number of sessions: %u", m_nb_sessions );
+
 		ImGui::SeparatorText( "Update sessions" );
 
 		if( ImGui::BeginTable( "add_session_table", 2 ) )
@@ -247,6 +249,8 @@ namespace SplitsMgr
 		// If the last updated run time is the same as the one read in the json, it means the sessions can't be updated or it will create a segment time of 00:00:00
 		if( run_time == m_run_time )
 			m_sessions_updated = true;
+
+		_update_nb_sessions();
 	}
 
 	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
@@ -309,12 +313,14 @@ namespace SplitsMgr
 
 		_update_games_data( m_current_game );
 		_update_run_data();
+		_update_nb_sessions();
 	}
 
 	void SplitsManager::_on_game_session_added( const Event::GameEvent& _event_infos )
 	{
 		_update_games_data( _event_infos.m_game );
 		_update_run_data();
+		_update_nb_sessions();
 	}
 
 	/**
@@ -401,4 +407,19 @@ namespace SplitsMgr
 			}
 		}
 	}
+
+	void SplitsManager::_update_nb_sessions()
+	{
+		m_nb_sessions = 0;
+
+		for( const Game& game : m_games )
+		{
+			for( const Split& split : game.get_splits() )
+			{
+				if( Utils::is_time_valid( split.m_segment_time ) )
+					++m_nb_sessions;
+			}
+		}
+	}
+
 }

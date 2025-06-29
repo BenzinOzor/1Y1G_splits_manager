@@ -65,6 +65,8 @@ namespace SplitsMgr
 		**/
 		void _update_run_data();
 
+		void _update_nb_sessions();
+
 		std::string m_game_icon_desc;
 		std::string m_game_name;
 		std::string m_category;
