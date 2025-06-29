@@ -96,6 +96,7 @@ namespace SplitsMgr
 		void _push_state_colors( State _state );
 		void _pop_state_colors( State _state );
 		void _handle_game_background( State _state );
+		void _right_click();
 
 		std::string m_name;
 		std::string m_icon_desc;

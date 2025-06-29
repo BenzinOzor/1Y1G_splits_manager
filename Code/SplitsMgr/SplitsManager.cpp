@@ -102,6 +102,13 @@ namespace SplitsMgr
 				_on_game_session_added( split_event->m_game_event );
 				break;
 			}
+			case Event::Type::new_current_game_selected:
+			{
+				m_current_game = split_event->m_game_event.m_game;
+				m_current_split = m_current_game->get_splits().back().m_split_index;
+				g_pFZN_Core->PushEvent( new Event( Event::Type::json_done_reading ) );
+				break;
+			}
 		};
 	}
 

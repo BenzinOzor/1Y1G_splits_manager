@@ -43,10 +43,12 @@ namespace SplitsMgr
 	{
 		// Copying the current state to avoid it changing in the middle of the frame and have imgui push/pop mismatches.
 		const State game_state{ m_state };
-
+		ImGui::PushID( m_name.c_str() );
 		_push_state_colors( game_state );
 
 		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current() ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
+
+		_right_click();
 
 		if( Utils::is_time_valid( m_time ) )
 		{
@@ -85,7 +87,7 @@ namespace SplitsMgr
 				ImGui::EndTable();
 			}
 
-			ImGui::PushID( m_name.c_str() );
+			
 			if( is_finished() == false && ImGui::BeginTable( "add_session_table", 2 ) )
 			{
 				ImGui::TableSetupColumn( "input_text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );
@@ -105,8 +107,9 @@ namespace SplitsMgr
 				ImGui::EndTable();
 			}
 			ImGui::Unindent();
-			ImGui::PopID();
 		}
+
+		ImGui::PopID();
 	}
 
 	void Game::on_event()
@@ -124,6 +127,7 @@ namespace SplitsMgr
 		switch( split_event->m_type )
 		{
 			case Event::Type::json_done_reading:
+			case Event::Type::current_game_changed:
 			{
 				_refresh_state();
 				break;
@@ -549,5 +553,32 @@ namespace SplitsMgr
 		}
 
 		ImGui_fzn::rect_filled( { rect_top_left, rect_size }, frame_bg_color );
+	}
+
+	void Game::_right_click()
+	{
+		if( ImGui::BeginPopupContextItem("bjr") )
+		{
+			ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::white );
+			
+			const bool disable_item{ is_current() || is_finished() };
+
+			if( disable_item )
+				ImGui::BeginDisabled();
+
+			if( ImGui::Selectable( "Set Current Game" ) )
+			{
+				Event* game_event = new Event( Event::Type::new_current_game_selected );
+				game_event->m_game_event.m_game = this;
+
+				g_pFZN_Core->PushEvent( game_event );
+			}
+
+			if( disable_item )
+				ImGui::EndDisabled();
+
+			ImGui::PopStyleColor();
+			ImGui::EndPopup();
+		}
 	}
 }
