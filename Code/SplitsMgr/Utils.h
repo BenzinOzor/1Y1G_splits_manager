@@ -40,6 +40,7 @@ namespace SplitsMgr
 		void create_xml_child_element_with_text( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _container, std::string_view _child_name, std::string_view _text );
 
 		SplitTime get_time_from_string( std::string_view _time, std::string_view _format = "%H:%M:%S" );
+		std::string time_to_str( const SplitTime& _time, bool _floor_seconds = true );
 		bool is_time_valid( const SplitTime& _time );
 	}
 }

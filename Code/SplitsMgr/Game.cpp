@@ -33,10 +33,10 @@ namespace SplitsMgr
 			ImGui::Text( "session %u", _split.m_session_index );
 
 		ImGui::TableNextColumn();
-		ImGui::Text( std::format( "{:%H:%M:%S}", _split.m_run_time ).c_str() );
+		ImGui::Text( Utils::time_to_str( _split.m_run_time ).c_str() );
 
 		ImGui::TableNextColumn();
-		ImGui::Text( std::format( "{:%H:%M:%S}", _split.m_segment_time ).c_str() );
+		ImGui::Text( Utils::time_to_str( _split.m_segment_time ).c_str() );
 	}
 
 	void Game::display()
@@ -52,10 +52,10 @@ namespace SplitsMgr
 
 		if( Utils::is_time_valid( m_time ) )
 		{
-			std::string game_time{ std::format( "{:%H:%M:%S} ", m_time ) };
+			std::string game_time{ Utils::time_to_str( m_time ) };
 			const float game_time_width{ ImGui::CalcTextSize( game_time.c_str() ).x };
 
-			ImGui::SameLine( ImGui::GetContentRegionAvail().x - game_time_width );
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x - game_time_width );
 			ImGui::Text( game_time.c_str() );
 		}
 		
@@ -72,6 +72,9 @@ namespace SplitsMgr
 			_handle_game_background( game_state );
 
 			ImGui::Indent();
+
+			_estimate_and_delta( game_state );
+
 			if( ImGui::BeginTable( "splits_infos", 4 ) )
 			{
 				ImGui::TableSetupColumn( "split_index",		ImGuiTableColumnFlags_WidthFixed, split_index_column_size );
@@ -130,6 +133,7 @@ namespace SplitsMgr
 			case Event::Type::current_game_changed:
 			{
 				_refresh_state();
+				_refresh_game_time();
 				break;
 			}
 		};
@@ -273,6 +277,7 @@ namespace SplitsMgr
 				if( tinyxml2::XMLElement* split_time_el = split_times_el->FirstChildElement( "SplitTime" ) )
 				{
 					new_split.m_segment_time = Utils::get_time_from_string( Utils::get_xml_child_element_text( split_time_el, "GameTime" ) );
+					m_time += new_split.m_segment_time;
 				}
 			}
 
@@ -299,7 +304,7 @@ namespace SplitsMgr
 		{
 			split.m_run_time = Utils::get_time_from_string( (*_it_splits)[ "Time" ].asString() );
 
-			// If the run time indicates 0, we're at
+			// If the run time indicates 0, we're at the current split
 			if( Utils::is_time_valid( split.m_run_time ) == false )
 				return false;
 
@@ -329,7 +334,7 @@ namespace SplitsMgr
 			else
 			{
 				tinyxml2::XMLElement* best_segment{ _document.NewElement( "BestSegmentTime" ) };
-				Utils::create_xml_child_element_with_text( _document, best_segment, "RealTime", std::format( "{:%H:%M:%S}", m_estimation ) );
+				Utils::create_xml_child_element_with_text( _document, best_segment, "GameTime", Utils::time_to_str( m_estimation, false ) );
 				split->InsertEndChild( best_segment );
 			}
 
@@ -364,12 +369,12 @@ namespace SplitsMgr
 
 			Utils::create_xml_child_element_with_text( _document, segment, "Name", split_name.c_str() );
 			
-			if( Utils::is_time_valid( m_estimation ) == false )
+			if( Utils::is_time_valid( session_estimate ) == false )
 				Utils::create_xml_child_element_with_text( _document, segment, "BestSegmentTime", "" );
 			else
 			{
 				tinyxml2::XMLElement* best_segment{ _document.NewElement( "BestSegmentTime" ) };
-				Utils::create_xml_child_element_with_text( _document, best_segment, "RealTime", std::format( "{:%H:%M:%S}", m_estimation ) );
+				Utils::create_xml_child_element_with_text( _document, best_segment, "GameTime", Utils::time_to_str( session_estimate, false ) );
 				segment->InsertEndChild( best_segment );
 			}
 
@@ -398,7 +403,7 @@ namespace SplitsMgr
 
 		for( const Split& split : m_splits )
 		{
-			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = split.m_run_time != SplitTime{} ? std::format( "{:%H:%M:%S}", split.m_run_time ).c_str() : Json::Value{};
+			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = split.m_run_time != SplitTime{} ? Utils::time_to_str( split.m_run_time, false ).c_str() : Json::Value{};
 			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
 		}
 	}
@@ -437,11 +442,18 @@ namespace SplitsMgr
 	void Game::_refresh_game_time()
 	{
 		m_time = SplitTime{};
+		m_delta = SplitTime{};
 
 		for( Split& split : m_splits )
 		{
 			m_time += split.m_segment_time;
 		}
+
+		const SplitTime tmp_delta{ m_time - m_estimation };
+
+		// Update the delta if the game is finished, or the estimate has been exceeded.
+		if( m_state == State::finished || m_state != State::none && tmp_delta > std::chrono::seconds{ 0 } )
+			m_delta = tmp_delta;
 	}
 
 	void Game::_refresh_state()
@@ -527,6 +539,9 @@ namespace SplitsMgr
 
 		ImVec2 rect_size{ ImGui::GetContentRegionAvail().x, 0.f };
 
+		// Estimate and Delta line
+		rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+
 		// splits lines
 		rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeightWithSpacing() * m_splits.size();
 		rect_size.y += ImGui::GetStyle().ItemSpacing.y;
@@ -589,5 +604,38 @@ namespace SplitsMgr
 			ImGui::PopStyleColor();
 			ImGui::EndPopup();
 		}
+	}
+
+	void Game::_estimate_and_delta( State _state )
+	{
+		if( ImGui::BeginTable( "splits_infos", 4 ) )
+		{
+			ImGui::TableSetupColumn( "Estimate", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );
+			ImGui::TableSetupColumn( "Delta", ImGuiTableColumnFlags_WidthFixed );
+
+			ImGui::TableNextColumn();
+			ImGui::Text( "Estimate: %s", Utils::time_to_str( m_estimation ).c_str() );
+			ImGui::TableNextColumn();
+
+			if( _state == State::finished || _state != State::none && m_delta > std::chrono::seconds{ 0 } )
+			{
+				if( m_delta < std::chrono::seconds{ 0 } )
+				{
+					ImGui::Text( "Delta:" );
+					ImGui::SameLine();
+					ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
+				}
+				else
+				{
+					ImGui::Text( "Delta:" );
+					ImGui::SameLine();
+					ImGui::Text( "+%s", Utils::time_to_str( m_delta ).c_str() );
+				}
+			}
+
+			ImGui::EndTable();
+		}
+
+		ImGui::Separator();
 	}
 }

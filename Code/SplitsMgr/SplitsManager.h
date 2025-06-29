@@ -65,13 +65,15 @@ namespace SplitsMgr
 		**/
 		void _update_run_data();
 
-		void _update_nb_sessions();
+		void _update_run_stats();
 
 		std::string m_game_icon_desc;
 		std::string m_game_name;
 		std::string m_category;
 		std::string m_layout_path;
 		uint32_t m_nb_sessions{ 0 };	// Determined from the number of splits, then written in the .lss. Never read so it's always the number of split when starting a new session.
+		SplitTime m_estimate{};
+		SplitTime m_delta{};
 
 		std::vector< Game > m_games;
 		Game* m_current_game{ nullptr };

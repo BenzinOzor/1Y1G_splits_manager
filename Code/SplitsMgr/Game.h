@@ -47,6 +47,8 @@ namespace SplitsMgr
 		bool is_current() const									{ return m_state == State::current; }
 		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
+		SplitTime get_estimate() const							{ return m_estimation; }
+		SplitTime get_delta() const								{ return m_delta; }
 
 		/**
 		* @brief Get the time of the run at the given split index.
@@ -97,10 +99,12 @@ namespace SplitsMgr
 		void _pop_state_colors( State _state );
 		void _handle_game_background( State _state );
 		void _right_click();
+		void _estimate_and_delta( State _state );
 
 		std::string m_name;
 		std::string m_icon_desc;
 		SplitTime m_estimation{};
+		SplitTime m_delta{};
 		SplitTime m_time{};			// The timer for the game duration.
 		State m_state{ State::none };
 

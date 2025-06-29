@@ -1,3 +1,5 @@
+#include <format>
+
 #include <tinyXML2/tinyxml2.h>
 
 #include "Utils.h"
@@ -40,6 +42,14 @@ namespace SplitsMgr
 			std::chrono::from_stream( stream, _format.data(), ret_time );
 
 			return ret_time;
+		}
+
+		std::string time_to_str( const SplitTime& _time, bool _floor_seconds /*= true */ )
+		{
+			if( _floor_seconds )
+				return std::format( "{:%H:%M:%S}", std::chrono::floor< std::chrono::seconds >( _time ) );
+
+			return std::format( "{:%H:%M:%S}", _time );
 		}
 
 		bool is_time_valid( const SplitTime& _time )

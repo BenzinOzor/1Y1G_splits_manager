@@ -31,6 +31,9 @@ namespace SplitsMgr
 		if( m_games.empty() )
 			return;
 
+		if( Utils::is_time_valid( m_delta ) == false )
+			_update_run_stats();
+
 		ImGui::NewLine();
 		std::string title = m_game_name + " - " + m_category;
 		ImGui::SetWindowFontScale( 2.f );
@@ -42,11 +45,32 @@ namespace SplitsMgr
 		ImGui::NewLine();
 
 		if( m_current_game != nullptr )
-			ImGui::Text( "Current game: %s (%u)", m_current_game->get_name().c_str(), m_current_split );
+			ImGui::Text( "Current game: %s (split %u)", m_current_game->get_name().c_str(), m_current_split );
+
+		if( ImGui::BeginTable( "run_infos", 5 ) )
+		{
+			ImGui::TableSetupColumn( "Estimate" );
+			ImGui::TableSetupColumn( "Played" );
+			ImGui::TableSetupColumn( "Delta" );
+			ImGui::TableSetupColumn( "Rem. Time" );
+			ImGui::TableSetupColumn( "Est. Final Time" );
+
+			ImGui::TableHeadersRow();
+			ImGui::TableNextColumn();
+			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
+
+			ImGui::TableNextColumn();
+			ImGui::Text( Utils::time_to_str( m_run_time ).c_str() );
+
+			ImGui::TableNextColumn();
+			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
+
+			ImGui::EndTable();
+		}
 
 		ImGui::Text( "Current run time:" );
 		ImGui::SameLine();
-		ImGui::Text( std::format( "{:%H:%M:%S}", m_run_time ).c_str() );
+		ImGui::Text( Utils::time_to_str( m_run_time ).c_str() );
 
 		ImGui::Text( "Number of sessions: %u", m_nb_sessions );
 
@@ -77,12 +101,14 @@ namespace SplitsMgr
 			ImGui::EndTable();
 		}
 
-		ImGui::Separator();
+		ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
 
 		for( Game& game : m_games )
 		{
 			game.display();
 		}
+
+		ImGui::PopStyleColor();
 	}
 
 	void SplitsManager::on_event()
@@ -250,7 +276,7 @@ namespace SplitsMgr
 		if( run_time == m_run_time )
 			m_sessions_updated = true;
 
-		_update_nb_sessions();
+		_update_run_stats();
 	}
 
 	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
@@ -279,7 +305,7 @@ namespace SplitsMgr
 	void SplitsManager::write_json( Json::Value& _root )
 	{
 		_root[ "CurrentSplitIndex" ] = m_current_split;
-		_root[ "CurrentTime" ] = std::format( "{:%H:%M:%S}", m_run_time ).c_str();
+		_root[ "CurrentTime" ] = Utils::time_to_str( m_run_time, false ).c_str();
 
 		for( const Game& game : m_games )
 		{
@@ -313,14 +339,14 @@ namespace SplitsMgr
 
 		_update_games_data( m_current_game );
 		_update_run_data();
-		_update_nb_sessions();
+		_update_run_stats();
 	}
 
 	void SplitsManager::_on_game_session_added( const Event::GameEvent& _event_infos )
 	{
 		_update_games_data( _event_infos.m_game );
 		_update_run_data();
-		_update_nb_sessions();
+		_update_run_stats();
 	}
 
 	/**
@@ -408,7 +434,7 @@ namespace SplitsMgr
 		}
 	}
 
-	void SplitsManager::_update_nb_sessions()
+	void SplitsManager::_update_run_stats()
 	{
 		m_nb_sessions = 0;
 
@@ -419,6 +445,9 @@ namespace SplitsMgr
 				if( Utils::is_time_valid( split.m_segment_time ) )
 					++m_nb_sessions;
 			}
+
+			m_estimate += game.get_estimate();
+			m_delta += game.get_delta();
 		}
 	}
 
