@@ -58,7 +58,7 @@ namespace SplitsMgr
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x - game_time_width );
 			ImGui::Text( game_time.c_str() );
 		}
-
+		
 		if( is_current() )
 		{
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - current_game_text_size * 0.5f );
@@ -264,7 +264,16 @@ namespace SplitsMgr
 			// Best segments are used for game time estimations.
 			if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
 			{
-				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "RealTime" ) );
+				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
+			}
+
+			// Game time splits are used for sessions added in advance
+			if( tinyxml2::XMLElement* split_times_el = segment->FirstChildElement( "SplitTimes" ) )
+			{
+				if( tinyxml2::XMLElement* split_time_el = split_times_el->FirstChildElement( "SplitTime" ) )
+				{
+					new_split.m_segment_time = Utils::get_time_from_string( Utils::get_xml_child_element_text( split_time_el, "GameTime" ) );
+				}
 			}
 
 			new_split.m_session_index = m_splits.size() + 1;
