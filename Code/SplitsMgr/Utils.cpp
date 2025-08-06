@@ -1,6 +1,7 @@
 #include <format>
 
 #include <tinyXML2/tinyxml2.h>
+#include <FZN/Tools/Tools.h>
 
 #include "Utils.h"
 
@@ -37,7 +38,22 @@ namespace SplitsMgr
 		SplitTime get_time_from_string( std::string_view _time, std::string_view _format /*= "%H:%M:%S" */ )
 		{
 			std::stringstream stream;
-			stream << _time;
+
+			size_t first_colon = _time.find_first_of( ':' );
+
+			// If there is a dot in the string, it means we got it from the .lss and the time is greater than a day
+			if( size_t dot = _time.find_first_of( '.' ); first_colon != std::string::npos && dot != std::string::npos && dot < first_colon )
+			{
+				const int days = std::stoi( std::string{ _time.substr( 0, dot ) } );
+
+				++dot;
+				int hours = std::stoi( std::string{ _time.substr( dot, first_colon - dot ) } );
+
+				stream << fzn::Tools::Sprintf( "%d:%s", days * 24 + hours, _time.substr( first_colon + 1 ).data() );
+			}
+			else
+				stream << _time;
+
 			std::chrono::duration<int, std::milli> ret_time{};
 			std::chrono::from_stream( stream, _format.data(), ret_time );
 

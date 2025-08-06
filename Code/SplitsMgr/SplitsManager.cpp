@@ -437,6 +437,8 @@ namespace SplitsMgr
 	void SplitsManager::_update_run_stats()
 	{
 		m_nb_sessions = 0;
+		m_estimate = SplitTime{};
+		m_delta = SplitTime{};
 
 		for( const Game& game : m_games )
 		{
