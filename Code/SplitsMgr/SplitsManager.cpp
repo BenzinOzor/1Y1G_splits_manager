@@ -65,6 +65,12 @@ namespace SplitsMgr
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
+			ImGui::TableNextColumn();
+			ImGui::Text( Utils::time_to_str( m_remaining_time ).c_str() );
+
+			ImGui::TableNextColumn();
+			ImGui::Text( Utils::time_to_str( m_estimated_final_time ).c_str() );
+
 			ImGui::EndTable();
 		}
 
@@ -439,6 +445,7 @@ namespace SplitsMgr
 		m_nb_sessions = 0;
 		m_estimate = SplitTime{};
 		m_delta = SplitTime{};
+		m_remaining_time = SplitTime{};
 
 		for( const Game& game : m_games )
 		{
@@ -450,7 +457,22 @@ namespace SplitsMgr
 
 			m_estimate += game.get_estimate();
 			m_delta += game.get_delta();
+
+			if( game.get_state() == Game::State::none )
+				m_remaining_time += game.get_estimate();
+			else if( game.is_current() )
+			{
+				const SplitTime played{ game.get_played() };
+
+				if( played < game.get_estimate() )
+				{
+					SplitTime game_rem_time = game.get_estimate() - played;
+					m_remaining_time += game_rem_time;
+				}
+			}
 		}
+
+		m_estimated_final_time = m_remaining_time + m_run_time;
 	}
 
 }

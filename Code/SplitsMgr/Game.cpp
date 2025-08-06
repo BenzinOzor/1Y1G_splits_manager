@@ -160,6 +160,18 @@ namespace SplitsMgr
 		return last_valid_time;
 	}
 
+	SplitsMgr::SplitTime Game::get_played() const
+	{
+		SplitTime played{};
+
+		for( const Split& split : m_splits )
+		{
+			played += split.m_segment_time;
+		}
+
+		return played;
+	}
+
 	/**
 	* @brief Get the time of the run at the given split index.
 	* @param _split_index The index of the split at which we want the run time.

@@ -45,10 +45,12 @@ namespace SplitsMgr
 		bool contains_split_index( uint32_t _index ) const;
 		bool is_finished() const								{ return m_state == State::finished; }
 		bool is_current() const									{ return m_state == State::current; }
+		State get_state() const									{ return m_state; }
 		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
 		SplitTime get_estimate() const							{ return m_estimation; }
 		SplitTime get_delta() const								{ return m_delta; }
+		SplitTime get_played() const;
 
 		/**
 		* @brief Get the time of the run at the given split index.
