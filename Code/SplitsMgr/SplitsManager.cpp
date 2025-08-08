@@ -82,16 +82,18 @@ namespace SplitsMgr
 
 		ImGui::SeparatorText( "Update sessions" );
 
-		if( ImGui::BeginTable( "add_session_table", 2 ) )
+		const int nb_columns{ 3 };
+		if( ImGui::BeginTable( "add_session_table", nb_columns ) )
 		{
 			const bool disable_buttons{ m_current_game == nullptr || m_sessions_updated };
 
 			if( disable_buttons )
 				ImGui::BeginDisabled();
 
-			const float column_size = ImGui::GetContentRegionAvail().x * 0.5f - ImGui::GetStyle().ItemSpacing.x * 0.5f;
+			const float column_size = ImGui::GetContentRegionAvail().x / nb_columns - ImGui::GetStyle().ItemSpacing.x / nb_columns;
 			ImGui::TableSetupColumn( "btn1", ImGuiTableColumnFlags_WidthFixed, column_size );
 			ImGui::TableSetupColumn( "btn2", ImGuiTableColumnFlags_WidthFixed, column_size );
+			ImGui::TableSetupColumn( "btn3", ImGuiTableColumnFlags_WidthFixed, column_size );
 
 			ImGui::TableNextColumn();
 			if( ImGui::Button( "Game finished", { ImGui::GetContentRegionAvail().x, 0.f } ) )
@@ -100,6 +102,13 @@ namespace SplitsMgr
 			ImGui::TableNextColumn();
 			if( ImGui::Button( "Game still going", { ImGui::GetContentRegionAvail().x, 0.f } ) )
 				_update_sessions( false );
+
+			ImGui::TableNextColumn();
+			if( ImGui::Button( "Run time = Last time", { ImGui::GetContentRegionAvail().x, 0.f } ) )
+			{
+				m_run_time = get_split_run_time( m_current_split - 1 );
+				m_sessions_updated = true;
+			}
 
 			if( disable_buttons )
 				ImGui::EndDisabled();

@@ -59,12 +59,6 @@ namespace SplitsMgr
 			ImGui::Text( game_time.c_str() );
 		}
 		
-		if( is_current() )
-		{
-			ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - current_game_text_size * 0.5f );
-			ImGui::Text( "- Current Game -" );
-		}
-		
 		_pop_state_colors( game_state );
 
 		if( header_open )
