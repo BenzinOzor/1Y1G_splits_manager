@@ -104,7 +104,7 @@ namespace SplitsMgr
 				_update_sessions( false );
 
 			ImGui::TableNextColumn();
-			if( ImGui::Button( "Run time = Last time", { ImGui::GetContentRegionAvail().x, 0.f } ) )
+			if( ImGui::Button( "Crop run time", { ImGui::GetContentRegionAvail().x, 0.f } ) )
 			{
 				m_run_time = get_split_run_time( m_current_split - 1 );
 				m_sessions_updated = true;
@@ -118,10 +118,12 @@ namespace SplitsMgr
 
 		ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
 
+		ImGui::BeginChild( "Games" );
 		for( Game& game : m_games )
 		{
 			game.display();
 		}
+		ImGui::EndChild();
 
 		ImGui::PopStyleColor();
 	}
