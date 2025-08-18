@@ -322,7 +322,7 @@ namespace SplitsMgr
 	void SplitsManager::write_json( Json::Value& _root )
 	{
 		_root[ "CurrentSplitIndex" ] = m_current_split;
-		_root[ "CurrentTime" ] = Utils::time_to_str( m_run_time, false ).c_str();
+		_root[ "CurrentTime" ] = Utils::time_to_str( m_run_time, false, true ).c_str();
 
 		for( const Game& game : m_games )
 		{

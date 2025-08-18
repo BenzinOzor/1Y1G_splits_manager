@@ -409,7 +409,7 @@ namespace SplitsMgr
 
 		for( const Split& split : m_splits )
 		{
-			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = split.m_run_time != SplitTime{} ? Utils::time_to_str( split.m_run_time, false ).c_str() : Json::Value{};
+			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = split.m_run_time != SplitTime{} ? Utils::time_to_str( split.m_run_time, false, true ).c_str() : Json::Value{};
 			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
 		}
 	}

@@ -60,12 +60,28 @@ namespace SplitsMgr
 			return ret_time;
 		}
 
-		std::string time_to_str( const SplitTime& _time, bool _floor_seconds /*= true */ )
+		std::string time_to_str( const SplitTime& _time, bool _floor_seconds /*= true */, bool _separate_days /*= false*/ )
 		{
-			if( _floor_seconds )
-				return std::format( "{:%H:%M:%S}", std::chrono::floor< std::chrono::seconds >( _time ) );
+			std::string time_string{};
 
-			return std::format( "{:%H:%M:%S}", _time );
+			auto durations_hours = duration_cast<std::chrono::hours>(_time );
+			int days = durations_hours.count() / 24;
+			int hours = durations_hours.count() - days * 24;
+
+			if( _separate_days && days > 0 )
+			{
+				time_string = fzn::Tools::Sprintf( "%d.%02d:", days, hours );
+				time_string += std::format( "{:%M:}", _time );
+			}
+			else
+				time_string = std::format( "{:%H:%M:}", _time );
+
+			if( _floor_seconds )
+				time_string += std::format( "{:%S}", std::chrono::floor< std::chrono::seconds >( _time ) );
+			else
+				time_string += std::format( "{:%S}", _time );
+
+			return time_string;
 		}
 
 		bool is_time_valid( const SplitTime& _time )
