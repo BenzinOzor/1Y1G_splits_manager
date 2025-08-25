@@ -234,8 +234,6 @@ namespace SplitsMgr
 		tinyxml2::XMLElement* segment = _element;
 		bool parsing_game{ true };
 
-		SplitTime estimate{};
-
 		while( parsing_game )
 		{
 			std::string split_name = Utils::get_xml_child_element_text( segment, "Name" );
@@ -259,6 +257,11 @@ namespace SplitsMgr
 
 				// This is the closing subsplit of the game.
 				parsing_game = false;
+
+				if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
+				{
+					m_estimation = Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
+				}
 			}
 			else if( split_name.at( 0 ) != '-' )
 			{
@@ -266,16 +269,21 @@ namespace SplitsMgr
 
 				// The game is only this split.
 				parsing_game = false;
+
+				if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
+				{
+					m_estimation = Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
+				}
 			}
 			
 			if( std::string icon = Utils::get_xml_child_element_text( segment, "Icon" ); icon.empty() == false )
 				m_icon_desc = "<![CDATA[" + icon + "]]>";
 
 			// Best segments are used for game time estimations.
-			if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
+			/*if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
 			{
 				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
-			}
+			}*/
 
 			// Game time splits are used for sessions added in advance
 			if( tinyxml2::XMLElement* split_times_el = segment->FirstChildElement( "SplitTimes" ) )
@@ -293,8 +301,6 @@ namespace SplitsMgr
 			segment = segment->NextSiblingElement( "Segment" );
 			++_split_index;
 		}
-
-		m_estimation = estimate;
 
 		return segment;
 	}
@@ -356,7 +362,6 @@ namespace SplitsMgr
 		}
 
 		uint32_t session_number{ 0 };
-		SplitTime session_estimate{ m_estimation / m_splits.size() };
 		for( Split& split : m_splits )
 		{
 			tinyxml2::XMLElement* segment{ _document.NewElement( "Segment" ) };
@@ -366,6 +371,15 @@ namespace SplitsMgr
 			{
 				split_name = "{" + m_name + "} " + fzn::Tools::Sprintf( "session %u", split.m_session_index );
 				Utils::create_xml_child_element_with_text( _document, segment, "Icon", m_icon_desc.c_str() );
+
+				if( Utils::is_time_valid( m_estimation ) == false )
+					Utils::create_xml_child_element_with_text( _document, segment, "BestSegmentTime", "" );
+				else
+				{
+					tinyxml2::XMLElement* best_segment{ _document.NewElement( "BestSegmentTime" ) };
+					Utils::create_xml_child_element_with_text( _document, best_segment, "GameTime", Utils::time_to_str( m_estimation, false ) );
+					segment->InsertEndChild( best_segment );
+				}
 			}
 			else
 			{
@@ -374,15 +388,6 @@ namespace SplitsMgr
 			}
 
 			Utils::create_xml_child_element_with_text( _document, segment, "Name", split_name.c_str() );
-			
-			if( Utils::is_time_valid( session_estimate ) == false )
-				Utils::create_xml_child_element_with_text( _document, segment, "BestSegmentTime", "" );
-			else
-			{
-				tinyxml2::XMLElement* best_segment{ _document.NewElement( "BestSegmentTime" ) };
-				Utils::create_xml_child_element_with_text( _document, best_segment, "GameTime", Utils::time_to_str( session_estimate, false ) );
-				segment->InsertEndChild( best_segment );
-			}
 
 			tinyxml2::XMLElement* split_times{ _document.NewElement( "SplitTimes" ) };
 			tinyxml2::XMLElement* split_time{ _document.NewElement( "SplitTime" ) };
