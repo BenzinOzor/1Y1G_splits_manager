@@ -6,6 +6,7 @@
 
 #include <FZN/Managers/FazonCore.h>
 #include <FZN/Tools/Logging.h>
+#include <FZN/UI/ImGui.h>
 
 #include "SplitsManagerApp.h"
 
@@ -68,12 +69,30 @@ namespace SplitsMgr
 		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		//window_flags |= ImGuiWindowFlags_NoBackground;
 
-		ImGui::Begin( "Splits Manager", NULL, window_flags );
+		ImGui::Begin( "Splits Manager", nullptr, window_flags );
 		ImGui::PopStyleVar( 3 );
 
 		_display_menu_bar();
 
-		m_splits_mgr.display();
+		ImVec2 panel_size{ window_size };
+
+		if( ImGui::GetCurrentWindowRead() != nullptr )
+			panel_size.y = window_size.y - ImGui::GetCurrentWindowRead()->MenuBarHeight();
+
+		panel_size.x = window_size.x * 0.5f;
+
+		window_flags ^= ImGuiWindowFlags_MenuBar;
+
+		ImGui::BeginChild( "Left Panel", panel_size, 0, window_flags );
+		m_splits_mgr.display_left_panel();
+		ImGui::EndChild();
+
+		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
+		ImGui::SameLine();
+		ImGui::PopStyleVar();
+		ImGui::BeginChild( "Right Panel", panel_size, 0, window_flags );
+		m_splits_mgr.display_right_panel();
+		ImGui::EndChild();
 
 		ImGui::End();
 

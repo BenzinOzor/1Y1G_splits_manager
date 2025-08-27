@@ -26,11 +26,25 @@ namespace SplitsMgr
 			g_pFZN_Core->RemoveCallback( &game, &Game::on_event, fzn::DataCallbackType::Event );
 	}
 
-	void SplitsManager::display()
+	void SplitsManager::display_left_panel()
 	{
 		if( m_games.empty() )
 			return;
 
+		ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
+
+		ImGui::BeginChild( "Games" );
+		for( Game& game : m_games )
+		{
+			game.display();
+		}
+		ImGui::EndChild();
+
+		ImGui::PopStyleColor();
+	}
+
+	void SplitsManager::display_right_panel()
+	{
 		if( Utils::is_time_valid( m_delta ) == false )
 			_update_run_stats();
 
@@ -45,41 +59,37 @@ namespace SplitsMgr
 		ImGui::NewLine();
 
 		if( m_current_game != nullptr )
-			ImGui::Text( "Current game: %s (split %u)", m_current_game->get_name().c_str(), m_current_split );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current game:", m_current_game->get_name().c_str() );
 
-		if( ImGui::BeginTable( "run_infos", 5 ) )
+		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
+		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );
+
+		ImGui::Spacing();
+
+		if( ImGui::BeginTable( "run_infos_2", 4 ) )
 		{
-			ImGui::TableSetupColumn( "Estimate" );
-			ImGui::TableSetupColumn( "Played" );
-			ImGui::TableSetupColumn( "Delta" );
-			ImGui::TableSetupColumn( "Rem. Time" );
-			ImGui::TableSetupColumn( "Est. Final Time" );
+			ImGui::TableNextColumn();
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta" );
 
-			ImGui::TableHeadersRow();
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
-
-			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_run_time ).c_str() );
-
-			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::Text( Utils::time_to_str( m_remaining_time ).c_str() );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Rem. Time" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time" );
 
 			ImGui::TableNextColumn();
+			ImGui::Text( Utils::time_to_str( m_remaining_time ).c_str() );
 			ImGui::Text( Utils::time_to_str( m_estimated_final_time ).c_str() );
 
 			ImGui::EndTable();
 		}
 
-		ImGui::Text( "Current run time:" );
-		ImGui::SameLine();
-		ImGui::Text( Utils::time_to_str( m_run_time ).c_str() );
-
-		ImGui::Text( "Number of sessions: %u", m_nb_sessions );
-
+		ImGui::NewLine();
 		ImGui::SeparatorText( "Update sessions" );
 
 		const int nb_columns{ 3 };
@@ -116,16 +126,8 @@ namespace SplitsMgr
 			ImGui::EndTable();
 		}
 
-		ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
-
-		ImGui::BeginChild( "Games" );
-		for( Game& game : m_games )
-		{
-			game.display();
-		}
-		ImGui::EndChild();
-
-		ImGui::PopStyleColor();
+		ImGui::NewLine();
+		ImGui::SeparatorText( "Stats" );
 	}
 
 	void SplitsManager::on_event()

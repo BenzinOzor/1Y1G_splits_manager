@@ -22,7 +22,8 @@ namespace SplitsMgr
 		SplitsManager();
 		~SplitsManager();
 
-		void display();
+		void display_left_panel();
+		void display_right_panel();
 		void on_event();
 
 		Game*		get_current_game() const		{ return m_current_game; }
