@@ -55,6 +55,9 @@ namespace SplitsMgr
 		void _update_sessions( bool _game_finished );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
+		void _display_stats();
+		void _display_update_sessions_buttons();
+
 		/**
 		* @brief Update splits index and run time of games coming after the given one.
 		* @param _game The game that has been updated, and from which the update will start.

@@ -87,9 +87,7 @@ namespace SplitsMgr
 		m_splits_mgr.display_left_panel();
 		ImGui::EndChild();
 
-		ImGui::PushStyleVar( ImGuiStyleVar_::ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
 		ImGui::SameLine();
-		ImGui::PopStyleVar();
 		ImGui::BeginChild( "Right Panel", panel_size, 0, window_flags );
 		m_splits_mgr.display_right_panel();
 		ImGui::EndChild();

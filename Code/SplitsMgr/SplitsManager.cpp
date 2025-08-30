@@ -62,16 +62,15 @@ namespace SplitsMgr
 			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current game:", m_current_game->get_name().c_str() );
 
 		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );
 
 		ImGui::Spacing();
 
 		if( ImGui::BeginTable( "run_infos_2", 4 ) )
 		{
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate" );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played" );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta:" );
 
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
@@ -79,8 +78,8 @@ namespace SplitsMgr
 			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Rem. Time" );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Rem. Time:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time:" );
 
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_remaining_time ).c_str() );
@@ -89,45 +88,8 @@ namespace SplitsMgr
 			ImGui::EndTable();
 		}
 
-		ImGui::NewLine();
-		ImGui::SeparatorText( "Update sessions" );
-
-		const int nb_columns{ 3 };
-		if( ImGui::BeginTable( "add_session_table", nb_columns ) )
-		{
-			const bool disable_buttons{ m_current_game == nullptr || m_sessions_updated };
-
-			if( disable_buttons )
-				ImGui::BeginDisabled();
-
-			const float column_size = ImGui::GetContentRegionAvail().x / nb_columns - ImGui::GetStyle().ItemSpacing.x / nb_columns;
-			ImGui::TableSetupColumn( "btn1", ImGuiTableColumnFlags_WidthFixed, column_size );
-			ImGui::TableSetupColumn( "btn2", ImGuiTableColumnFlags_WidthFixed, column_size );
-			ImGui::TableSetupColumn( "btn3", ImGuiTableColumnFlags_WidthFixed, column_size );
-
-			ImGui::TableNextColumn();
-			if( ImGui::Button( "Game finished", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-				_update_sessions( true );
-
-			ImGui::TableNextColumn();
-			if( ImGui::Button( "Game still going", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-				_update_sessions( false );
-
-			ImGui::TableNextColumn();
-			if( ImGui::Button( "Crop run time", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-			{
-				m_run_time = get_split_run_time( m_current_split - 1 );
-				m_sessions_updated = true;
-			}
-
-			if( disable_buttons )
-				ImGui::EndDisabled();
-
-			ImGui::EndTable();
-		}
-
-		ImGui::NewLine();
-		ImGui::SeparatorText( "Stats" );
+		_display_stats();
+		_display_update_sessions_buttons();
 	}
 
 	void SplitsManager::on_event()
@@ -366,6 +328,56 @@ namespace SplitsMgr
 		_update_games_data( _event_infos.m_game );
 		_update_run_data();
 		_update_run_stats();
+	}
+
+	void SplitsManager::_display_stats()
+	{
+		ImGui::NewLine();
+		ImGui::SeparatorText( "Stats" );
+
+		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );
+	}
+
+	void SplitsManager::_display_update_sessions_buttons()
+	{
+		const float cursor_height{ ImGui::GetContentRegionMax().y - ImGui::GetFrameHeightWithSpacing() * 2.f - ImGui::GetStyle().FramePadding.y };
+		ImGui::SetCursorPosY( cursor_height );
+
+		ImGui::SeparatorText( "Update sessions" );
+
+		const int nb_columns{ 3 };
+		if( ImGui::BeginTable( "add_session_table", nb_columns ) )
+		{
+			const bool disable_buttons{ m_current_game == nullptr || m_sessions_updated };
+
+			if( disable_buttons )
+				ImGui::BeginDisabled();
+
+			const float column_size = ImGui::GetContentRegionAvail().x / nb_columns - ImGui::GetStyle().ItemSpacing.x / nb_columns;
+			ImGui::TableSetupColumn( "btn1", ImGuiTableColumnFlags_WidthFixed, column_size );
+			ImGui::TableSetupColumn( "btn2", ImGuiTableColumnFlags_WidthFixed, column_size );
+			ImGui::TableSetupColumn( "btn3", ImGuiTableColumnFlags_WidthFixed, column_size );
+
+			ImGui::TableNextColumn();
+			if( ImGui::Button( "Game finished", { ImGui::GetContentRegionAvail().x, 0.f } ) )
+				_update_sessions( true );
+
+			ImGui::TableNextColumn();
+			if( ImGui::Button( "Game still going", { ImGui::GetContentRegionAvail().x, 0.f } ) )
+				_update_sessions( false );
+
+			ImGui::TableNextColumn();
+			if( ImGui::Button( "Crop run time", { ImGui::GetContentRegionAvail().x, 0.f } ) )
+			{
+				m_run_time = get_split_run_time( m_current_split - 1 );
+				m_sessions_updated = true;
+			}
+
+			if( disable_buttons )
+				ImGui::EndDisabled();
+
+			ImGui::EndTable();
+		}
 	}
 
 	/**
