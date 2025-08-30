@@ -7,6 +7,7 @@
 
 #include "Game.h"
 #include "Event.h"
+#include "Stats.h"
 
 
 namespace tinyxml2
@@ -55,7 +56,6 @@ namespace SplitsMgr
 		void _update_sessions( bool _game_finished );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
-		void _display_stats();
 		void _display_update_sessions_buttons();
 
 		/**
@@ -81,12 +81,14 @@ namespace SplitsMgr
 		SplitTime m_remaining_time{};
 		SplitTime m_estimated_final_time{};
 
-		std::vector< Game > m_games;
+		Games m_games;
 		Game* m_current_game{ nullptr };
 
 		uint32_t m_current_split{ 0 };
 		SplitTime m_run_time{};
 
 		bool m_sessions_updated{ false };	// True if all the sessions have been updated with the right splits created.
+
+		Stats m_stats;
 	};
 } // SplitsMgr

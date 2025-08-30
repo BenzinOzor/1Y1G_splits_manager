@@ -1,7 +1,6 @@
 <Actions>
-	<Action Name="ExampleKeyboardBind">
-		 <Input Type="Keyboard" Map="Space"/> 
-		 <Input Type="Keyboard" Map="Return"/> 
+	<Action Name="Refresh">
+		 <Input Type="Keyboard" Map="F5"/>
 	</Action>
 	<Action Name="ExampleJoystickBind">
 		<Input Type="JoystickButton" Map="B0"/>

@@ -48,6 +48,9 @@ namespace SplitsMgr
 		if( Utils::is_time_valid( m_delta ) == false )
 			_update_run_stats();
 
+		if( g_pFZN_InputMgr->IsActionPressed( "Refresh" ) )
+			m_stats.refresh( m_games );
+
 		ImGui::NewLine();
 		std::string title = m_game_name + " - " + m_category;
 		ImGui::SetWindowFontScale( 2.f );
@@ -88,7 +91,7 @@ namespace SplitsMgr
 			ImGui::EndTable();
 		}
 
-		_display_stats();
+		m_stats.display();
 		_display_update_sessions_buttons();
 	}
 
@@ -330,14 +333,6 @@ namespace SplitsMgr
 		_update_run_stats();
 	}
 
-	void SplitsManager::_display_stats()
-	{
-		ImGui::NewLine();
-		ImGui::SeparatorText( "Stats" );
-
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );
-	}
-
 	void SplitsManager::_display_update_sessions_buttons()
 	{
 		const float cursor_height{ ImGui::GetContentRegionMax().y - ImGui::GetFrameHeightWithSpacing() * 2.f - ImGui::GetStyle().FramePadding.y };
@@ -498,6 +493,7 @@ namespace SplitsMgr
 		}
 
 		m_estimated_final_time = m_remaining_time + m_run_time;
+		m_stats.refresh( m_games );
 	}
 
 }

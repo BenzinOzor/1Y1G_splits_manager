@@ -15,7 +15,10 @@
 
 int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
-	fzn::FazonCore::CreateInstance( { "1Y1G Splits Manager", FZNProjectType::Application } );
+	fzn::FazonCore::ProjectDesc desc{ "1Y1G Splits Manager", FZNProjectType::Application };
+	fzn::Tools::MaskRaiseFlag( desc.m_uModules, fzn::FazonCore::CoreModuleFlags_InputModule );
+
+	fzn::FazonCore::CreateInstance( desc );
 
 	//Changing the titles of the window and the console
 	g_pFZN_Core->ConsoleTitle( g_pFZN_Core->GetProjectName().c_str() );

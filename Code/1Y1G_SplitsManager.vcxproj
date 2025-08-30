@@ -253,6 +253,7 @@
     <ClCompile Include="SplitsMgr\main.cpp" />
     <ClCompile Include="SplitsMgr\SplitsManager.cpp" />
     <ClCompile Include="SplitsMgr\SplitsManagerApp.cpp" />
+    <ClCompile Include="SplitsMgr\Stats.cpp" />
     <ClCompile Include="SplitsMgr\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -273,6 +274,7 @@
     <ClInclude Include="SplitsMgr\Game.h" />
     <ClInclude Include="SplitsMgr\SplitsManager.h" />
     <ClInclude Include="SplitsMgr\SplitsManagerApp.h" />
+    <ClInclude Include="SplitsMgr\Stats.h" />
     <ClInclude Include="SplitsMgr\Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

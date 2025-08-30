@@ -115,4 +115,5 @@ namespace SplitsMgr
 		std::string m_new_session_time;
 		bool m_new_session_game_finished{ false };
 	};
+	using Games = std::vector< Game >;
 }

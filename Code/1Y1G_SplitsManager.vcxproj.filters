@@ -30,6 +30,9 @@
     <ClCompile Include="SplitsMgr\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SplitsMgr\Stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Data\XMLFiles\Resources" />
@@ -56,6 +59,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SplitsMgr\Event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitsMgr\Stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
