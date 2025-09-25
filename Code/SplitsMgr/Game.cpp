@@ -188,7 +188,10 @@ namespace SplitsMgr
 	void Game::update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished )
 	{
 		Split& last_split{ m_splits.back() };
-		last_split.m_run_time = _run_time;
+
+		if( Utils::is_time_valid( _run_time ) )
+			last_split.m_run_time = _run_time;
+
 		last_split.m_segment_time = _segment_time;
 
 		_refresh_game_time();
@@ -278,12 +281,6 @@ namespace SplitsMgr
 			
 			if( std::string icon = Utils::get_xml_child_element_text( segment, "Icon" ); icon.empty() == false )
 				m_icon_desc = "<![CDATA[" + icon + "]]>";
-
-			// Best segments are used for game time estimations.
-			/*if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
-			{
-				estimate += Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
-			}*/
 
 			// Game time splits are used for sessions added in advance
 			if( tinyxml2::XMLElement* split_times_el = segment->FirstChildElement( "SplitTimes" ) )
@@ -392,6 +389,10 @@ namespace SplitsMgr
 			tinyxml2::XMLElement* split_times{ _document.NewElement( "SplitTimes" ) };
 			tinyxml2::XMLElement* split_time{ _document.NewElement( "SplitTime" ) };
 			split_time->SetAttribute( "name", "Personal Best" );
+
+			if( Utils::is_time_valid( split.m_run_time ) == false && Utils::is_time_valid( split.m_segment_time ) )
+				Utils::create_xml_child_element_with_text( _document, split_time, "GameTime", Utils::time_to_str( split.m_segment_time, false ) );
+
 			split_times->InsertEndChild( split_time );
 			segment->InsertEndChild( split_times );
 
@@ -414,7 +415,7 @@ namespace SplitsMgr
 
 		for( const Split& split : m_splits )
 		{
-			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = split.m_run_time != SplitTime{} ? Utils::time_to_str( split.m_run_time, false, true ).c_str() : Json::Value{};
+			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = Utils::is_time_valid( split.m_run_time ) ? Utils::time_to_str( split.m_run_time, false, true ).c_str() : Json::Value{};
 			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
 		}
 	}
@@ -435,7 +436,13 @@ namespace SplitsMgr
 			return;
 
 		const uint32_t last_split_index{ m_splits.back().m_split_index };
-		SplitTime run_time = g_splits_app->get_splits_manager().get_last_valid_run_time( this );
+		const uint32_t current_split_index{ g_splits_app->get_current_split_index() };
+		SplitTime run_time = SplitTime{};
+		
+		// We only want the run time if the current split is in this game or after.
+		// A smaller split index would mean we are updating a game in advance, and we don't want the run time in this case.
+		if( contains_split_index( current_split_index ) || current_split_index > m_splits.front().m_split_index )
+			run_time = g_splits_app->get_splits_manager().get_last_valid_run_time( this );
 
 		if( Utils::is_time_valid( run_time ) )
 			run_time += new_segment_time;

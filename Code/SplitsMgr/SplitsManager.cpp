@@ -480,7 +480,7 @@ namespace SplitsMgr
 
 			if( game.get_state() == Game::State::none )
 				m_remaining_time += game.get_estimate();
-			else if( game.is_current() )
+			else if( game.get_state() == Game::State::ongoing )
 			{
 				const SplitTime played{ game.get_played() };
 
