@@ -77,6 +77,7 @@ namespace SplitsMgr
 		std::string m_layout_path;
 		uint32_t m_nb_sessions{ 0 };	// Determined from the number of splits, then written in the .lss. Never read so it's always the number of split when starting a new session.
 		SplitTime m_estimate{};
+		SplitTime m_played{};
 		SplitTime m_delta{};
 		SplitTime m_remaining_time{};
 		SplitTime m_estimated_final_time{};

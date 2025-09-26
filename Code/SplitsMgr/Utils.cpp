@@ -77,9 +77,9 @@ namespace SplitsMgr
 				time_string = std::format( "{:%H:%M:}", _time );
 
 			if( _floor_seconds )
-				time_string += std::format( "{:%S}", std::chrono::floor< std::chrono::seconds >( _time ) );
+				time_string += std::format( "{:%S}", abs( std::chrono::floor< std::chrono::seconds >( _time ) ) );
 			else
-				time_string += std::format( "{:%S}", _time );
+				time_string += std::format( "{:%S}", abs( _time ) );
 
 			return time_string;
 		}

@@ -65,6 +65,7 @@ namespace SplitsMgr
 			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current game:", m_current_game->get_name().c_str() );
 
 		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
+		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current run time:", "%s", Utils::time_to_str( m_run_time ).c_str() );
 
 		ImGui::Spacing();
 
@@ -77,7 +78,7 @@ namespace SplitsMgr
 
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
-			ImGui::Text( Utils::time_to_str( m_run_time ).c_str() );
+			ImGui::Text( Utils::time_to_str( m_played ).c_str() );
 			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
@@ -464,6 +465,7 @@ namespace SplitsMgr
 	{
 		m_nb_sessions = 0;
 		m_estimate = SplitTime{};
+		m_played = SplitTime{};
 		m_delta = SplitTime{};
 		m_remaining_time = SplitTime{};
 
@@ -476,7 +478,10 @@ namespace SplitsMgr
 			}
 
 			m_estimate += game.get_estimate();
-			m_delta += game.get_delta();
+			m_played += game.get_played();
+
+			if( game.is_finished() )
+				m_delta += game.get_delta();
 
 			if( game.get_state() == Game::State::none )
 				m_remaining_time += game.get_estimate();
