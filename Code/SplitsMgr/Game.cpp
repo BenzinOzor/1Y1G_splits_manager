@@ -141,6 +141,24 @@ namespace SplitsMgr
 		return m_splits.front().m_split_index <= _index && m_splits.back().m_split_index >= _index;
 	}
 
+	const char* Game::get_state_str() const
+	{
+		switch( m_state )
+		{
+			case State::none:
+				return "None";
+			case State::current:
+				return "Current";
+			case State::finished:
+				return "Finished";
+			case State::ongoing:
+				return "Ongoing";
+			case State::COUNT:
+			default:
+				return "COUNT";
+		};
+	}
+
 	SplitsMgr::SplitTime Game::get_run_time() const
 	{
 		SplitTime last_valid_time{};

@@ -46,6 +46,7 @@ namespace SplitsMgr
 		bool is_finished() const								{ return m_state == State::finished; }
 		bool is_current() const									{ return m_state == State::current; }
 		State get_state() const									{ return m_state; }
+		const char* get_state_str() const;
 		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
 		SplitTime get_estimate() const							{ return m_estimation; }

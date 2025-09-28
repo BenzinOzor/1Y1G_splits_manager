@@ -469,6 +469,8 @@ namespace SplitsMgr
 		m_delta = SplitTime{};
 		m_remaining_time = SplitTime{};
 
+		FZN_LOG( "Updating stats..." );
+
 		for( const Game& game : m_games )
 		{
 			for( const Split& split : game.get_splits() )
@@ -485,7 +487,7 @@ namespace SplitsMgr
 
 			if( game.get_state() == Game::State::none )
 				m_remaining_time += game.get_estimate();
-			else if( game.get_state() == Game::State::ongoing )
+			else if( game.get_state() == Game::State::ongoing || game.get_state() == Game::State::current )
 			{
 				const SplitTime played{ game.get_played() };
 
@@ -495,10 +497,15 @@ namespace SplitsMgr
 					m_remaining_time += game_rem_time;
 				}
 			}
+
+			FZN_LOG( "%s (%s) - est. %s / played %s / delta %s", game.get_name().c_str(), game.get_state_str(), Utils::time_to_str( game.get_estimate() ).c_str(), Utils::time_to_str( game.get_played() ).c_str(), Utils::time_to_str( game.get_delta() ).c_str() );
+			FZN_LOG( "RUN - est. %s / rem. time %s / played %s / delta %s\n", Utils::time_to_str( m_estimate ).c_str(), Utils::time_to_str( m_remaining_time ).c_str(), Utils::time_to_str( m_played ).c_str(), Utils::time_to_str( m_delta ).c_str() );
 		}
 
-		m_estimated_final_time = m_remaining_time + m_run_time;
+		m_estimated_final_time = m_remaining_time + m_played;
 		m_stats.refresh( m_games );
+
+		FZN_LOG( "Est. final time %s", Utils::time_to_str( m_estimated_final_time ).c_str() );
 	}
 
 }
