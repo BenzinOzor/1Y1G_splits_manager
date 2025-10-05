@@ -129,6 +129,7 @@ namespace SplitsMgr
 
 				menu_item( "Load LSS", false, [&]() { _load_lss(); } );
 				menu_item( "Load JSON", lss_invalid, [&]() { _load_json(); } );
+				menu_item( "Reload files", lss_invalid, [&]() { m_splits_mgr.read_lss( m_lss_path.generic_string().c_str() ); m_splits_mgr.read_json( m_json_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();
 

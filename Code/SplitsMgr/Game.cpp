@@ -327,6 +327,8 @@ namespace SplitsMgr
 	**/
 	bool Game::parse_split_times( Json::Value::iterator& _it_splits, SplitTime& _last_time )
 	{
+		m_time = SplitTime{};
+
 		for( Split& split : m_splits )
 		{
 			split.m_run_time = Utils::get_time_from_string( (*_it_splits)[ "Time" ].asString() );
@@ -650,7 +652,13 @@ namespace SplitsMgr
 			ImGui::TableSetupColumn( "Delta", ImGuiTableColumnFlags_WidthFixed );
 
 			ImGui::TableNextColumn();
-			ImGui::Text( "Estimate: %s", Utils::time_to_str( m_estimation ).c_str() );
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text( "Estimate:");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth( 70.f );
+			std::string estimate = Utils::time_to_str( m_estimation );
+			if( ImGui::InputText( "##Estimate", &estimate, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsNoBlank ) )
+				m_estimation = Utils::get_time_from_string( estimate );
 			ImGui::TableNextColumn();
 
 			if( _state == State::finished || _state != State::none && m_delta > std::chrono::seconds{ 0 } )
