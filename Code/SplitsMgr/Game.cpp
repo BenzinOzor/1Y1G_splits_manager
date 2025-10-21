@@ -344,6 +344,8 @@ namespace SplitsMgr
 
 			++_it_splits;
 		}
+
+		return true;
 	}
 
 	void Game::write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments )
