@@ -298,6 +298,11 @@ namespace SplitsMgr
 		}
 	}
 
+	void SplitsManager::_look_for_new_current_game()
+	{
+
+	}
+
 	void SplitsManager::_refresh_current_game_ptr()
 	{
 		for( Game& game : m_games )
@@ -457,6 +462,10 @@ namespace SplitsMgr
 				m_current_split = last_split.m_split_index;
 				m_current_game = &game;
 				m_run_time = game.get_run_time();
+
+				g_pFZN_Core->PushEvent( new Event( Event::Type::current_game_changed ) );
+
+				return;
 			}
 		}
 	}

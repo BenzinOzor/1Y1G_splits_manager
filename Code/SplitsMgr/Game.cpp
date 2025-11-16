@@ -235,7 +235,7 @@ namespace SplitsMgr
 
 			// If we already have a run time and a new one is given, we calculate a new run time with the given one.
 			if( Utils::is_time_valid( split.m_run_time ) && Utils::is_time_valid( _last_run_time ) )
-			{
+			{ 
 				split.m_run_time = _last_run_time + split.m_segment_time;
 				_last_run_time = split.m_run_time;
 			}
@@ -498,19 +498,20 @@ namespace SplitsMgr
 
 	void Game::_refresh_state()
 	{
+		const State prev_state{ m_state };
 		const Game* current_game{ g_splits_app->get_current_game() };
-
-		if( current_game != nullptr && current_game == this )
-		{
-			m_state = State::current;
-			return;
-		}
 
 		// If the last split doesn't have a segment time, it meas the game is still ready to recieve new sessions.
 		// If there is a segment time, it means we don't want to add sessions anymore, and the game is finished.
 		if( Utils::is_time_valid( m_splits.back().m_segment_time ) )
 		{
 			m_state = State::finished;
+			return;
+		}
+
+		if( current_game != nullptr && current_game == this )
+		{
+			m_state = State::current;
 			return;
 		}
 
