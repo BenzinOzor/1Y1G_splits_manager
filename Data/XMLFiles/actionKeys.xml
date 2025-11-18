@@ -5,4 +5,7 @@
 	<Action Name="Pause">
 		<Input Type="Keyboard" Map="P"/>
 	</Action>
+	<Action Name="Stop">
+		<Input Type="Keyboard" Map="S"/>
+	</Action>
 </Actions>

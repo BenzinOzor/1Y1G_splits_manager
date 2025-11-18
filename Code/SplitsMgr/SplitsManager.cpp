@@ -48,6 +48,13 @@ namespace SplitsMgr
 		_handle_actions();
 		m_chrono.update();
 
+		ImVec4 timer_color = ImGui_fzn::color::white;
+
+		if( m_chrono.is_paused() == false )
+			timer_color = ImGui_fzn::color::light_green;
+		else if( m_chrono.has_started() )
+			timer_color = ImGui_fzn::color::gray;
+
 		if( Utils::is_time_valid( m_delta ) == false )
 			_update_run_stats();
 
@@ -68,9 +75,6 @@ namespace SplitsMgr
 			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current game:", m_current_game->get_name().c_str() );
 
 		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
-		ImGui::TextColored( ImGui_fzn::color::light_yellow, "Current run time:" );
-		ImGui::SameLine();
-		ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, Utils::time_to_str( m_run_time + m_chrono.get_time() ).c_str() );
 
 		ImGui::Spacing();
 
@@ -83,7 +87,7 @@ namespace SplitsMgr
 
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
-			ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, Utils::time_to_str( m_played + m_chrono.get_time() ).c_str() );
+			ImGui::TextColored( timer_color, Utils::time_to_str( m_played + m_chrono.get_time() ).c_str() );
 			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
@@ -91,21 +95,58 @@ namespace SplitsMgr
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time:" );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, Utils::time_to_str( m_remaining_time - m_chrono.get_time() ).c_str() );
+			ImGui::TextColored( timer_color, Utils::time_to_str( m_remaining_time - m_chrono.get_time() ).c_str() );
 			ImGui::Text( Utils::time_to_str( m_estimated_final_time ).c_str() );
 
 			ImGui::EndTable();
 		}
 
+		// Session time
 		ImGui::Separator();
 		ImGui::NewLine();
 		std::string chrono_str = Utils::time_to_str( m_chrono.get_time() );
-		ImGui::SetWindowFontScale( 3.f );
+		ImGui::SetWindowFontScale( 5.f );
 		text_size = ImGui::CalcTextSize( chrono_str.c_str() );
 		ImGui::NewLine();
 		ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - text_size.x * 0.5f );
-		ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, chrono_str.c_str() );
+		ImVec2 chrono_pos = ImGui::GetCursorPos();
+		ImGui::TextColored( timer_color, chrono_str.c_str() );
 		ImGui::SetWindowFontScale( 1.f );
+		ImGui::NewLine();
+
+		const float text_height = ImGui::CalcTextSize( "T" ).y;
+		// Run time
+		chrono_str = Utils::time_to_str( m_run_time + m_chrono.get_time() );
+		ImGui::SetWindowFontScale( 2.f );
+		ImVec2 run_time_size = ImGui::CalcTextSize( chrono_str.c_str() );
+		ImVec2 backup_cursor_pos = ImGui::GetCursorPos();
+
+		ImGui::SetCursorPos( { chrono_pos.x, chrono_pos.y + text_size.y + text_height + ImGui::GetStyle().ItemSpacing.y } );
+
+		ImGui::SetWindowFontScale( 1.f );
+		ImGui::TextColored( ImGui_fzn::color::light_yellow, "Total time" );
+		ImGui::SetWindowFontScale( 2.f );
+
+		ImGui::SetCursorPos( { chrono_pos.x + text_size.x - run_time_size.x, chrono_pos.y + text_size.y + ImGui::GetStyle().ItemSpacing.y } );
+		ImVec2 run_time_pos = ImGui::GetCursorPos();
+		ImGui::TextColored( timer_color, chrono_str.c_str() );
+
+		// Game time
+		chrono_str = Utils::time_to_str( m_current_game->get_played() + m_chrono.get_time() );
+		ImVec2 game_time_size = ImGui::CalcTextSize( chrono_str.c_str() );
+		backup_cursor_pos = ImGui::GetCursorPos();
+
+		ImGui::SetCursorPos( { chrono_pos.x, run_time_pos.y + run_time_size.y + text_height + ImGui::GetStyle().ItemSpacing.y } );
+
+		ImGui::SetWindowFontScale( 1.f );
+		ImGui::TextColored( ImGui_fzn::color::light_yellow, "Game time" );
+		ImGui::SetWindowFontScale( 2.f );
+
+		ImGui::SetCursorPos( { run_time_pos.x + run_time_size.x - game_time_size.x, run_time_pos.y + run_time_size.y + ImGui::GetStyle().ItemSpacing.y } );
+		ImGui::TextColored( timer_color, chrono_str.c_str() );
+		ImGui::SetWindowFontScale( 1.f );
+		chrono_pos = ImGui::GetCursorPos();
+		ImGui::SetCursorPos( { 0.f, chrono_pos.y } );
 		ImGui::NewLine();
 
 		m_stats.display();
@@ -314,11 +355,6 @@ namespace SplitsMgr
 		}
 	}
 
-	void SplitsManager::_look_for_new_current_game()
-	{
-
-	}
-
 	void SplitsManager::_refresh_current_game_ptr()
 	{
 		for( Game& game : m_games )
@@ -336,10 +372,26 @@ namespace SplitsMgr
 		if( m_current_game == nullptr )
 			return;
 
-		const SplitTime previous_run_time{ get_last_valid_run_time( m_current_game ) };
-		const SplitTime new_segment_time{ m_run_time - previous_run_time };
+		SplitTime segment_time{};
+		SplitTime run_time{};
 
-		m_current_game->update_last_split( m_run_time, new_segment_time, _game_finished );
+		if( m_chrono.has_started() )
+		{
+			segment_time = m_chrono.get_time();
+			m_chrono.stop();
+			run_time = m_run_time + segment_time;
+		}
+		else
+		{
+			const SplitTime previous_run_time{ get_last_valid_run_time( m_current_game ) };
+			segment_time = m_run_time - previous_run_time;
+			run_time = m_run_time;
+		}
+
+		if( Utils::is_time_valid( segment_time ) == false )
+			return;
+
+		m_current_game->update_last_split( run_time, segment_time, _game_finished );
 
 		m_sessions_updated = true;
 
@@ -365,7 +417,7 @@ namespace SplitsMgr
 		const int nb_columns{ 3 };
 		if( ImGui::BeginTable( "add_session_table", nb_columns ) )
 		{
-			const bool disable_buttons{ m_current_game == nullptr || m_sessions_updated };
+			const bool disable_buttons{ (m_current_game == nullptr || m_sessions_updated) && (m_chrono.has_started() == false || m_chrono.is_paused() == false) };
 
 			if( disable_buttons )
 				ImGui::BeginDisabled();
@@ -463,7 +515,10 @@ namespace SplitsMgr
 				{
 					// We found the game, we want to look for our split in the next game, se we continue one last time.
 					if( &game == m_current_game )
+					{
 						game_found = true;
+						m_run_time = game.get_run_time();
+					}
 
 					continue;
 				}
@@ -477,7 +532,6 @@ namespace SplitsMgr
 
 				m_current_split = last_split.m_split_index;
 				m_current_game = &game;
-				m_run_time = game.get_run_time();
 
 				g_pFZN_Core->PushEvent( new Event( Event::Type::current_game_changed ) );
 
@@ -537,13 +591,21 @@ namespace SplitsMgr
 	{
 		if( g_pFZN_InputMgr->IsActionPressed( "Start / Split" ) )
 		{
-			// @todo handle splits
-			if( m_chrono.is_paused() )
+			if( m_chrono.is_paused() && m_chrono.has_started() == false )
 				m_chrono.start();
+			else
+			{
+				_update_sessions( true );
+				m_chrono.start();
+			}
 		}
 		else if( g_pFZN_InputMgr->IsActionPressed( "Pause" ) )
 		{
 			m_chrono.toggle_pause();
+		}
+		else if( g_pFZN_InputMgr->IsActionPressed( "Stop" ) )
+		{
+			m_chrono.stop();
 		}
 	}
 }

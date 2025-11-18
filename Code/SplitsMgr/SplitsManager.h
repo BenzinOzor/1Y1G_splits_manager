@@ -54,7 +54,6 @@ namespace SplitsMgr
 		void write_json( Json::Value& _root );
 
 	private:
-		void _look_for_new_current_game();
 		void _refresh_current_game_ptr();
 		void _update_sessions( bool _game_finished );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );

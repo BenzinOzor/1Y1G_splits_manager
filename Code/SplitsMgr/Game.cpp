@@ -174,14 +174,7 @@ namespace SplitsMgr
 
 	SplitsMgr::SplitTime Game::get_played() const
 	{
-		SplitTime played{};
-
-		for( const Split& split : m_splits )
-		{
-			played += split.m_segment_time;
-		}
-
-		return played;
+		return m_time;
 	}
 
 	/**
