@@ -45,6 +45,9 @@ namespace SplitsMgr
 
 	void SplitsManager::display_right_panel()
 	{
+		_handle_actions();
+		m_chrono.update();
+
 		if( Utils::is_time_valid( m_delta ) == false )
 			_update_run_stats();
 
@@ -65,7 +68,9 @@ namespace SplitsMgr
 			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current game:", m_current_game->get_name().c_str() );
 
 		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current run time:", "%s", Utils::time_to_str( m_run_time ).c_str() );
+		ImGui::TextColored( ImGui_fzn::color::light_yellow, "Current run time:" );
+		ImGui::SameLine();
+		ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, Utils::time_to_str( m_run_time + m_chrono.get_time() ).c_str() );
 
 		ImGui::Spacing();
 
@@ -78,7 +83,7 @@ namespace SplitsMgr
 
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
-			ImGui::Text( Utils::time_to_str( m_played ).c_str() );
+			ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, Utils::time_to_str( m_played + m_chrono.get_time() ).c_str() );
 			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
@@ -86,11 +91,22 @@ namespace SplitsMgr
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time:" );
 
 			ImGui::TableNextColumn();
-			ImGui::Text( Utils::time_to_str( m_remaining_time ).c_str() );
+			ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, Utils::time_to_str( m_remaining_time - m_chrono.get_time() ).c_str() );
 			ImGui::Text( Utils::time_to_str( m_estimated_final_time ).c_str() );
 
 			ImGui::EndTable();
 		}
+
+		ImGui::Separator();
+		ImGui::NewLine();
+		std::string chrono_str = Utils::time_to_str( m_chrono.get_time() );
+		ImGui::SetWindowFontScale( 3.f );
+		text_size = ImGui::CalcTextSize( chrono_str.c_str() );
+		ImGui::NewLine();
+		ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - text_size.x * 0.5f );
+		ImGui::TextColored( m_chrono.is_paused() ? ImGui_fzn::color::white : ImGui_fzn::color::light_green, chrono_str.c_str() );
+		ImGui::SetWindowFontScale( 1.f );
+		ImGui::NewLine();
 
 		m_stats.display();
 		_display_update_sessions_buttons();
@@ -517,4 +533,17 @@ namespace SplitsMgr
 		FZN_LOG( "Est. final time %s", Utils::time_to_str( m_estimated_final_time ).c_str() );
 	}
 
+	void SplitsManager::_handle_actions()
+	{
+		if( g_pFZN_InputMgr->IsActionPressed( "Start / Split" ) )
+		{
+			// @todo handle splits
+			if( m_chrono.is_paused() )
+				m_chrono.start();
+		}
+		else if( g_pFZN_InputMgr->IsActionPressed( "Pause" ) )
+		{
+			m_chrono.toggle_pause();
+		}
+	}
 }

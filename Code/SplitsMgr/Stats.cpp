@@ -9,7 +9,6 @@ namespace SplitsMgr
 {
 	void Stats::display()
 	{
-		ImGui::NewLine();
 		ImGui::SeparatorText( "Stats" );
 
 		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );

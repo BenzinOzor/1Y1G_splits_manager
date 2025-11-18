@@ -5,6 +5,8 @@
 
 #include <Externals/json/json.h>
 
+#include <FZN/Tools/Chrono.h>
+
 #include "Game.h"
 #include "Event.h"
 #include "Stats.h"
@@ -72,6 +74,8 @@ namespace SplitsMgr
 
 		void _update_run_stats();
 
+		void _handle_actions();
+
 		std::string m_game_icon_desc;
 		std::string m_game_name;
 		std::string m_category;
@@ -82,6 +86,8 @@ namespace SplitsMgr
 		SplitTime m_delta{};
 		SplitTime m_remaining_time{};
 		SplitTime m_estimated_final_time{};
+		
+		fzn::Chrono m_chrono;
 
 		Games m_games;
 		Game* m_current_game{ nullptr };
