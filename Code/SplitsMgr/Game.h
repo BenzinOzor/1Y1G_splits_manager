@@ -15,6 +15,8 @@ namespace tinyxml2
 	class XMLDocument;
 }
 
+class sf::Texture;
+
 namespace SplitsMgr
 {
 	struct Split
@@ -52,6 +54,7 @@ namespace SplitsMgr
 		SplitTime get_estimate() const							{ return m_estimation; }
 		SplitTime get_delta() const								{ return m_delta; }
 		SplitTime get_played() const;
+		sf::Texture* get_cover() const							{ return m_cover; }
 
 		/**
 		* @brief Get the time of the run at the given split index.
@@ -90,6 +93,8 @@ namespace SplitsMgr
 
 		void write_split_times( Json::Value& _root ) const;
 
+		void load_cover( std::string_view _path );
+
 	private:
 		/**
 		* @brief Add a new session to the game using m_new_session_time.
@@ -112,6 +117,8 @@ namespace SplitsMgr
 		State m_state{ State::none };
 
 		Splits m_splits;
+
+		sf::Texture* m_cover{ nullptr };
 
 		std::string m_new_session_time;
 		bool m_new_session_game_finished{ false };

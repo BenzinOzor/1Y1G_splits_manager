@@ -49,6 +49,7 @@ namespace SplitsMgr
 
 		void read_lss( std::string_view _path );
 		void read_json( std::string_view _path );
+		void load_covers( std::string_view _path );
 
 		void write_lss( tinyxml2::XMLDocument& _document );
 		void write_json( Json::Value& _root );
@@ -58,6 +59,7 @@ namespace SplitsMgr
 		void _update_sessions( bool _game_finished );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
+		void _display_timers( const ImVec4& _timer_color );
 		void _display_update_sessions_buttons();
 
 		/**

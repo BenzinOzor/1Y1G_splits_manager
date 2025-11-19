@@ -32,6 +32,9 @@ namespace SplitsMgr
 				m_splits_mgr.read_json( m_json_path.string() );
 		}
 
+		if( m_covers_path.empty() == false )
+			m_splits_mgr.load_covers( m_covers_path.string() );
+
 		g_splits_app = this;
 	}
 
@@ -132,6 +135,8 @@ namespace SplitsMgr
 				menu_item( "Reload files", lss_invalid, [&]() { m_splits_mgr.read_lss( m_lss_path.generic_string().c_str() ); m_splits_mgr.read_json( m_json_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();
+				menu_item( "Load Covers", lss_invalid, [&]() { _load_covers(); } );
+				ImGui::Separator();
 
 				menu_item( "Save LSS", lss_invalid, [&]() { _save_lss(); } );
 
@@ -164,8 +169,9 @@ namespace SplitsMgr
 
 		file >> root;
 
-		m_lss_path	= root[ "lss_path" ].asString();
+		m_lss_path = root[ "lss_path" ].asString();
 		m_json_path = root[ "json_path" ].asString();
+		//m_covers_path = root[ "covers_path" ].asString();
 	}
 
 	/**
@@ -182,6 +188,7 @@ namespace SplitsMgr
 
 		root[ "lss_path" ] = m_lss_path.string().c_str();
 		root[ "json_path" ] = m_json_path.string().c_str();
+		root[ "covers_path" ] = m_covers_path.string().c_str();
 
 		writer->write( root, &file );
 	}
@@ -280,6 +287,31 @@ namespace SplitsMgr
 		m_splits_mgr.write_json( root );
 
 		file << root;
+	}
+
+	void SplitsManagerApp::_load_covers()
+	{
+		char file[ 100 ];
+		OPENFILENAME open_file_name;
+		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+
+		open_file_name.lStructSize = sizeof( open_file_name );
+		open_file_name.hwndOwner = NULL;
+		open_file_name.lpstrFile = file;
+		open_file_name.lpstrFile[ 0 ] = '\0';
+		open_file_name.nMaxFile = sizeof( file );
+		open_file_name.lpstrFileTitle = NULL;
+		open_file_name.nMaxFileTitle = 0;
+		GetOpenFileName( &open_file_name );
+
+		if( open_file_name.lpstrFile[ 0 ] != '\0' )
+		{
+			m_covers_path = open_file_name.lpstrFile;
+			m_splits_mgr.load_covers( open_file_name.lpstrFile );
+
+		}
+
+		_save_options();
 	}
 
 }

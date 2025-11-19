@@ -1,10 +1,13 @@
 #include <format>
 
+#include <SFML/Graphics/Texture.hpp>
+
 #include <Externals/json/json.h>
 
 #include <FZN/Managers/FazonCore.h>
 #include <FZN/Tools/Logging.h>
 #include <FZN/Tools/Tools.h>
+#include <FZN/UI/ImGui.h>
 
 #include "SplitsManager.h"
 #include "Utils.h"
@@ -47,6 +50,9 @@ namespace SplitsMgr
 	{
 		_handle_actions();
 		m_chrono.update();
+
+		if( m_current_game == nullptr )
+			return;
 
 		ImVec4 timer_color = ImGui_fzn::color::white;
 
@@ -101,53 +107,7 @@ namespace SplitsMgr
 			ImGui::EndTable();
 		}
 
-		// Session time
-		ImGui::Separator();
-		ImGui::NewLine();
-		std::string chrono_str = Utils::time_to_str( m_chrono.get_time() );
-		ImGui::SetWindowFontScale( 5.f );
-		text_size = ImGui::CalcTextSize( chrono_str.c_str() );
-		ImGui::NewLine();
-		ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - text_size.x * 0.5f );
-		ImVec2 chrono_pos = ImGui::GetCursorPos();
-		ImGui::TextColored( timer_color, chrono_str.c_str() );
-		ImGui::SetWindowFontScale( 1.f );
-		ImGui::NewLine();
-
-		const float text_height = ImGui::CalcTextSize( "T" ).y;
-		// Run time
-		chrono_str = Utils::time_to_str( m_run_time + m_chrono.get_time() );
-		ImGui::SetWindowFontScale( 2.f );
-		ImVec2 run_time_size = ImGui::CalcTextSize( chrono_str.c_str() );
-		ImVec2 backup_cursor_pos = ImGui::GetCursorPos();
-
-		ImGui::SetCursorPos( { chrono_pos.x, chrono_pos.y + text_size.y + text_height + ImGui::GetStyle().ItemSpacing.y } );
-
-		ImGui::SetWindowFontScale( 1.f );
-		ImGui::TextColored( ImGui_fzn::color::light_yellow, "Total time" );
-		ImGui::SetWindowFontScale( 2.f );
-
-		ImGui::SetCursorPos( { chrono_pos.x + text_size.x - run_time_size.x, chrono_pos.y + text_size.y + ImGui::GetStyle().ItemSpacing.y } );
-		ImVec2 run_time_pos = ImGui::GetCursorPos();
-		ImGui::TextColored( timer_color, chrono_str.c_str() );
-
-		// Game time
-		chrono_str = Utils::time_to_str( m_current_game->get_played() + m_chrono.get_time() );
-		ImVec2 game_time_size = ImGui::CalcTextSize( chrono_str.c_str() );
-		backup_cursor_pos = ImGui::GetCursorPos();
-
-		ImGui::SetCursorPos( { chrono_pos.x, run_time_pos.y + run_time_size.y + text_height + ImGui::GetStyle().ItemSpacing.y } );
-
-		ImGui::SetWindowFontScale( 1.f );
-		ImGui::TextColored( ImGui_fzn::color::light_yellow, "Game time" );
-		ImGui::SetWindowFontScale( 2.f );
-
-		ImGui::SetCursorPos( { run_time_pos.x + run_time_size.x - game_time_size.x, run_time_pos.y + run_time_size.y + ImGui::GetStyle().ItemSpacing.y } );
-		ImGui::TextColored( timer_color, chrono_str.c_str() );
-		ImGui::SetWindowFontScale( 1.f );
-		chrono_pos = ImGui::GetCursorPos();
-		ImGui::SetCursorPos( { 0.f, chrono_pos.y } );
-		ImGui::NewLine();
+		_display_timers( timer_color );
 
 		m_stats.display();
 		_display_update_sessions_buttons();
@@ -321,6 +281,12 @@ namespace SplitsMgr
 		_update_run_stats();
 	}
 
+	void SplitsManager::load_covers( std::string_view _path )
+	{
+		for( Game& game : m_games )
+			game.load_cover( _path );
+	}
+
 	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
 	{
 		tinyxml2::XMLElement* run{ _document.NewElement( "Run" ) };
@@ -405,6 +371,88 @@ namespace SplitsMgr
 		_update_games_data( _event_infos.m_game );
 		_update_run_data();
 		_update_run_stats();
+	}
+
+	void SplitsManager::_display_timers( const ImVec4& _timer_color )
+	{
+		static const sf::Vector2f cover_size{ 120.f, 160.f };
+		const float default_text_height = ImGui::CalcTextSize( "T" ).y;
+		ImGui::SetWindowFontScale( 2.f );
+		const float doubled_text_height = ImGui::CalcTextSize( "T" ).y;
+		ImGui::SetWindowFontScale( 1.f );
+
+		ImGui::Separator();
+		ImGui::Spacing();
+		if( m_current_game->get_cover() != nullptr )
+			ImGui::Image( *m_current_game->get_cover(), cover_size );
+
+		const ImVec2 backup_cursor_pos{ ImGui::GetCursorPos() };
+
+		ImVec2 rect_size = ImGui::GetContentRegionAvail();
+		rect_size.x -= ImGui::GetStyle().WindowPadding.x * 2.f;		// Left and Right window padding
+		rect_size.x -= cover_size.x;								// The rectangle will be next to the cover so we take out its size
+		rect_size.x -= ImGui::GetStyle().ItemSpacing.x;				// and the space between items.
+		rect_size.y = cover_size.y;									// The rectangle is the same size as the cover.
+
+		ImVec2 rect_pos = ImGui::GetCursorPos();
+		rect_pos.x += cover_size.x;									// To place the rectangle next to the cover, we add its width
+		rect_pos.x += ImGui::GetStyle().ItemSpacing.x;				// and the horizontal space between items.
+		rect_pos.y -= cover_size.y;									// The cursors is under the cover so we substract its height
+		rect_pos.y -= ImGui::GetStyle().ItemSpacing.y;				// and the vertical space between items.
+
+		/*ImVec2 debug_rect_pos = ImGui::GetCursorScreenPos();
+		debug_rect_pos.x += cover_size.x;							// To place the rectangle next to the cover, we add its width
+		debug_rect_pos.x += ImGui::GetStyle().ItemSpacing.x;		// and the horizontal space between items.
+		debug_rect_pos.y -= cover_size.y;							// The cursors is under the cover so we substract its height
+		debug_rect_pos.y -= ImGui::GetStyle().ItemSpacing.y;		// and the vertical space between items.
+
+		ImGui_fzn::rect_filled( { debug_rect_pos, rect_size }, ImGui_fzn::color::dark_gray );*/
+
+		std::string time_str = Utils::time_to_str( m_chrono.get_time() );
+		ImGui::SetWindowFontScale( 5.f );
+		const ImVec2 session_time_size = ImGui::CalcTextSize( time_str.c_str() );
+		ImGui::SetCursorPos( rect_pos + ImVec2{ rect_size.x * 0.5f - session_time_size.x * 0.5f, rect_size.y * 0.5f - 70.f } );
+		const ImVec2 session_time_pos = ImGui::GetCursorPos();
+		ImGui::TextColored( _timer_color, time_str.c_str() );
+		ImGui::SetWindowFontScale( 1.f );
+
+		ImGui::SetCursorPos( session_time_pos + ImVec2{ 0.f, session_time_size.y } );
+		if( ImGui::BeginTable( "timers", 2, 0, { session_time_size.x, 0.f} ) )
+		{
+			ImGui::TableSetupColumn( "labels", ImGuiTableColumnFlags_WidthFixed, 100.f );
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Total time" );
+
+			ImGui::TableNextColumn();
+			ImGui::SetWindowFontScale( 2.f );
+			time_str = Utils::time_to_str( m_run_time + m_chrono.get_time() );
+			ImVec2 size = ImGui::CalcTextSize( time_str.c_str() );
+			ImGui::NewLine();
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - size.x );
+			ImGui::TextColored( _timer_color, time_str.c_str() );
+			ImGui::SetWindowFontScale( 1.f );
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Game time" );
+
+			ImGui::TableNextColumn();
+			ImGui::SetWindowFontScale( 2.f );
+			time_str = Utils::time_to_str( m_current_game->get_played() + m_chrono.get_time() );
+			size = ImGui::CalcTextSize( time_str.c_str() );
+			ImGui::NewLine();
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - size.x );
+			ImGui::TextColored( _timer_color, time_str.c_str() );
+			ImGui::SetWindowFontScale( 1.f );
+
+			ImGui::EndTable();
+		}
+
+		ImGui::SetCursorPos( backup_cursor_pos );
 	}
 
 	void SplitsManager::_display_update_sessions_buttons()

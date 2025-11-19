@@ -65,8 +65,11 @@ namespace SplitsMgr
 		**/
 		void _save_json();
 
+		void _load_covers();
+
 		std::filesystem::path m_lss_path;
 		std::filesystem::path m_json_path;
+		std::filesystem::path m_covers_path{"E:\\Documents\\=SPEEDRUN=\\1 année 1 jeu\\2025\\Covers\\"};
 
 		SplitsManager m_splits_mgr;
 	};

@@ -6,6 +6,7 @@
 #include <FZN/Tools/Tools.h>
 #include <FZN/UI/ImGui.h>
 #include <FZN/Managers/FazonCore.h>
+#include <FZN/Managers/DataManager.h>
 
 #include "Event.h"
 #include "Game.h"
@@ -433,6 +434,14 @@ namespace SplitsMgr
 			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = Utils::is_time_valid( split.m_run_time ) ? Utils::time_to_str( split.m_run_time, false, true ).c_str() : Json::Value{};
 			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
 		}
+	}
+
+	void Game::load_cover( std::string_view _path )
+	{
+		const std::string cover_path = _path.data() + m_name + ".jpg";
+
+		//if( std::filesystem:exists( cover_path ) )
+			m_cover = g_pFZN_DataMgr->LoadTexture( m_name, cover_path );
 	}
 
 	/**
