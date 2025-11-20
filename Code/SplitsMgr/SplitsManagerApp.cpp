@@ -10,6 +10,7 @@
 
 #include "SplitsManagerApp.h"
 
+#include <ShlObj.h>
 
 SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
 
@@ -136,6 +137,7 @@ namespace SplitsMgr
 
 				ImGui::Separator();
 				menu_item( "Load Covers", lss_invalid, [&]() { _load_covers(); } );
+				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded covers path: %s", m_covers_path.string().c_str() ) );
 				ImGui::Separator();
 
 				menu_item( "Save LSS", lss_invalid, [&]() { _save_lss(); } );
@@ -171,7 +173,7 @@ namespace SplitsMgr
 
 		m_lss_path = root[ "lss_path" ].asString();
 		m_json_path = root[ "json_path" ].asString();
-		//m_covers_path = root[ "covers_path" ].asString();
+		m_covers_path = root[ "covers_path" ].asString();
 	}
 
 	/**
@@ -291,24 +293,24 @@ namespace SplitsMgr
 
 	void SplitsManagerApp::_load_covers()
 	{
-		char file[ 100 ];
-		OPENFILENAME open_file_name;
-		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
-
-		open_file_name.lStructSize = sizeof( open_file_name );
-		open_file_name.hwndOwner = NULL;
-		open_file_name.lpstrFile = file;
-		open_file_name.lpstrFile[ 0 ] = '\0';
-		open_file_name.nMaxFile = sizeof( file );
-		open_file_name.lpstrFileTitle = NULL;
-		open_file_name.nMaxFileTitle = 0;
-		GetOpenFileName( &open_file_name );
-
-		if( open_file_name.lpstrFile[ 0 ] != '\0' )
+		BROWSEINFO browseInfo;
+		LPITEMIDLIST pItemIDList;
+		TCHAR szDisplayName[ 256 ] = "";
+		TCHAR szPath[ MAX_PATH ];
+		browseInfo.hwndOwner = NULL;
+		browseInfo.pidlRoot = NULL;
+		browseInfo.pszDisplayName = szDisplayName;
+		browseInfo.lpszTitle = "Select destination folder";
+		browseInfo.lParam = 0;
+		browseInfo.lpfn = NULL;
+		browseInfo.ulFlags = 0;
+		browseInfo.iImage = 0;// Open dialog
+		pItemIDList = SHBrowseForFolder( &browseInfo );
+		SHGetPathFromIDList( pItemIDList, szPath );
+		if( szPath[ 0 ] )
 		{
-			m_covers_path = open_file_name.lpstrFile;
-			m_splits_mgr.load_covers( open_file_name.lpstrFile );
-
+			m_covers_path = szPath;
+			m_splits_mgr.load_covers( szPath );
 		}
 
 		_save_options();

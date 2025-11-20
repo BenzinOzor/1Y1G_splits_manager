@@ -438,7 +438,7 @@ namespace SplitsMgr
 
 	void Game::load_cover( std::string_view _path )
 	{
-		const std::string cover_path = _path.data() + m_name + ".jpg";
+		const std::string cover_path = fzn::Tools::Sprintf( "%s\\%s.jpg", _path.data(), m_name.c_str() );
 
 		//if( std::filesystem:exists( cover_path ) )
 			m_cover = g_pFZN_DataMgr->LoadTexture( m_name, cover_path );
