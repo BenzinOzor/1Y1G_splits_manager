@@ -1,7 +1,9 @@
 #include <format>
+#include <fstream>
 
 #include <tinyXML2/tinyxml2.h>
 #include <FZN/Tools/Tools.h>
+#include <FZN/Tools/Logging.h>
 
 #include "Utils.h"
 
@@ -87,6 +89,42 @@ namespace SplitsMgr
 		bool is_time_valid( const SplitTime& _time )
 		{
 			return _time != SplitTime{};
+		}
+
+		std::string get_cover_data( std::string_view _cover_path )
+		{
+			std::ifstream cover_file( _cover_path.data(), std::ios::in | std::ios::binary | std::ios::ate );
+
+			if( cover_file.is_open() == false )
+			{
+				FZN_LOG( "Can't open cover file." );
+				return {};
+			}
+
+			const size_t byte_count = cover_file.tellg();
+			cover_file.seekg( 0, std::ios::beg );
+
+			std::string cover_data{};
+			cover_data.resize( byte_count );
+
+			cover_file.read( cover_data.data(), byte_count );
+
+			std::ofstream OutputFile( "test_cover.txt", std::ios::out | std::ios::binary | std::ios::trunc );
+
+			if( !OutputFile.is_open() )
+			{
+				return cover_data;
+			}
+
+			// Write the entire string into the file.
+			OutputFile.write( cover_data.data(), cover_data.size() );
+
+			return cover_data;
+
+			/*std::ostringstream string_stream;
+			string_stream.write( cover_data.data(), byte_count );
+
+			return string_stream;*/
 		}
 	}
 }

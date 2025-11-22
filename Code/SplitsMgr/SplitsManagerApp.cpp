@@ -42,8 +42,8 @@ namespace SplitsMgr
 				m_splits_mgr.read_json( m_json_path.string() );
 		}*/
 
-		if( m_covers_path.empty() == false )
-			m_splits_mgr.load_covers( m_covers_path.string() );
+		/*if( m_covers_path.empty() == false )
+			m_splits_mgr.load_covers( m_covers_path.string() );*/
 
 		g_splits_app = this;
 	}
@@ -146,7 +146,7 @@ namespace SplitsMgr
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded covers path: %s", m_covers_path.string().c_str() ) );
 				
 				ImGui::Separator();
-				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_all_in_one_file( m_aio_path.generic_string().c_str() ); m_splits_mgr.load_covers( m_covers_path.generic_string().c_str() ); } );
+				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_all_in_one_file( m_aio_path.generic_string().c_str() ); } );
 
 				ImGui::EndMenu();
 			}
@@ -326,11 +326,15 @@ namespace SplitsMgr
 	{
 		auto file = std::ofstream{ m_aio_path };
 		auto root = Json::Value{};
-		Json::StyledWriter json_writer;
+
+		Json::StreamWriterBuilder writer_builder;
+
+		writer_builder.settings_[ "emitUTF8" ] = true;
+		std::unique_ptr<Json::StreamWriter> writer( writer_builder.newStreamWriter() );
 
 		m_splits_mgr.write_all_in_one_file( root );
 
-		file << root;
+		writer->write( root, &file );
 	}
 
 	void SplitsManagerApp::_load_covers()

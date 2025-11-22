@@ -54,5 +54,7 @@ namespace SplitsMgr
 		SplitTime get_time_from_string( std::string_view _time, std::string_view _format = "%4H:%M:%S" );
 		std::string time_to_str( const SplitTime& _time, bool _floor_seconds = true, bool _separate_days = false );
 		bool is_time_valid( const SplitTime& _time );
+
+		std::string get_cover_data( std::string_view _cover_path );
 	}
 }

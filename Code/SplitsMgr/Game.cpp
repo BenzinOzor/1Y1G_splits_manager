@@ -4,6 +4,7 @@
 #include <tinyXML2/tinyxml2.h>
 
 #include <FZN/Tools/Tools.h>
+#include <FZN/Tools/Logging.h>
 #include <FZN/UI/ImGui.h>
 #include <FZN/Managers/FazonCore.h>
 #include <FZN/Managers/DataManager.h>
@@ -461,6 +462,12 @@ namespace SplitsMgr
 		m_estimation = Utils::get_time_from_string( _game[ "Estimate" ].asString() );
 
 		m_state = get_state_from_str( _game[ "State" ].asString() );
+		m_cover_data = _game[ "Cover" ].asString();
+
+		if( m_cover_data.empty() == false )
+		{
+			m_cover = g_pFZN_DataMgr->load_texture_from_memory( m_name, m_cover_data.data(), m_cover_data.size() );
+		}
 
 		Json::Value sessions = _game[ "Sessions" ];
 
@@ -510,6 +517,9 @@ namespace SplitsMgr
 	{
 		_root[ "Games" ][ _game_index ][ "Name" ] = m_name;
 		_root[ "Games" ][ _game_index ][ "Estimate" ] = Utils::time_to_str( m_estimation ).c_str();
+		
+		if( m_cover_data.empty() == false )
+			_root[ "Games" ][ _game_index ][ "Cover" ] = m_cover_data;
 
 		if( m_state == State::none )
 			return;
@@ -747,6 +757,11 @@ namespace SplitsMgr
 			if( disable_item )
 				ImGui::EndDisabled();
 
+			if( ImGui::Selectable( "Set Cover" ) )
+			{
+				_select_cover();
+			}
+
 			ImGui::PopStyleColor();
 			ImGui::EndPopup();
 		}
@@ -789,5 +804,27 @@ namespace SplitsMgr
 		}
 
 		ImGui::Separator();
+	}
+
+	void Game::_select_cover()
+	{
+		char file[ 100 ];
+		OPENFILENAME open_file_name;
+		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+
+		open_file_name.lStructSize = sizeof( open_file_name );
+		open_file_name.hwndOwner = NULL;
+		open_file_name.lpstrFile = file;
+		open_file_name.lpstrFile[ 0 ] = '\0';
+		open_file_name.nMaxFile = sizeof( file );
+		open_file_name.lpstrFileTitle = NULL;
+		open_file_name.nMaxFileTitle = 0;
+		GetOpenFileName( &open_file_name );
+
+		if( open_file_name.lpstrFile[ 0 ] != '\0' )
+		{
+			m_cover = g_pFZN_DataMgr->LoadTexture( m_name, open_file_name.lpstrFile );
+			m_cover_data = Utils::get_cover_data( open_file_name.lpstrFile );
+		}
 	}
 }

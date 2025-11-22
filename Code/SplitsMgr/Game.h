@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <filesystem>
 
 #include <Externals/json/json.h>
 
@@ -115,6 +116,8 @@ namespace SplitsMgr
 		void _right_click();
 		void _estimate_and_delta( State _state );
 
+		void _select_cover();
+
 		std::string m_name;
 		std::string m_icon_desc;
 		SplitTime m_estimation{};
@@ -125,6 +128,7 @@ namespace SplitsMgr
 		Splits m_splits;
 
 		sf::Texture* m_cover{ nullptr };
+		std::string m_cover_data{};
 
 		std::string m_new_session_time;
 		bool m_new_session_game_finished{ false };
