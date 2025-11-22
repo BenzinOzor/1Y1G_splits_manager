@@ -61,14 +61,14 @@ namespace SplitsMgr
 		else if( m_chrono.has_started() )
 			timer_color = ImGui_fzn::color::gray;
 
-		if( Utils::is_time_valid( m_delta ) == false )
-			_update_run_stats();
+		/*if( Utils::is_time_valid( m_delta ) == false )
+			_update_run_stats();*/
 
 		if( g_pFZN_InputMgr->IsActionPressed( "Refresh" ) )
 			m_stats.refresh( m_games );
 
 		ImGui::NewLine();
-		std::string title = m_game_name + " - " + m_category;
+		std::string title = m_game_name;
 		ImGui::SetWindowFontScale( 2.f );
 		ImVec2 text_size = ImGui::CalcTextSize( title.c_str() );
 		ImGui::NewLine();
@@ -287,6 +287,44 @@ namespace SplitsMgr
 			game.load_cover( _path );
 	}
 
+	void SplitsManager::read_all_in_one_file( std::string_view _path )
+	{
+		auto file = std::ifstream{ _path.data() };
+
+		if( file.is_open() == false )
+			return;
+
+		auto root = Json::Value{};
+
+		file >> root;
+
+		m_games.clear();
+
+		m_current_split = root[ "CurrentSplitIndex" ].asUInt();
+		m_game_name = root[ "Title" ].asString();
+
+		Json::Value games = root[ "Games" ];
+		Json::Value::iterator it_game = games.begin();
+		Utils::ParsingInfos parsing_infos{ m_current_split };
+
+		for( Json::Value::iterator it_game = games.begin(); it_game != games.end(); ++it_game )
+		{
+			auto game = Game{};
+
+			game.parse_game_aio( *it_game, parsing_infos );
+
+			m_games.emplace_back( std::move( game ) );
+			g_pFZN_Core->AddCallback( &m_games.back(), &Game::on_event, fzn::DataCallbackType::Event );
+		}
+
+		m_played = parsing_infos.m_total_time;
+
+		_refresh_current_game_ptr();
+
+		_update_run_stats();
+		m_sessions_updated = true;
+	}
+
 	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
 	{
 		tinyxml2::XMLElement* run{ _document.NewElement( "Run" ) };
@@ -318,6 +356,17 @@ namespace SplitsMgr
 		for( const Game& game : m_games )
 		{
 			game.write_split_times( _root );
+		}
+	}
+
+	void SplitsManager::write_all_in_one_file( Json::Value& _root )
+	{
+		_root[ "Title" ] = m_game_name.c_str();
+		_root[ "CurrentSplitIndex" ] = m_current_split;
+
+		for( uint32_t game_index{ 0 }; game_index < m_games.size(); ++game_index )
+		{
+			m_games[ game_index ].write_game_aio( _root, game_index );
 		}
 	}
 
@@ -428,7 +477,7 @@ namespace SplitsMgr
 
 			ImGui::TableNextColumn();
 			ImGui::SetWindowFontScale( 2.f );
-			time_str = Utils::time_to_str( m_run_time + m_chrono.get_time() );
+			time_str = Utils::time_to_str( m_played + m_chrono.get_time() );
 			ImVec2 size = ImGui::CalcTextSize( time_str.c_str() );
 			ImGui::NewLine();
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x - size.x );

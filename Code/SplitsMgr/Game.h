@@ -36,6 +36,7 @@ namespace SplitsMgr
 			none,		// No specific state, the game hasn't been played yet.
 			current,	// This is the game currently being played (the main focus, in the order of the list).
 			finished,	// Finished game, no more sessions possible.
+			abandonned,	// Didn't reach the end of the game but no sessions will be added.
 			ongoing,	// Sessions have been added to the game but it's not the current one.
 			COUNT
 		};
@@ -47,8 +48,10 @@ namespace SplitsMgr
 		bool contains_split_index( uint32_t _index ) const;
 		bool is_finished() const								{ return m_state == State::finished; }
 		bool is_current() const									{ return m_state == State::current; }
+		bool sessions_over() const								{ return m_state == State::finished || m_state == State::abandonned; }
 		State get_state() const									{ return m_state; }
 		const char* get_state_str() const;
+		State get_state_from_str( std::string_view _state ) const;
 		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
 		SplitTime get_estimate() const							{ return m_estimation; }
@@ -92,6 +95,9 @@ namespace SplitsMgr
 		void write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments );
 
 		void write_split_times( Json::Value& _root ) const;
+
+		bool parse_game_aio( Json::Value& _game, Utils::ParsingInfos& _paring_infos );
+		void write_game_aio( Json::Value& _root, uint32_t _game_index ) const;
 
 		void load_cover( std::string_view _path );
 

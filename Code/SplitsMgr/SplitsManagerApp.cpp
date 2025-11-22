@@ -16,6 +16,11 @@ SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
 
 namespace SplitsMgr
 {
+	static constexpr uint32_t version_major = 2;
+	static constexpr uint32_t version_minor = 0;
+	static constexpr uint32_t version_feature = 0;
+	static constexpr uint32_t version_bugfix = 0;
+
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
 	**/
@@ -25,13 +30,17 @@ namespace SplitsMgr
 
 		_load_options();
 
-		if( m_lss_path.empty() == false )
+		if( m_aio_path.empty() == false )
+		{
+			m_splits_mgr.read_all_in_one_file( m_aio_path.string() );
+		}
+		/*else if( m_lss_path.empty() == false )
 		{
 			m_splits_mgr.read_lss( m_lss_path.string() );
 
 			if( m_json_path.empty() == false )
 				m_splits_mgr.read_json( m_json_path.string() );
-		}
+		}*/
 
 		if( m_covers_path.empty() == false )
 			m_splits_mgr.load_covers( m_covers_path.string() );
@@ -128,30 +137,26 @@ namespace SplitsMgr
 		{
 			if( ImGui::BeginMenu( "File" ) )
 			{
-				const bool lss_invalid = m_lss_path.empty();
-				const bool json_invalid = m_json_path.empty();
+				const bool aio_invalid = m_aio_path.empty();
+				menu_item( "Load", false, [&]() { _load_aio(); } );
+				menu_item( "Save", false, [&]() { _save_aio(); } );
+				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
 
-				menu_item( "Load LSS", false, [&]() { _load_lss(); } );
-				menu_item( "Load JSON", lss_invalid, [&]() { _load_json(); } );
-				menu_item( "Reload files", lss_invalid, [&]() { m_splits_mgr.read_lss( m_lss_path.generic_string().c_str() ); m_splits_mgr.read_json( m_json_path.generic_string().c_str() ); } );
-
-				ImGui::Separator();
-				menu_item( "Load Covers", lss_invalid, [&]() { _load_covers(); } );
+				menu_item( "Load Covers", aio_invalid, [&]() { _load_covers(); } );
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded covers path: %s", m_covers_path.string().c_str() ) );
+				
 				ImGui::Separator();
-
-				menu_item( "Save LSS", lss_invalid, [&]() { _save_lss(); } );
-
-				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_lss_path.string().c_str() ) );
-
-				menu_item( "Save JSON", json_invalid, [&]() { _save_json(); } );
-
-				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_json_path.string().c_str() ) );
-
-				menu_item( "Save All", lss_invalid || json_invalid, [&]() { _save_lss(); _save_json(); } );
+				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_all_in_one_file( m_aio_path.generic_string().c_str() ); m_splits_mgr.load_covers( m_covers_path.generic_string().c_str() ); } );
 
 				ImGui::EndMenu();
 			}
+
+			const std::string version{ fzn::Tools::Sprintf( "Ver. %d.%d.%d.%d", version_major, version_minor, version_feature, version_bugfix ) };
+			const ImVec2 version_size{ ImGui::CalcTextSize( version.c_str() ) };
+			const sf::Vector2u window_size{ g_pFZN_WindowMgr->GetWindowSize() };
+
+			ImGui::SameLine( window_size.x - ImGui::CalcTextSize( version.c_str() ).x - 2.f * ImGui::GetStyle().WindowPadding.x );
+			ImGui::TextColored( ImGui_fzn::color::light_gray, version.c_str() );
 
 			ImGui::EndMainMenuBar();
 		}
@@ -173,6 +178,7 @@ namespace SplitsMgr
 
 		m_lss_path = root[ "lss_path" ].asString();
 		m_json_path = root[ "json_path" ].asString();
+		m_aio_path = root[ "aio_path" ].asString();
 		m_covers_path = root[ "covers_path" ].asString();
 	}
 
@@ -190,6 +196,7 @@ namespace SplitsMgr
 
 		root[ "lss_path" ] = m_lss_path.string().c_str();
 		root[ "json_path" ] = m_json_path.string().c_str();
+		root[ "aio_path" ] = m_aio_path.string().c_str();
 		root[ "covers_path" ] = m_covers_path.string().c_str();
 
 		writer->write( root, &file );
@@ -287,6 +294,41 @@ namespace SplitsMgr
 		root[ "CurrentSplitTime" ] = Json::Value{};
 
 		m_splits_mgr.write_json( root );
+
+		file << root;
+	}
+
+	void SplitsManagerApp::_load_aio()
+	{
+		char file[ 100 ];
+		OPENFILENAME open_file_name;
+		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+
+		open_file_name.lStructSize = sizeof( open_file_name );
+		open_file_name.hwndOwner = NULL;
+		open_file_name.lpstrFile = file;
+		open_file_name.lpstrFile[ 0 ] = '\0';
+		open_file_name.nMaxFile = sizeof( file );
+		open_file_name.lpstrFileTitle = NULL;
+		open_file_name.nMaxFileTitle = 0;
+		GetOpenFileName( &open_file_name );
+
+		if( open_file_name.lpstrFile[ 0 ] != '\0' )
+		{
+			m_aio_path = open_file_name.lpstrFile;
+			m_splits_mgr.read_all_in_one_file( open_file_name.lpstrFile );
+		}
+
+		_save_options();
+	}
+
+	void SplitsManagerApp::_save_aio()
+	{
+		auto file = std::ofstream{ m_aio_path };
+		auto root = Json::Value{};
+		Json::StyledWriter json_writer;
+
+		m_splits_mgr.write_all_in_one_file( root );
 
 		file << root;
 	}

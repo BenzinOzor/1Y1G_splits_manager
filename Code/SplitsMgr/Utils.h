@@ -30,11 +30,23 @@ namespace SplitsMgr
 			static constexpr ImVec4		finished_game_header_hovered	{ 0.28f, 0.90f , 0.28f, 1.f };
 			static constexpr ImVec4		finished_game_header_active		{ 0.31f, 1.f , 0.31f, 1.f };
 
+			static constexpr ImVec4		abandonned_game_frame_bg		{ 0.55f, 0.17f , 0.17f, 1.f };
+			static constexpr ImVec4		abandonned_game_header			{ 0.8f, 0.25f , 0.25f, 1.f };
+			static constexpr ImVec4		abandonned_game_header_hovered	{ 0.95f, 0.3f, 0.3f, 1.f };
+			static constexpr ImVec4		abandonned_game_header_active	{ 1.f, 0.36f , 0.31f, 1.f };
+
 			static constexpr ImVec4		ongoing_game_frame_bg			{ 0.34f, 0.23f , 0.38f, 1.f };
 			static constexpr ImVec4		ongoing_game_header				{ 0.67f, 0.52f , 0.72f, 1.f };
 			static constexpr ImVec4		ongoing_game_header_hovered		{ 0.77f, 0.60f , 0.84f, 1.f };
 			static constexpr ImVec4		ongoing_game_header_active		{ 0.91f, 0.71f , 1.f, 1.f };
 		}
+
+		struct ParsingInfos
+		{
+			uint32_t m_current_split{ 0 };
+			uint32_t m_split_index{ 0 };
+			SplitTime m_total_time{};
+		};
 
 		std::string get_xml_child_element_text( tinyxml2::XMLElement* _container, std::string_view _child_name );
 		void create_xml_child_element_with_text( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _container, std::string_view _child_name, std::string_view _text );

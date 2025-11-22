@@ -86,7 +86,7 @@ namespace SplitsMgr
 			}
 
 			
-			if( is_finished() == false && ImGui::BeginTable( "add_session_table", 2 ) )
+			if( sessions_over() == false && ImGui::BeginTable( "add_session_table", 2 ) )
 			{
 				ImGui::TableSetupColumn( "input_text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );
 				ImGui::TableSetupColumn( "button", ImGuiTableColumnFlags_WidthFixed );
@@ -152,12 +152,31 @@ namespace SplitsMgr
 				return "Current";
 			case State::finished:
 				return "Finished";
+			case State::abandonned:
+				return "Abandonned";
 			case State::ongoing:
 				return "Ongoing";
 			case State::COUNT:
 			default:
 				return "COUNT";
 		};
+	}
+
+	Game::State Game::get_state_from_str( std::string_view _state ) const
+	{
+		if( _state == "Current" || _state == "current" )
+			return State::current;
+
+		if( _state == "Finished" || _state == "finished" )
+			return State::finished;
+
+		if( _state == "Abandonned" || _state == "abandonned" )
+			return State::abandonned;
+
+		if( _state == "Ongoing" || _state == "ongoing" )
+			return State::ongoing;
+
+		return State::none;
 	}
 
 	SplitsMgr::SplitTime Game::get_run_time() const
@@ -436,11 +455,81 @@ namespace SplitsMgr
 		}
 	}
 
+	bool Game::parse_game_aio( Json::Value& _game, Utils::ParsingInfos& _paring_infos )
+	{
+		m_name = _game[ "Name" ].asString();
+		m_estimation = Utils::get_time_from_string( _game[ "Estimate" ].asString() );
+
+		m_state = get_state_from_str( _game[ "State" ].asString() );
+
+		Json::Value sessions = _game[ "Sessions" ];
+
+		m_time = SplitTime{};
+
+		for( Json::Value::iterator it_session = sessions.begin(); it_session != sessions.end(); ++it_session )
+		{
+			const Json::Value& session = *it_session;
+			Split new_split{ _paring_infos.m_split_index, m_splits.size() + 1 };
+			SplitTime session_time = Utils::get_time_from_string( session.asString() );
+
+			if( Utils::is_time_valid( session_time ) == false )
+				continue;
+
+			_paring_infos.m_total_time += session_time;
+			m_time += session_time;
+
+			new_split.m_segment_time = session_time;
+			new_split.m_run_time = _paring_infos.m_total_time;
+
+			m_splits.push_back( std::move( new_split ) );
+			++_paring_infos.m_split_index;
+		}
+
+		if( sessions_over() == false )
+		{
+			if( m_splits.empty() )
+				m_state == State::none;
+
+			m_splits.push_back( { _paring_infos.m_split_index, m_splits.size() + 1 } );
+			++_paring_infos.m_split_index;
+		}
+
+		if( contains_split_index( _paring_infos.m_current_split ) )
+			m_state = State::current;
+
+		const SplitTime tmp_delta{ m_time - m_estimation };
+
+		// Update the delta if the game is finished, or the estimate has been exceeded.
+		if( m_state == State::finished || m_state != State::none && tmp_delta > std::chrono::seconds{ 0 } )
+			m_delta = tmp_delta;
+
+		return m_state == State::current;
+	}
+
+	void Game::write_game_aio( Json::Value& _root, uint32_t _game_index ) const
+	{
+		_root[ "Games" ][ _game_index ][ "Name" ] = m_name;
+		_root[ "Games" ][ _game_index ][ "Estimate" ] = Utils::time_to_str( m_estimation ).c_str();
+
+		if( m_state == State::none )
+			return;
+
+		_root[ "Games" ][ _game_index ][ "State" ] = get_state_str();
+
+		for( uint32_t split_index{ 0 }; split_index < m_splits.size(); ++split_index )
+		{
+			if( Utils::is_time_valid( m_splits[ split_index ].m_segment_time ) == false )
+				return;
+
+			_root[ "Games" ][ _game_index ][ "Sessions" ][ split_index ] = Utils::time_to_str( m_splits[ split_index ].m_segment_time ).c_str();
+		}
+	}
+
 	void Game::load_cover( std::string_view _path )
 	{
 		const std::string cover_path = fzn::Tools::Sprintf( "%s\\%s.jpg", _path.data(), m_name.c_str() );
 
-		//if( std::filesystem:exists( cover_path ) )
+		if( std::filesystem::exists( cover_path ) )
 			m_cover = g_pFZN_DataMgr->LoadTexture( m_name, cover_path );
 	}
 
@@ -548,6 +637,14 @@ namespace SplitsMgr
 				ImGui::PushStyleColor( ImGuiCol_HeaderActive,	Utils::Color::finished_game_header_active );
 				break;
 			}
+			case State::abandonned:
+			{
+				ImGui::PushStyleColor( ImGuiCol_Text,			ImGui_fzn::color::black );
+				ImGui::PushStyleColor( ImGuiCol_Header,			Utils::Color::abandonned_game_header );
+				ImGui::PushStyleColor( ImGuiCol_HeaderHovered,	Utils::Color::abandonned_game_header_hovered );
+				ImGui::PushStyleColor( ImGuiCol_HeaderActive,	Utils::Color::abandonned_game_header_active );
+				break;
+			}
 			case State::ongoing:
 			{
 				ImGui::PushStyleColor( ImGuiCol_Text,			ImGui_fzn::color::black );
@@ -565,6 +662,7 @@ namespace SplitsMgr
 		{
 			case State::current:
 			case State::finished:
+			case State::abandonned:
 			case State::ongoing:
 			{
 				ImGui::PopStyleColor( 4 );
@@ -605,6 +703,11 @@ namespace SplitsMgr
 			case SplitsMgr::Game::State::finished:
 			{
 				frame_bg_color = Utils::Color::finished_game_frame_bg;
+				break;
+			}
+			case SplitsMgr::Game::State::abandonned:
+			{
+				frame_bg_color = Utils::Color::abandonned_game_frame_bg;
 				break;
 			}
 			case SplitsMgr::Game::State::ongoing:

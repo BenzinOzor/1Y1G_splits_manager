@@ -50,9 +50,11 @@ namespace SplitsMgr
 		void read_lss( std::string_view _path );
 		void read_json( std::string_view _path );
 		void load_covers( std::string_view _path );
+		void read_all_in_one_file( std::string_view _path );
 
 		void write_lss( tinyxml2::XMLDocument& _document );
 		void write_json( Json::Value& _root );
+		void write_all_in_one_file( Json::Value& _root );
 
 	private:
 		void _refresh_current_game_ptr();

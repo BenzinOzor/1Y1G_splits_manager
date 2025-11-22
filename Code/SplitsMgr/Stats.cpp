@@ -85,7 +85,7 @@ namespace SplitsMgr
 			}
 		}
 
-		if( m_nb_games == 0 )
+		if( m_nb_games == 0 || m_nb_sessions == 0 )
 			return;
 
 		m_avg_sessions /= m_nb_games;
