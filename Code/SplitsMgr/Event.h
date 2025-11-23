@@ -14,6 +14,7 @@ namespace SplitsMgr
 			json_done_reading,			// We finished parsing the json file.
 			new_current_game_selected,	// A game has been selected via right click menu to be the current one. (m_game_event)
 			current_game_changed,		// The confirmation of the new current game selection.
+			game_estimate_changed,		// The estimated of a game changed.
 			COUNT
 		};
 

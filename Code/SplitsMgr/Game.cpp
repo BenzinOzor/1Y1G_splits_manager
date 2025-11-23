@@ -814,7 +814,10 @@ namespace SplitsMgr
 			ImGui::SetNextItemWidth( 70.f );
 			std::string estimate = Utils::time_to_str( m_estimation );
 			if( ImGui::InputText( "##Estimate", &estimate, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsNoBlank ) )
+			{
 				m_estimation = Utils::get_time_from_string( estimate );
+				g_pFZN_Core->PushEvent( new Event( Event::Type::game_estimate_changed ) );
+			}
 			ImGui::TableNextColumn();
 
 			if( _state == State::finished || _state != State::none && m_delta > std::chrono::seconds{ 0 } )

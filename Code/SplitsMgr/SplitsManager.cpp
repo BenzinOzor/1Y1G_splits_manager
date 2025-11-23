@@ -77,8 +77,9 @@ namespace SplitsMgr
 		ImGui::SetWindowFontScale( 1.f );
 		ImGui::NewLine();
 
-		if( m_current_game != nullptr )
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current game:", m_current_game->get_name().c_str() );
+		_display_timers( timer_color );
+
+		ImGui::SeparatorText( "List infos" );
 
 		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
 
@@ -106,8 +107,6 @@ namespace SplitsMgr
 
 			ImGui::EndTable();
 		}
-
-		_display_timers( timer_color );
 
 		m_stats.display();
 		_display_update_sessions_buttons();
@@ -137,6 +136,11 @@ namespace SplitsMgr
 				m_current_game = split_event->m_game_event.m_game;
 				m_current_split = m_current_game->get_splits().back().m_split_index;
 				g_pFZN_Core->PushEvent( new Event( Event::Type::json_done_reading ) );
+				break;
+			}
+			case Event::Type::game_estimate_changed:
+			{
+				_update_run_stats();
 				break;
 			}
 		};
@@ -299,6 +303,7 @@ namespace SplitsMgr
 		file >> root;
 
 		m_games.clear();
+		m_games.reserve( 100 );
 
 		m_current_split = root[ "CurrentSplitIndex" ].asUInt();
 		m_game_name = root[ "Title" ].asString();
@@ -429,8 +434,7 @@ namespace SplitsMgr
 		const float doubled_text_height = ImGui::CalcTextSize( "T" ).y;
 		ImGui::SetWindowFontScale( 1.f );
 
-		ImGui::Separator();
-		ImGui::Spacing();
+		ImGui::SeparatorText( m_current_game->get_name().c_str() );
 		if( m_current_game->get_cover() != nullptr )
 			ImGui::Image( *m_current_game->get_cover(), Utils::game_cover_size );
 
@@ -459,7 +463,7 @@ namespace SplitsMgr
 		std::string time_str = Utils::time_to_str( m_chrono.get_time() );
 		ImGui::SetWindowFontScale( 5.f );
 		const ImVec2 session_time_size = ImGui::CalcTextSize( time_str.c_str() );
-		ImGui::SetCursorPos( rect_pos + ImVec2{ rect_size.x * 0.5f - session_time_size.x * 0.5f, rect_size.y * 0.5f - 70.f } );
+		ImGui::SetCursorPos( rect_pos + ImVec2{ rect_size.x * 0.5f - session_time_size.x * 0.5f, 0.f } );
 		const ImVec2 session_time_pos = ImGui::GetCursorPos();
 		ImGui::TextColored( _timer_color, time_str.c_str() );
 		ImGui::SetWindowFontScale( 1.f );
@@ -472,11 +476,11 @@ namespace SplitsMgr
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Total time" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played" );
 
 			ImGui::TableNextColumn();
 			ImGui::SetWindowFontScale( 2.f );
-			time_str = Utils::time_to_str( m_played + m_chrono.get_time() );
+			time_str = Utils::time_to_str( m_current_game->get_played() + m_chrono.get_time() );
 			ImVec2 size = ImGui::CalcTextSize( time_str.c_str() );
 			ImGui::NewLine();
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x - size.x );
@@ -486,11 +490,26 @@ namespace SplitsMgr
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Game time" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate" );
 
 			ImGui::TableNextColumn();
 			ImGui::SetWindowFontScale( 2.f );
-			time_str = Utils::time_to_str( m_current_game->get_played() + m_chrono.get_time() );
+			time_str = Utils::time_to_str( m_current_game->get_estimate() );
+			size = ImGui::CalcTextSize( time_str.c_str() );
+			ImGui::NewLine();
+			ImGui::SameLine( ImGui::GetContentRegionAvail().x - size.x );
+			ImGui::TextColored( _timer_color, time_str.c_str() );
+			ImGui::SetWindowFontScale( 1.f );
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta" );
+
+			ImGui::TableNextColumn();
+			ImGui::SetWindowFontScale( 2.f );
+			SplitTime delta = m_current_game->get_played() + m_chrono.get_time() - m_current_game->get_estimate();
+			time_str = fzn::Tools::Sprintf( "%s%s", delta < std::chrono::seconds( 0 ) ? "" : "+", Utils::time_to_str( delta ).c_str() );
 			size = ImGui::CalcTextSize( time_str.c_str() );
 			ImGui::NewLine();
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x - size.x );
