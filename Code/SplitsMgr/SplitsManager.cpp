@@ -334,7 +334,8 @@ namespace SplitsMgr
 		{
 			auto game = Game{};
 
-			game.parse_game_aio( *it_game, parsing_infos );
+			if( game.parse_game_aio( *it_game, parsing_infos ) )
+				m_run_time = game.get_run_time();
 
 			m_games.emplace_back( std::move( game ) );
 			g_pFZN_Core->AddCallback( &m_games.back(), &Game::on_event, fzn::DataCallbackType::Event );

@@ -19,7 +19,7 @@ namespace SplitsMgr
 	static constexpr uint32_t version_major = 2;
 	static constexpr uint32_t version_minor = 0;
 	static constexpr uint32_t version_feature = 3;
-	static constexpr uint32_t version_bugfix = 0;
+	static constexpr uint32_t version_bugfix = 1;
 
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
@@ -31,19 +31,7 @@ namespace SplitsMgr
 		_load_options();
 
 		if( m_aio_path.empty() == false )
-		{
 			m_splits_mgr.read_all_in_one_file( m_aio_path.string() );
-		}
-		/*else if( m_lss_path.empty() == false )
-		{
-			m_splits_mgr.read_lss( m_lss_path.string() );
-
-			if( m_json_path.empty() == false )
-				m_splits_mgr.read_json( m_json_path.string() );
-		}*/
-
-		/*if( m_covers_path.empty() == false )
-			m_splits_mgr.load_covers( m_covers_path.string() );*/
 
 		g_splits_app = this;
 	}
@@ -80,7 +68,6 @@ namespace SplitsMgr
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
 		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-		//window_flags |= ImGuiWindowFlags_NoBackground;
 
 		ImGui::Begin( "Splits Manager", nullptr, window_flags );
 		ImGui::PopStyleVar( 3 );
