@@ -49,7 +49,8 @@ namespace SplitsMgr
 		_push_state_colors( game_state );
 
 		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current() ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
-
+		const bool header_hovered = ImGui::IsItemHovered();
+		
 		_right_click();
 
 		if( Utils::is_time_valid( m_time ) )
@@ -60,13 +61,16 @@ namespace SplitsMgr
 			ImGui::SameLine( ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x - game_time_width );
 			ImGui::Text( game_time.c_str() );
 		}
-		
+
 		_pop_state_colors( game_state );
+
+		if( header_hovered )
+			_tooltip();
 
 		if( header_open )
 		{
 			_handle_game_background( game_state );
-
+			
 			ImGui::Indent();
 
 			_estimate_and_delta( game_state );
@@ -707,7 +711,7 @@ namespace SplitsMgr
 		{
 			case SplitsMgr::Game::State::current:
 			{
-				frame_bg_color = frame_bg_current_game;
+				frame_bg_color = Utils::Color::current_game_frame_bg;
 				break;
 			}
 			case SplitsMgr::Game::State::finished:
@@ -764,6 +768,35 @@ namespace SplitsMgr
 
 			ImGui::PopStyleColor();
 			ImGui::EndPopup();
+		}
+	}
+
+	void Game::_tooltip()
+	{
+		if( ImGui::BeginTooltip() )
+		{
+			ImGui::Text( m_name.c_str() );
+
+			ImGui::Image( *m_cover, Utils::game_cover_size );
+
+			ImGui::SameLine();
+
+			if( ImGui::BeginTable( "tooltip_table", 2 ) )
+			{
+				ImGui::TableNextColumn();
+				ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate:" );
+				ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played:" );
+				ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta:" );
+
+				ImGui::TableNextColumn();
+				ImGui::Text( Utils::time_to_str( m_estimation ).c_str() );
+				ImGui::Text( Utils::time_to_str( m_time ).c_str() );
+				ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
+
+				ImGui::EndTable();
+			}
+
+			ImGui::EndTooltip();
 		}
 	}
 

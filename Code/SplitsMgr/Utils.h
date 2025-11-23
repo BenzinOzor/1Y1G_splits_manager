@@ -18,6 +18,8 @@ namespace SplitsMgr
 
 	namespace Utils
 	{
+		static constexpr ImVec2 game_cover_size{ 120.f, 160.f };
+
 		namespace Color
 		{
 			static constexpr ImVec4		current_game_frame_bg			{ 0.58f, 0.43f, 0.03f, 1.f };
@@ -39,6 +41,11 @@ namespace SplitsMgr
 			static constexpr ImVec4		ongoing_game_header				{ 0.67f, 0.52f , 0.72f, 1.f };
 			static constexpr ImVec4		ongoing_game_header_hovered		{ 0.77f, 0.60f , 0.84f, 1.f };
 			static constexpr ImVec4		ongoing_game_header_active		{ 0.91f, 0.71f , 1.f, 1.f };
+
+			static constexpr ImVec4		no_state_frame_bg				{ 0.10f, 0.16f , 0.22f, 1.f };
+			static constexpr ImVec4		no_state_header					{ 0.15f, 0.29f , 0.45f, 1.f };
+			static constexpr ImVec4		no_state_header_hovered			{ 0.22f, 0.50f , 0.83f, 1.f };
+			static constexpr ImVec4		no_state_header_active			{ 0.26f, 0.59f , 0.98f, 1.f };
 		}
 
 		struct ParsingInfos

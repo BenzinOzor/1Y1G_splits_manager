@@ -114,6 +114,7 @@ namespace SplitsMgr
 		void _pop_state_colors( State _state );
 		void _handle_game_background( State _state );
 		void _right_click();
+		void _tooltip();
 		void _estimate_and_delta( State _state );
 
 		void _select_cover();

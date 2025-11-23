@@ -424,7 +424,6 @@ namespace SplitsMgr
 
 	void SplitsManager::_display_timers( const ImVec4& _timer_color )
 	{
-		static const sf::Vector2f cover_size{ 120.f, 160.f };
 		const float default_text_height = ImGui::CalcTextSize( "T" ).y;
 		ImGui::SetWindowFontScale( 2.f );
 		const float doubled_text_height = ImGui::CalcTextSize( "T" ).y;
@@ -433,20 +432,20 @@ namespace SplitsMgr
 		ImGui::Separator();
 		ImGui::Spacing();
 		if( m_current_game->get_cover() != nullptr )
-			ImGui::Image( *m_current_game->get_cover(), cover_size );
+			ImGui::Image( *m_current_game->get_cover(), Utils::game_cover_size );
 
 		const ImVec2 backup_cursor_pos{ ImGui::GetCursorPos() };
 
 		ImVec2 rect_size = ImGui::GetContentRegionAvail();
 		rect_size.x -= ImGui::GetStyle().WindowPadding.x * 2.f;		// Left and Right window padding
-		rect_size.x -= cover_size.x;								// The rectangle will be next to the cover so we take out its size
+		rect_size.x -= Utils::game_cover_size.x;					// The rectangle will be next to the cover so we take out its size
 		rect_size.x -= ImGui::GetStyle().ItemSpacing.x;				// and the space between items.
-		rect_size.y = cover_size.y;									// The rectangle is the same size as the cover.
+		rect_size.y = Utils::game_cover_size.y;						// The rectangle is the same size as the cover.
 
 		ImVec2 rect_pos = ImGui::GetCursorPos();
-		rect_pos.x += cover_size.x;									// To place the rectangle next to the cover, we add its width
+		rect_pos.x += Utils::game_cover_size.x;						// To place the rectangle next to the cover, we add its width
 		rect_pos.x += ImGui::GetStyle().ItemSpacing.x;				// and the horizontal space between items.
-		rect_pos.y -= cover_size.y;									// The cursors is under the cover so we substract its height
+		rect_pos.y -= Utils::game_cover_size.y;						// The cursors is under the cover so we substract its height
 		rect_pos.y -= ImGui::GetStyle().ItemSpacing.y;				// and the vertical space between items.
 
 		/*ImVec2 debug_rect_pos = ImGui::GetCursorScreenPos();
