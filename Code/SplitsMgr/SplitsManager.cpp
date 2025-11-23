@@ -87,6 +87,12 @@ namespace SplitsMgr
 
 		if( ImGui::BeginTable( "run_infos_2", 4 ) )
 		{
+			SplitTime timer{};
+			SplitTime game_time{ m_current_game->get_played() + m_chrono.get_time() };
+			SplitTime game_delta{ game_time - m_current_game->get_estimate() };
+			const bool over_estimate{ game_time > m_current_game->get_estimate() };
+			const SplitTime previous_delta{ m_current_game->get_played() - m_current_game->get_estimate() };
+
 			ImGui::TableNextColumn();
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate:" );
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played:" );
@@ -95,15 +101,27 @@ namespace SplitsMgr
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
 			ImGui::TextColored( timer_color, Utils::time_to_str( m_played + m_chrono.get_time() ).c_str() );
-			ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
+
+			if( over_estimate )
+				ImGui::TextColored( timer_color, Utils::time_to_str( m_delta + game_delta ).c_str() );
+			else
+				ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Rem. Time:" );
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time:" );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( timer_color, Utils::time_to_str( m_remaining_time - m_chrono.get_time() ).c_str() );
-			ImGui::Text( Utils::time_to_str( m_estimated_final_time ).c_str() );
+
+			if( over_estimate )
+				ImGui::TextColored( timer_color, Utils::time_to_str( m_remaining_time + previous_delta + game_delta ).c_str() );
+			else
+				ImGui::TextColored( timer_color, Utils::time_to_str( m_remaining_time - m_chrono.get_time() ).c_str() );
+
+			if( over_estimate )
+				ImGui::TextColored( timer_color, Utils::time_to_str( m_estimated_final_time + game_delta ).c_str() );
+			else
+				ImGui::Text( Utils::time_to_str( m_estimated_final_time ).c_str() );
 
 			ImGui::EndTable();
 		}
@@ -435,6 +453,7 @@ namespace SplitsMgr
 		ImGui::SetWindowFontScale( 1.f );
 
 		ImGui::SeparatorText( m_current_game->get_name().c_str() );
+
 		if( m_current_game->get_cover() != nullptr )
 			ImGui::Image( *m_current_game->get_cover(), Utils::game_cover_size );
 

@@ -777,6 +777,8 @@ namespace SplitsMgr
 		{
 			ImGui::Text( m_name.c_str() );
 
+			ImGui::Separator();
+
 			ImGui::Image( *m_cover, Utils::game_cover_size );
 
 			ImGui::SameLine();
