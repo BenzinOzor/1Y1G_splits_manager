@@ -34,7 +34,7 @@ int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 	g_pFZN_WindowMgr->SetWindowFramerate(60);
 	g_pFZN_WindowMgr->SetWindowClearColor( sf::Color::Black );
 	
-	g_pFZN_WindowMgr->SetIcon( DATAPATH( "Misc/fzn.png" ) );
+	g_pFZN_WindowMgr->SetIcon( DATAPATH( "Misc/1A1J.png" ) );
 
 	auto app = SplitsMgr::SplitsManagerApp{};
 

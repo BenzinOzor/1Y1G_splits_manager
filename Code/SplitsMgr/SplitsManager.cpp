@@ -335,7 +335,10 @@ namespace SplitsMgr
 			auto game = Game{};
 
 			if( game.parse_game_aio( *it_game, parsing_infos ) )
+			{
 				m_run_time = game.get_run_time();
+				g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s", game.get_name().c_str() ) );
+			}
 
 			m_games.emplace_back( std::move( game ) );
 			g_pFZN_Core->AddCallback( &m_games.back(), &Game::on_event, fzn::DataCallbackType::Event );
@@ -598,6 +601,7 @@ namespace SplitsMgr
 		// Looping on all the games coming after the given one to update their data.
 		bool game_found{ false };
 		const Game* prev_game{ _game };		// The game that came before the one we're updating. Needed to retrieve game state.
+		const SplitTime& last_segment_time{ _game->get_last_valid_segment_time() };
 		for( Game& game : m_games )
 		{
 			if( game_found == false )
@@ -609,21 +613,9 @@ namespace SplitsMgr
 				continue;
 			}
 
-			const SplitTime game_run_time{ prev_game->get_run_time() };
-
-			// We want to update the game run time if:
-			//  - The previous game is finished. Meaning we caught up with previously added isolated sessions with the current game.
-			const bool current_game_caught_up = _game == m_current_game && prev_game->is_finished();
-			//  - The game run time is valid. Meaning we added a session a game before the current one, and want to adapt its time with the added session time.
-			const bool valid_game_run_time = Utils::is_time_valid( game.get_run_time() );
-
-			if( current_game_caught_up || valid_game_run_time )
-				run_time = game_run_time;
-
-			// Giving a valid run time to the game will make it adapt to it. Otherwise nothing but its split index will be updated.
+			// Giving the last valid segment of the given game will make the current loop game adapt to it if it has times already
 			// If the game is finished, we used its last split to set the new session time and didn't create a new split, so we don't need to increment the others.
-			game.update_data( run_time, _game->is_finished() == false );
-			prev_game = &game;
+			game.update_data( last_segment_time, _game->is_finished() == false );
 		}
 	}
 

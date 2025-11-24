@@ -58,6 +58,7 @@ namespace SplitsMgr
 		SplitTime get_estimate() const							{ return m_estimation; }
 		SplitTime get_delta() const								{ return m_delta; }
 		SplitTime get_played() const;
+		SplitTime get_last_valid_segment_time() const;
 		sf::Texture* get_cover() const							{ return m_cover; }
 
 		/**
@@ -78,7 +79,7 @@ namespace SplitsMgr
 		/**
 		* @brief Increment all split indexes because a session has been added before this game.
 		**/
-		void update_data( SplitTime& _last_run_time, bool _incremeted_splits_index );
+		void update_data( const SplitTime& _delta_to_add, bool _incremeted_splits_index );
 
 		/**
 		* @brief Parse splits file to fill the games sessions.

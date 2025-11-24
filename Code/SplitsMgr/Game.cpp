@@ -184,7 +184,7 @@ namespace SplitsMgr
 		return State::none;
 	}
 
-	SplitsMgr::SplitTime Game::get_run_time() const
+	SplitTime Game::get_run_time() const
 	{
 		SplitTime last_valid_time{};
 
@@ -197,9 +197,22 @@ namespace SplitsMgr
 		return last_valid_time;
 	}
 
-	SplitsMgr::SplitTime Game::get_played() const
+	SplitTime Game::get_played() const
 	{
 		return m_time;
+	}
+
+	SplitTime Game::get_last_valid_segment_time() const
+	{
+		SplitTime last_segment{};
+
+		for( const Split& split : m_splits )
+		{
+			if( Utils::is_time_valid( split.m_segment_time ) )
+				last_segment = split.m_segment_time;
+		}
+
+		return last_segment;
 	}
 
 	/**
@@ -244,20 +257,19 @@ namespace SplitsMgr
 	/**
 	* @brief Increment all split indexes because a session has been added before this game.
 	**/
-	void Game::update_data( SplitTime& _last_run_time, bool _incremeted_splits_index )
+	void Game::update_data( const SplitTime& _delta_to_add, bool _incremeted_splits_index )
 	{
 		for( Split& split : m_splits )
 		{
 			if( _incremeted_splits_index )
 				++split.m_split_index;
 
-			// If we already have a run time and a new one is given, we calculate a new run time with the given one.
-			if( Utils::is_time_valid( split.m_run_time ) && Utils::is_time_valid( _last_run_time ) )
-			{ 
-				split.m_run_time = _last_run_time + split.m_segment_time;
-				_last_run_time = split.m_run_time;
-			}
+			if( m_state != State::none )
+				split.m_run_time += _delta_to_add;
 		}
+
+		if( m_state != State::none )
+			m_time += m_delta;
 	}
 
 	/**
@@ -709,22 +721,22 @@ namespace SplitsMgr
 
 		switch( _state )
 		{
-			case SplitsMgr::Game::State::current:
+			case Game::State::current:
 			{
 				frame_bg_color = Utils::Color::current_game_frame_bg;
 				break;
 			}
-			case SplitsMgr::Game::State::finished:
+			case Game::State::finished:
 			{
 				frame_bg_color = Utils::Color::finished_game_frame_bg;
 				break;
 			}
-			case SplitsMgr::Game::State::abandonned:
+			case Game::State::abandonned:
 			{
 				frame_bg_color = Utils::Color::abandonned_game_frame_bg;
 				break;
 			}
-			case SplitsMgr::Game::State::ongoing:
+			case Game::State::ongoing:
 			{
 				frame_bg_color = Utils::Color::ongoing_game_frame_bg;
 				break;
