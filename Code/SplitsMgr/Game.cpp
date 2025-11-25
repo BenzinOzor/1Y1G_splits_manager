@@ -778,6 +778,13 @@ namespace SplitsMgr
 				_select_cover();
 			}
 
+			if( m_cover != nullptr && ImGui::Selectable( "Remove Cover" ) )
+			{
+				g_pFZN_DataMgr->UnloadTexture( m_name );
+				m_cover = nullptr;
+				m_cover_data.clear();
+			}
+
 			ImGui::PopStyleColor();
 			ImGui::EndPopup();
 		}
@@ -791,9 +798,12 @@ namespace SplitsMgr
 
 			ImGui::Separator();
 
-			ImGui::Image( *m_cover, Utils::game_cover_size );
+			if( m_cover != nullptr )
+			{
+				ImGui::Image( *m_cover, Utils::game_cover_size );
 
-			ImGui::SameLine();
+				ImGui::SameLine();
+			}
 
 			if( ImGui::BeginTable( "tooltip_table", 2 ) )
 			{

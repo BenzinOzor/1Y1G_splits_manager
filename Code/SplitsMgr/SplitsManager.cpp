@@ -460,8 +460,8 @@ namespace SplitsMgr
 
 		if( m_current_game->get_cover() != nullptr )
 			ImGui::Image( *m_current_game->get_cover(), Utils::game_cover_size );
-
-		const ImVec2 backup_cursor_pos{ ImGui::GetCursorPos() };
+		else
+			ImGui::SetCursorPos( ImGui::GetCursorPos()+ ImVec2{ 0.f, Utils::game_cover_size.y + ImGui::GetStyle().ItemSpacing.y } );
 
 		ImVec2 rect_size = ImGui::GetContentRegionAvail();
 		rect_size.x -= ImGui::GetStyle().WindowPadding.x * 2.f;		// Left and Right window padding
@@ -542,7 +542,7 @@ namespace SplitsMgr
 			ImGui::EndTable();
 		}
 
-		ImGui::SetCursorPos( backup_cursor_pos );
+		ImGui::Spacing();
 	}
 
 	void SplitsManager::_display_update_sessions_buttons()
