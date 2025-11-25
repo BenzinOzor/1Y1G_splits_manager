@@ -251,6 +251,7 @@
   <ItemGroup>
     <ClCompile Include="SplitsMgr\Game.cpp" />
     <ClCompile Include="SplitsMgr\main.cpp" />
+    <ClCompile Include="SplitsMgr\Options.cpp" />
     <ClCompile Include="SplitsMgr\SplitsManager.cpp" />
     <ClCompile Include="SplitsMgr\SplitsManagerApp.cpp" />
     <ClCompile Include="SplitsMgr\Stats.cpp" />
@@ -272,6 +273,7 @@
   <ItemGroup>
     <ClInclude Include="SplitsMgr\Event.h" />
     <ClInclude Include="SplitsMgr\Game.h" />
+    <ClInclude Include="SplitsMgr\Options.h" />
     <ClInclude Include="SplitsMgr\SplitsManager.h" />
     <ClInclude Include="SplitsMgr\SplitsManagerApp.h" />
     <ClInclude Include="SplitsMgr\Stats.h" />

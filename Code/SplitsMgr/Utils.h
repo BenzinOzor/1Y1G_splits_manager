@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <chrono>
+#include <functional>
 
 #include "Externals/ImGui/imgui.h"
 
@@ -15,6 +16,7 @@ namespace tinyxml2
 namespace SplitsMgr
 {
 	using SplitTime = std::chrono::duration<int, std::milli>;
+	static constexpr ImVec2 DefaultWidgetSize{ 150.f, 0.f };
 
 	namespace Utils
 	{
@@ -63,5 +65,7 @@ namespace SplitsMgr
 		bool is_time_valid( const SplitTime& _time );
 
 		std::string get_cover_data( std::string_view _cover_path );
+
+		void window_bottom_table( uint8_t _nb_items, std::function<void( void )> _table_content_fct );
 	}
 }

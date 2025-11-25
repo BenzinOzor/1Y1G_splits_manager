@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "SplitsManager.h"
+#include "Options.h"
 
 
 namespace SplitsMgr
@@ -75,6 +76,7 @@ namespace SplitsMgr
 		std::filesystem::path m_covers_path;
 
 		SplitsManager m_splits_mgr;
+		Options m_options;
 	};
 }
 

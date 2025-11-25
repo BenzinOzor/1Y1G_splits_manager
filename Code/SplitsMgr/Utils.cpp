@@ -111,5 +111,26 @@ namespace SplitsMgr
 
 			return cover_data;
 		}
+
+		void window_bottom_table( uint8_t _nb_items, std::function<void( void )> _table_content_fct )
+		{
+			ImGui::NewLine();
+			ImGui::NewLine();
+
+			if( ImGui::BeginTable( "BottomTable", _nb_items + 1 ) )
+			{
+				ImGui::TableSetupColumn( "Empty", ImGuiTableColumnFlags_WidthStretch );
+
+				for( uint8_t column{ 1 }; column < _nb_items + 1; ++column )
+					ImGui::TableSetupColumn( fzn::Tools::Sprintf( "Button %u", column ).c_str(), ImGuiTableColumnFlags_WidthFixed );
+
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex( 1 );
+
+				_table_content_fct();
+
+				ImGui::EndTable();
+			}
+		}
 	}
 }

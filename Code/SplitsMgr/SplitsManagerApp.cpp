@@ -73,6 +73,7 @@ namespace SplitsMgr
 		ImGui::PopStyleVar( 3 );
 
 		_display_menu_bar();
+		m_options.update();
 
 		ImVec2 panel_size{ window_size };
 
@@ -125,15 +126,15 @@ namespace SplitsMgr
 			if( ImGui::BeginMenu( "File" ) )
 			{
 				const bool aio_invalid = m_aio_path.empty();
-				menu_item( "Load", false, [&]() { _load_aio(); } );
-				menu_item( "Save", false, [&]() { _save_aio(); } );
+				menu_item( "Load...", false, [&]() { _load_aio(); } );
+				menu_item( "Save", aio_invalid, [&]() { _save_aio(); } );
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
-
-				menu_item( "Load Covers", aio_invalid, [&]() { _load_covers(); } );
-				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded covers path: %s", m_covers_path.string().c_str() ) );
 				
 				ImGui::Separator();
 				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_all_in_one_file( m_aio_path.generic_string().c_str() ); } );
+
+				ImGui::Separator();
+				menu_item( "Options...", false, [&]() { m_options.show_window(); } );
 
 				ImGui::EndMenu();
 			}
@@ -154,7 +155,7 @@ namespace SplitsMgr
 	**/
 	void SplitsManagerApp::_load_options()
 	{
-		auto file = std::ifstream{ g_pFZN_Core->GetSaveFolderPath() + "/options.json" };
+		auto file = std::ifstream{ g_pFZN_Core->GetSaveFolderPath() + "/resources_paths.json" };
 
 		if( file.is_open() == false )
 			return;
@@ -174,7 +175,7 @@ namespace SplitsMgr
 	**/
 	void SplitsManagerApp::_save_options()
 	{
-		auto file = std::ofstream{ g_pFZN_Core->GetSaveFolderPath() + "/options.json" };
+		auto file = std::ofstream{ g_pFZN_Core->GetSaveFolderPath() + "/resources_paths.json" };
 		auto root = Json::Value{};
 		Json::StreamWriterBuilder writer_builder;
 
