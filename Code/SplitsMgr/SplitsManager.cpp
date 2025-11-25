@@ -317,7 +317,6 @@ namespace SplitsMgr
 			return;
 
 		auto root = Json::Value{};
-
 		file >> root;
 
 		m_games.clear();

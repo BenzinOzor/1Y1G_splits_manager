@@ -19,7 +19,7 @@ namespace SplitsMgr
 	static constexpr uint32_t version_major = 2;
 	static constexpr uint32_t version_minor = 0;
 	static constexpr uint32_t version_feature = 4;
-	static constexpr uint32_t version_bugfix = 3;
+	static constexpr uint32_t version_bugfix = 4;
 
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.

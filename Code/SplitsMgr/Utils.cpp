@@ -109,22 +109,7 @@ namespace SplitsMgr
 
 			cover_file.read( cover_data.data(), byte_count );
 
-			std::ofstream OutputFile( "test_cover.txt", std::ios::out | std::ios::binary | std::ios::trunc );
-
-			if( !OutputFile.is_open() )
-			{
-				return cover_data;
-			}
-
-			// Write the entire string into the file.
-			OutputFile.write( cover_data.data(), cover_data.size() );
-
 			return cover_data;
-
-			/*std::ostringstream string_stream;
-			string_stream.write( cover_data.data(), byte_count );
-
-			return string_stream;*/
 		}
 	}
 }
