@@ -211,6 +211,7 @@ namespace SplitsMgr
 		const HWND desktop_handle = GetDesktopWindow();
 		GetWindowRect( desktop_handle, &desktop_size );
 
+		g_pFZN_InputMgr->SetInputSystem( m_options_datas.m_global_keybinds ? fzn::InputManager::ScanSystem : fzn::InputManager::EventSystem );
 		g_pFZN_WindowMgr->SetWindowPosition( { desktop_size.right / 2 - static_cast<int>( m_options_datas.m_window_size.x ) / 2, desktop_size.bottom / 2 - static_cast<int>( m_options_datas.m_window_size.y ) / 2 } );
 
 		m_options_datas.m_bindings = g_pFZN_InputMgr->GetActionKeys();

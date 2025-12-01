@@ -94,11 +94,13 @@ namespace SplitsMgr
 
 		Games m_games;
 		Game* m_current_game{ nullptr };
+		Game* m_finished_game{ nullptr };
 
 		uint32_t m_current_split{ 0 };
 		SplitTime m_run_time{};
 
 		bool m_sessions_updated{ false };	// True if all the sessions have been updated with the right splits created.
+		bool m_splitting{ false };			// When the current game is finished by splitting, we pause the timer to show the final time. Splitting again will start the timer for the next game.
 
 		Stats m_stats;
 	};

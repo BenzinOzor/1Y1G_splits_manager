@@ -51,6 +51,12 @@ namespace SplitsMgr
 		_handle_actions();
 		m_chrono.update();
 
+		if( m_finished_game != nullptr )
+		{
+			if( m_finished_game->display_finished_stats() == false )
+				m_finished_game = nullptr;
+		}
+
 		if( m_current_game == nullptr )
 			return;
 
@@ -60,9 +66,6 @@ namespace SplitsMgr
 			timer_color = ImGui_fzn::color::light_green;
 		else if( m_chrono.has_started() )
 			timer_color = ImGui_fzn::color::gray;
-
-		/*if( Utils::is_time_valid( m_delta ) == false )
-			_update_run_stats();*/
 
 		if( g_pFZN_InputMgr->IsActionPressed( "Refresh" ) )
 			m_stats.refresh( m_games );
@@ -147,6 +150,9 @@ namespace SplitsMgr
 			case Event::Type::session_added:
 			{
 				_on_game_session_added( split_event->m_game_event );
+
+				if( split_event->m_game_event.m_game_finished )
+					m_finished_game = split_event->m_game_event.m_game;
 				break;
 			}
 			case Event::Type::new_current_game_selected:
@@ -434,6 +440,9 @@ namespace SplitsMgr
 
 		m_current_game->update_last_split( run_time, segment_time, _game_finished );
 
+		if( _game_finished )
+			m_finished_game = m_current_game;
+
 		m_sessions_updated = true;
 
 		_update_games_data( m_current_game );
@@ -715,6 +724,16 @@ namespace SplitsMgr
 
 	void SplitsManager::_handle_actions()
 	{
+		if( m_splitting )
+		{
+			if( g_pFZN_InputMgr->IsKeyPressed( sf::Keyboard::Escape ) || g_pFZN_InputMgr->IsActionPressed( "Start / Split" ) )
+			{
+				m_splitting = false;
+				m_finished_game = nullptr;
+				return;
+			}
+		}
+
 		if( g_pFZN_InputMgr->IsActionPressed( "Start / Split" ) )
 		{
 			if( m_chrono.is_paused() && m_chrono.has_started() == false )
@@ -722,7 +741,7 @@ namespace SplitsMgr
 			else
 			{
 				_update_sessions( true );
-				m_chrono.start();
+				m_splitting = true;
 			}
 		}
 		else if( g_pFZN_InputMgr->IsActionPressed( "Pause" ) )

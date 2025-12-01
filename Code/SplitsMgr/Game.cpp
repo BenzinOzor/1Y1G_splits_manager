@@ -139,6 +139,101 @@ namespace SplitsMgr
 		};
 	}
 
+	bool Game::display_finished_stats()
+	{
+		std::string popup_name{ "Game finished!" };
+
+		if( m_finished_game_popup == false )
+		{
+			m_finished_game_popup = true;
+			_compute_finished_game_stats();
+			ImGui::OpenPopup( popup_name.c_str() );
+		}
+
+		if( m_finished_game_popup )
+		{
+			ImVec2 popup_size{};
+			ImGui::SetWindowFontScale( 2.f );
+			const ImVec2 game_name_size{ ImGui::CalcTextSize( m_name.c_str() ) };
+			popup_size.y = ImGui::GetTextLineHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y;
+			ImGui::SetWindowFontScale( 1.f );
+
+			popup_size.x = std::max( 356.f, game_name_size.x ) + ImGui::GetStyle().WindowPadding.x * 2.f;
+			popup_size.y += Utils::game_cover_size.y + ImGui::GetStyle().WindowPadding.y * 2.f + ImGui::GetFrameHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y;
+			sf::Vector2u window_size = g_pFZN_WindowMgr->GetWindowSize();
+
+			ImGui::SetNextWindowPos( { window_size.x * 0.5f - popup_size.x * 0.5f, window_size.y * 0.5f - popup_size.y * 0.5f }, ImGuiCond_Appearing );
+			ImGui::SetNextWindowSize( popup_size );
+
+			if( ImGui::BeginPopupModal( popup_name.c_str(), &m_finished_game_popup, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			{
+				ImGui::SetWindowFontScale( 2.f );
+				ImGui::Text( m_name.c_str() );
+				ImGui::SetWindowFontScale( 1.f );
+				ImGui::Spacing();
+				ImGui::Separator();
+				ImGui::Spacing();
+
+				if( m_cover != nullptr )
+				{
+					ImGui::Image( *m_cover, Utils::game_cover_size );
+					ImGui::SameLine();
+				}
+
+				std::string time_str{};
+				ImVec2 time_size{};
+
+				auto second_column_text = []( const char* _text )
+				{
+					ImGui::TableNextColumn();
+					ImVec2 text_size = ImGui::CalcTextSize( _text );
+					ImGui::NewLine();
+					ImGui::SameLine( ImGui::GetContentRegionAvail().x - text_size.x );
+					ImGui::Text( _text );
+				};
+
+				if( ImGui::BeginTable( "stats_table", 2, ImGuiTableFlags_RowBg ) )
+				{
+					ImGui::TableSetupColumn( "labels", ImGuiTableColumnFlags_WidthFixed, 140.f );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played:" );
+					second_column_text( Utils::time_to_str( m_time ).c_str() );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate:" );
+					second_column_text( Utils::time_to_str( m_estimation ).c_str() );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta:" );
+					second_column_text( Utils::time_to_str( m_delta ).c_str() );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Number of sessions:" );
+					second_column_text( fzn::Tools::Sprintf( "%d", m_splits.size() ).c_str() );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Average session:" );
+					second_column_text( Utils::time_to_str( m_finished_game_stats.m_average_session_time ).c_str() );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Shortest session:" );
+					second_column_text( Utils::time_to_str( m_finished_game_stats.m_shortest_session ).c_str() );
+
+					ImGui::TableNextColumn();
+					ImGui::TextColored( ImGui_fzn::color::light_yellow, "Longest session:" );
+					second_column_text( Utils::time_to_str( m_finished_game_stats.m_longest_sesion ).c_str() );
+
+					ImGui::EndTable();
+				}
+
+				ImGui::EndPopup();
+			}
+		}
+
+		return m_finished_game_popup;
+	}
+
 	bool Game::contains_split_index( uint32_t _index ) const
 	{
 		if( m_splits.empty() )
@@ -615,6 +710,9 @@ namespace SplitsMgr
 
 	void Game::_refresh_state()
 	{
+		if( m_state == State::abandonned )
+			return;
+
 		const State prev_state{ m_state };
 		const Game* current_game{ g_splits_app->get_current_game() };
 
@@ -887,4 +985,32 @@ namespace SplitsMgr
 			m_cover_data = Utils::get_cover_data( open_file_name.lpstrFile );
 		}
 	}
+
+	void Game::_compute_finished_game_stats()
+	{
+		m_finished_game_stats.m_average_session_time = SplitTime{};
+		m_finished_game_stats.m_longest_sesion = SplitTime{};
+		m_finished_game_stats.m_shortest_session = Utils::get_time_from_string( "99:59:59" );
+
+		if( m_splits.empty() )
+			return;
+
+		for( const Split& split : m_splits )
+		{
+			m_finished_game_stats.m_average_session_time += split.m_segment_time;
+
+			if( m_finished_game_stats.m_longest_sesion < split.m_segment_time )
+			{
+				m_finished_game_stats.m_longest_sesion = split.m_segment_time;
+			}
+
+			if( m_finished_game_stats.m_shortest_session > split.m_segment_time )
+			{
+				m_finished_game_stats.m_shortest_session = split.m_segment_time;
+			}
+		}
+
+		m_finished_game_stats.m_average_session_time /= m_splits.size();
+	}
+
 }

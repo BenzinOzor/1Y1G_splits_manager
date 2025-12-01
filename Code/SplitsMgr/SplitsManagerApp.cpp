@@ -18,8 +18,9 @@ namespace SplitsMgr
 {
 	static constexpr uint32_t version_major = 2;
 	static constexpr uint32_t version_minor = 0;
-	static constexpr uint32_t version_feature = 4;
+	static constexpr uint32_t version_feature = 5;
 	static constexpr uint32_t version_bugfix = 4;
+	static constexpr bool WIP_version = false;
 
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
@@ -93,6 +94,8 @@ namespace SplitsMgr
 		m_splits_mgr.display_right_panel();
 		ImGui::EndChild();
 
+		
+
 		ImGui::End();
 
 		ImGui::PopStyleVar( 1 );
@@ -139,7 +142,7 @@ namespace SplitsMgr
 				ImGui::EndMenu();
 			}
 
-			const std::string version{ fzn::Tools::Sprintf( "Ver. %d.%d.%d.%d", version_major, version_minor, version_feature, version_bugfix ) };
+			const std::string version{ fzn::Tools::Sprintf( "Ver. %d.%d.%d.%d%s", version_major, version_minor, version_feature, version_bugfix, WIP_version ? " - WIP" : "" ) };
 			const ImVec2 version_size{ ImGui::CalcTextSize( version.c_str() ) };
 			const sf::Vector2u window_size{ g_pFZN_WindowMgr->GetWindowSize() };
 

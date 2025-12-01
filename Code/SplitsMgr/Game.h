@@ -45,6 +45,8 @@ namespace SplitsMgr
 		void display();
 		void on_event();
 
+		bool display_finished_stats();
+
 		const std::string& get_name() const						{ return m_name; }
 		bool contains_split_index( uint32_t _index ) const;
 		bool is_finished() const								{ return m_state == State::finished; }
@@ -105,6 +107,16 @@ namespace SplitsMgr
 
 	private:
 		/**
+		* @brief Stats displayed in the finished game popup.
+		**/
+		struct Stats
+		{
+			SplitTime m_average_session_time;
+			SplitTime m_shortest_session;
+			SplitTime m_longest_sesion;
+		};
+
+		/**
 		* @brief Add a new session to the game using m_new_session_time.
 		**/
 		void _add_new_session_time();
@@ -120,6 +132,8 @@ namespace SplitsMgr
 
 		void _select_cover();
 
+		void _compute_finished_game_stats();
+
 		std::string m_name;
 		std::string m_icon_desc;
 		SplitTime m_estimation{};
@@ -134,6 +148,9 @@ namespace SplitsMgr
 
 		std::string m_new_session_time;
 		bool m_new_session_game_finished{ false };
+
+		bool m_finished_game_popup{ false };
+		Stats m_finished_game_stats;
 	};
 	using Games = std::vector< Game >;
 }
