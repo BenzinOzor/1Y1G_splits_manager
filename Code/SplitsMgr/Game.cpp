@@ -579,8 +579,8 @@ namespace SplitsMgr
 
 		if( m_cover_data.empty() == false )
 		{
-			m_cover_data = base64::from_base64( m_cover_data );
-			m_cover = g_pFZN_DataMgr->load_texture_from_memory( m_name, m_cover_data.data(), m_cover_data.size() );
+			std::string decoded_data = base64::from_base64( m_cover_data );
+			m_cover = g_pFZN_DataMgr->load_texture_from_memory( m_name, decoded_data.data(), decoded_data.size() );
 		}
 
 		Json::Value sessions = _game[ "Sessions" ];

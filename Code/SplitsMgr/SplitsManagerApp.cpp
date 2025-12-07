@@ -19,7 +19,7 @@ namespace SplitsMgr
 	static constexpr uint32_t version_major = 2;
 	static constexpr uint32_t version_minor = 1;
 	static constexpr uint32_t version_feature = 0;
-	static constexpr uint32_t version_bugfix = 0;
+	static constexpr uint32_t version_bugfix = 1;
 	static constexpr bool WIP_version = false;
 
 	/**
