@@ -724,11 +724,10 @@ namespace SplitsMgr
 
 	void SplitsManager::_handle_actions()
 	{
-		if( m_splitting )
+		if( m_finished_game != nullptr )
 		{
 			if( g_pFZN_InputMgr->IsKeyPressed( sf::Keyboard::Escape ) || g_pFZN_InputMgr->IsActionPressed( "Start / Split" ) )
 			{
-				m_splitting = false;
 				m_finished_game = nullptr;
 				return;
 			}
@@ -741,7 +740,6 @@ namespace SplitsMgr
 			else
 			{
 				_update_sessions( true );
-				m_splitting = true;
 			}
 		}
 		else if( g_pFZN_InputMgr->IsActionPressed( "Pause" ) )

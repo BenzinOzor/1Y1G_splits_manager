@@ -671,12 +671,7 @@ namespace SplitsMgr
 
 		const uint32_t last_split_index{ m_splits.back().m_split_index };
 		const uint32_t current_split_index{ g_splits_app->get_current_split_index() };
-		SplitTime run_time = SplitTime{};
-		
-		// We only want the run time if the current split is in this game or after.
-		// A smaller split index would mean we are updating a game in advance, and we don't want the run time in this case.
-		if( contains_split_index( current_split_index ) || current_split_index > m_splits.front().m_split_index )
-			run_time = g_splits_app->get_splits_manager().get_last_valid_run_time( this );
+		SplitTime run_time = get_run_time();
 
 		if( Utils::is_time_valid( run_time ) )
 			run_time += new_segment_time;
