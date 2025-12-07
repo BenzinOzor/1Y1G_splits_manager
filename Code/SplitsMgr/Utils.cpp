@@ -5,6 +5,8 @@
 #include <FZN/Tools/Tools.h>
 #include <FZN/Tools/Logging.h>
 
+#include "../External/base64.hpp"
+
 #include "Utils.h"
 
 
@@ -108,6 +110,8 @@ namespace SplitsMgr
 			cover_data.resize( byte_count );
 
 			cover_file.read( cover_data.data(), byte_count );
+
+			cover_data = base64::to_base64( cover_data );
 
 			return cover_data;
 		}

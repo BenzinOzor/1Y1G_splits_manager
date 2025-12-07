@@ -70,5 +70,8 @@
     <ClInclude Include="SplitsMgr\Options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="External\base64.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

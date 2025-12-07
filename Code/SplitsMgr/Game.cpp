@@ -9,6 +9,8 @@
 #include <FZN/Managers/FazonCore.h>
 #include <FZN/Managers/DataManager.h>
 
+#include "../External/base64.hpp"
+
 #include "Event.h"
 #include "Game.h"
 #include "SplitsManagerApp.h"
@@ -577,6 +579,7 @@ namespace SplitsMgr
 
 		if( m_cover_data.empty() == false )
 		{
+			m_cover_data = base64::from_base64( m_cover_data );
 			m_cover = g_pFZN_DataMgr->load_texture_from_memory( m_name, m_cover_data.data(), m_cover_data.size() );
 		}
 

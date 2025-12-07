@@ -271,6 +271,7 @@
     <ResourceCompile Include="..\Data\res.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="External\base64.hpp" />
     <ClInclude Include="SplitsMgr\Event.h" />
     <ClInclude Include="SplitsMgr\Game.h" />
     <ClInclude Include="SplitsMgr\Options.h" />
