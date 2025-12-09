@@ -84,10 +84,6 @@ namespace SplitsMgr
 
 		ImGui::SeparatorText( "List infos" );
 
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Current split:", "%d", m_current_split );
-
-		ImGui::Spacing();
-
 		if( ImGui::BeginTable( "run_infos_2", 4 ) )
 		{
 			SplitTime timer{};
@@ -158,7 +154,6 @@ namespace SplitsMgr
 			case Event::Type::new_current_game_selected:
 			{
 				m_current_game = split_event->m_game_event.m_game;
-				m_current_split = m_current_game->get_splits().back().m_split_index;
 				g_pFZN_Core->PushEvent( new Event( Event::Type::json_done_reading ) );
 				break;
 			}
@@ -220,102 +215,11 @@ namespace SplitsMgr
 		return ret_time;
 	}
 
-	void SplitsManager::read_lss( std::string_view _path )
-	{
-		auto xml_file = tinyxml2::XMLDocument{};
-
-		if( xml_file.LoadFile( _path.data() ) )
-		{
-			FZN_COLOR_LOG( fzn::DBG_MSG_COL_RED, "Failure : %s (%s)", xml_file.ErrorName(), xml_file.ErrorStr() );
-			return;
-		}
-
-		FZN_DBLOG( "Parsing %s...", _path.data() );
-
-		tinyxml2::XMLElement* run = xml_file.FirstChildElement( "Run" );
-
-		if( run == nullptr )
-			return;
-
-		m_games.clear();
-
-		m_game_icon_desc = "\<![CDATA[" + Utils::get_xml_child_element_text( run, "GameIcon" ) + "]]\>";
-		m_game_name = Utils::get_xml_child_element_text( run, "GameName" );
-		m_category = Utils::get_xml_child_element_text( run, "CategoryName" );
-		m_layout_path = Utils::get_xml_child_element_text( run, "LayoutPath" );
-
-		const uint32_t final_year = std::stoul( m_category );
-		const uint32_t nb_games = final_year - 1990;		// substracting 1991 then adding 1, because we do a game on the first year and the last, so one more than just final year - birth year.
-
-		m_games.reserve( nb_games );
-
-		tinyxml2::XMLElement* segments = run->FirstChildElement( "Segments" );
-
-		if( segments == nullptr )
-			return;
-
-		tinyxml2::XMLElement* segment = segments->FirstChildElement( "Segment" );
-		uint32_t split_index{ 0 };
-
-		while( segment != nullptr )
-		{
-			auto game = Game{};
-
-			segment = game.parse_game( segment, split_index );
-
-			m_games.emplace_back( std::move( game ) );
-
-			g_pFZN_Core->AddCallback( &m_games.back(), &Game::on_event, fzn::DataCallbackType::Event );
-		}
-	}
-
+	/**
+	* @brief Open and read the Json file containing all games informations.
+	* @param _path The path to the Json file.
+	**/
 	void SplitsManager::read_json( std::string_view _path )
-	{
-		auto file = std::ifstream{ _path.data() };
-
-		if( file.is_open() == false )
-			return;
-
-		auto root = Json::Value{};
-
-		file >> root;
-		
-		m_current_split = root[ "CurrentSplitIndex" ].asUInt();
-		m_run_time = Utils::get_time_from_string( root[ "CurrentTime" ].asString() );
-
-		Json::Value splits = root[ "Splits" ];
-
-		Json::Value::iterator it = splits.begin();
-		SplitTime run_time{};
-
-		for( Game& game : m_games )
-		{
-			// This game didn't fill all its splits, no need to go further.
-			if( game.parse_split_times( it, run_time ) == false )
-				break;
-		}
-
-		_refresh_current_game_ptr();
-
-		g_pFZN_Core->PushEvent( new Event( Event::Type::json_done_reading ) );
-
-		if( m_current_split == 0 )
-			return;
-
-		// If the last updated run time is the same as the one read in the json, it means the sessions can't be updated or it will create a segment time of 00:00:00
-		if( run_time == m_run_time )
-			m_sessions_updated = true;
-
-		_update_run_stats();
-	}
-
-	void SplitsManager::load_covers( std::string_view _path )
-	{
-		for( Game& game : m_games )
-			game.load_cover( _path );
-	}
-
-	void SplitsManager::read_all_in_one_file( std::string_view _path )
 	{
 		auto file = std::ifstream{ _path.data() };
 
@@ -328,89 +232,46 @@ namespace SplitsMgr
 		m_games.clear();
 		m_games.reserve( 100 );
 
-		m_current_split = root[ "CurrentSplitIndex" ].asUInt();
 		m_game_name = root[ "Title" ].asString();
 
 		Json::Value games = root[ "Games" ];
 		Json::Value::iterator it_game = games.begin();
-		Utils::ParsingInfos parsing_infos{ m_current_split };
+		Utils::ParsingInfos parsing_infos{};
+		bool is_current_game{ false };
 
 		for( Json::Value::iterator it_game = games.begin(); it_game != games.end(); ++it_game )
 		{
 			auto game = Game{};
-
-			if( game.parse_game_aio( *it_game, parsing_infos ) )
-			{
-				m_run_time = game.get_run_time();
-				g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s", game.get_name().c_str() ) );
-			}
+			is_current_game = game.read( *it_game, parsing_infos );
 
 			m_games.emplace_back( std::move( game ) );
 			g_pFZN_Core->AddCallback( &m_games.back(), &Game::on_event, fzn::DataCallbackType::Event );
+
+			if( is_current_game )
+			{
+				m_current_game = &m_games.back();
+				m_run_time = m_current_game->get_run_time();
+				g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s", m_current_game->get_name().c_str() ) );
+			}
 		}
 
 		m_played = parsing_infos.m_total_time;
-
-		_refresh_current_game_ptr();
 
 		_update_run_stats();
 		m_sessions_updated = true;
 	}
 
-	void SplitsManager::write_lss( tinyxml2::XMLDocument& _document )
-	{
-		tinyxml2::XMLElement* run{ _document.NewElement( "Run" ) };
-		run->SetAttribute( "version", "1.7.0" );
-		_document.InsertEndChild( run );
-
-		Utils::create_xml_child_element_with_text( _document, run, "GameIcon", m_game_icon_desc );
-		Utils::create_xml_child_element_with_text( _document, run, "GameName", m_game_name );
-		Utils::create_xml_child_element_with_text( _document, run, "CategoryName", m_category );
-		Utils::create_xml_child_element_with_text( _document, run, "LayoutPath", m_layout_path );
-		Utils::create_xml_child_element_with_text( _document, run, "Offset", "00:00:00" );
-		Utils::create_xml_child_element_with_text( _document, run, "AttemptCount", fzn::Tools::Sprintf( "%u", m_nb_sessions ) );
-
-		tinyxml2::XMLElement* segments{ _document.NewElement( "Segments" ) };
-
-		for( Game& game : m_games )
-		{
-			game.write_game( _document, segments );
-		}
-
-		run->InsertEndChild( segments );
-	}
-
+	/**
+	* @brief Write games informations in the given Json root.
+	* @param [in out] _root The Json root that will hold all the games informations
+	**/
 	void SplitsManager::write_json( Json::Value& _root )
 	{
-		_root[ "CurrentSplitIndex" ] = m_current_split;
-		_root[ "CurrentTime" ] = Utils::time_to_str( m_run_time, false, true ).c_str();
-
-		for( const Game& game : m_games )
-		{
-			game.write_split_times( _root );
-		}
-	}
-
-	void SplitsManager::write_all_in_one_file( Json::Value& _root )
-	{
 		_root[ "Title" ] = m_game_name.c_str();
-		_root[ "CurrentSplitIndex" ] = m_current_split;
 
 		for( uint32_t game_index{ 0 }; game_index < m_games.size(); ++game_index )
 		{
-			m_games[ game_index ].write_game_aio( _root, game_index );
-		}
-	}
-
-	void SplitsManager::_refresh_current_game_ptr()
-	{
-		for( Game& game : m_games )
-		{
-			if( game.contains_split_index( m_current_split ) )
-			{
-				m_current_game = &game;
-				return;
-			}
+			m_games[ game_index ].write( _root[ "Games" ][ game_index ] );
 		}
 	}
 
@@ -560,7 +421,7 @@ namespace SplitsMgr
 
 		ImGui::SeparatorText( "Update sessions" );
 
-		const int nb_columns{ 3 };
+		const int nb_columns{ 2 };
 		if( ImGui::BeginTable( "add_session_table", nb_columns ) )
 		{
 			const bool disable_buttons{ (m_current_game == nullptr || m_sessions_updated) && (m_chrono.has_started() == false || m_chrono.is_paused() == false) };
@@ -571,7 +432,6 @@ namespace SplitsMgr
 			const float column_size = ImGui::GetContentRegionAvail().x / nb_columns - ImGui::GetStyle().ItemSpacing.x / nb_columns;
 			ImGui::TableSetupColumn( "btn1", ImGuiTableColumnFlags_WidthFixed, column_size );
 			ImGui::TableSetupColumn( "btn2", ImGuiTableColumnFlags_WidthFixed, column_size );
-			ImGui::TableSetupColumn( "btn3", ImGuiTableColumnFlags_WidthFixed, column_size );
 
 			ImGui::TableNextColumn();
 			if( ImGui::Button( "Game finished", { ImGui::GetContentRegionAvail().x, 0.f } ) )
@@ -580,13 +440,6 @@ namespace SplitsMgr
 			ImGui::TableNextColumn();
 			if( ImGui::Button( "Game still going", { ImGui::GetContentRegionAvail().x, 0.f } ) )
 				_update_sessions( false );
-
-			ImGui::TableNextColumn();
-			if( ImGui::Button( "Crop run time", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-			{
-				m_run_time = get_split_run_time( m_current_split - 1 );
-				m_sessions_updated = true;
-			}
 
 			if( disable_buttons )
 				ImGui::EndDisabled();
@@ -628,15 +481,13 @@ namespace SplitsMgr
 	}
 
 	/**
-	* @brief Update current split index, game, and global run time. Called after a session has been added to one of the games.
+	* @brief Update current game and global run time. Called after a session has been added to one of the games.
 	**/
 	void SplitsManager::_update_run_data()
 	{
 		// If the current game is still ongoing, we get the current split value from the games last split index.
 		if( m_current_game->is_finished() == false )
 		{
-			m_current_split = m_current_game->get_splits().back().m_split_index;
-
 			// Now we need to retrieve the closest valid run time to the current split.
 			m_run_time = get_last_valid_run_time( m_current_game );
 		}
@@ -665,7 +516,6 @@ namespace SplitsMgr
 				// If the game isn't finished, the last split won't have a run time, so that's the one we'll use.
 				const Split& last_split{ game.get_splits().back() };
 
-				m_current_split = last_split.m_split_index;
 				m_current_game = &game;
 
 				g_pFZN_Core->PushEvent( new Event( Event::Type::current_game_changed ) );

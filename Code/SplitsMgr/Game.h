@@ -77,33 +77,23 @@ namespace SplitsMgr
 		* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
 		**/
 		void update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished );
-
 		/**
 		* @brief Increment all split indexes because a session has been added before this game.
 		**/
 		void update_data( const SplitTime& _delta_to_add, bool _incremeted_splits_index );
 
 		/**
-		* @brief Parse splits file to fill the games sessions.
-		* @param [in]		_element Pointer to the current xml element. Will be modified while retrieving splits informations.
-		* @param [in,out]	_split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
+		* @brief Read the Json value containing all the informations about the game.
+		* @param _game The game informations.
+		* @param [in out] _parsing_infos State of the parsing.
+		* @return True if this is the current game.
 		**/
-		tinyxml2::XMLElement* parse_game( tinyxml2::XMLElement* _element, uint32_t& _split_index );
-
+		bool read( const Json::Value& _game, Utils::ParsingInfos& _parsing_infos );
 		/**
-		* @brief Parse split times for this game. Will iterate in the array as long as it has splits.
-		* @param [in,out] _it_splits The current iterator in the times read from the json file. Will be incremented while reading the times for the splits.
-		* @return True if all the splits have retrieved a time. False if at least one doesn't have a time, meaning the timer stopped here and there's no need to go further.
+		* @brief Write the game infos into the given Json value
+		* @param [in out] _game The Json value that will hold the game informations.
 		**/
-		bool parse_split_times( Json::Value::iterator& _it_splits, SplitTime& _last_time );
-		void write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments );
-
-		void write_split_times( Json::Value& _root ) const;
-
-		bool parse_game_aio( Json::Value& _game, Utils::ParsingInfos& _paring_infos );
-		void write_game_aio( Json::Value& _root, uint32_t _game_index ) const;
-
-		void load_cover( std::string_view _path );
+		void write( Json::Value& _game ) const;
 
 	private:
 		/**
@@ -126,7 +116,7 @@ namespace SplitsMgr
 		void _push_state_colors( State _state );
 		void _pop_state_colors( State _state );
 		void _handle_game_background( State _state );
-		void _right_click();
+		void _right_click( State _state );
 		void _tooltip();
 		void _estimate_and_delta( State _state );
 

@@ -52,8 +52,7 @@ namespace SplitsMgr
 
 		struct ParsingInfos
 		{
-			uint32_t m_current_split{ 0 };
-			uint32_t m_split_index{ 0 };
+			uint32_t m_split_index{ 1 };
 			SplitTime m_total_time{};
 		};
 

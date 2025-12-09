@@ -31,7 +31,6 @@ namespace SplitsMgr
 
 		Game*		get_current_game() const		{ return m_current_game; }
 		uint32_t	get_nb_sessions() const			{ return m_nb_sessions; }
-		uint32_t	get_current_split_index() const	{ return m_current_split; }
 
 		/**
 		* @brief Get the time of the run at the given split index.
@@ -39,7 +38,6 @@ namespace SplitsMgr
 		* @return The run time corresponding to the given split index.
 		**/
 		SplitTime get_split_run_time( uint32_t _split_index ) const;
-
 		/**
 		* @brief Search for the last valid time in the "run", starting at the given game and then going back to previous ones.
 		* @param _threshold_game The game from which we start looking for a valid run time.
@@ -47,17 +45,18 @@ namespace SplitsMgr
 		**/
 		SplitTime get_last_valid_run_time( const Game* _threshold_game ) const;
 
-		void read_lss( std::string_view _path );
+		/**
+		* @brief Open and read the Json file containing all games informations.
+		* @param _path The path to the Json file.
+		**/
 		void read_json( std::string_view _path );
-		void load_covers( std::string_view _path );
-		void read_all_in_one_file( std::string_view _path );
-
-		void write_lss( tinyxml2::XMLDocument& _document );
+		/**
+		* @brief Write games informations in the given Json root.
+		* @param [in out] _root The Json root that will hold all the games informations
+		**/
 		void write_json( Json::Value& _root );
-		void write_all_in_one_file( Json::Value& _root );
 
 	private:
-		void _refresh_current_game_ptr();
 		void _update_sessions( bool _game_finished );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
@@ -71,7 +70,7 @@ namespace SplitsMgr
 		void _update_games_data( const Game* _game );
 
 		/**
-		* @brief Update current split index, game, and global run time. Called after a session has been added to one of the games.
+		* @brief Update current game and global run time. Called after a session has been added to one of the games.
 		**/
 		void _update_run_data();
 
@@ -96,7 +95,6 @@ namespace SplitsMgr
 		Game* m_current_game{ nullptr };
 		Game* m_finished_game{ nullptr };
 
-		uint32_t m_current_split{ 0 };
 		SplitTime m_run_time{};
 
 		bool m_sessions_updated{ false };	// True if all the sessions have been updated with the right splits created.

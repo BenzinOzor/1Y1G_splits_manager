@@ -20,7 +20,7 @@ namespace SplitsMgr
 	static constexpr uint32_t version_minor = 1;
 	static constexpr uint32_t version_feature = 0;
 	static constexpr uint32_t version_bugfix = 1;
-	static constexpr bool WIP_version = false;
+	static constexpr bool WIP_version = true;
 
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
@@ -32,7 +32,7 @@ namespace SplitsMgr
 		_load_options();
 
 		if( m_aio_path.empty() == false )
-			m_splits_mgr.read_all_in_one_file( m_aio_path.string() );
+			m_splits_mgr.read_json( m_aio_path.string() );
 
 		g_splits_app = this;
 	}
@@ -102,11 +102,6 @@ namespace SplitsMgr
 		ImGui::PopStyleColor( 8 );
 	}
 
-	uint32_t SplitsManagerApp::get_current_split_index() const
-	{
-		return m_splits_mgr.get_current_split_index();
-	}
-
 	/**
 	* @brief Display the window menu bar.
 	**/
@@ -129,12 +124,12 @@ namespace SplitsMgr
 			if( ImGui::BeginMenu( "File" ) )
 			{
 				const bool aio_invalid = m_aio_path.empty();
-				menu_item( "Load...", false, [&]() { _load_aio(); } );
-				menu_item( "Save", aio_invalid, [&]() { _save_aio(); } );
+				menu_item( "Load...", false, [&]() { _load_json(); } );
+				menu_item( "Save", aio_invalid, [&]() { _save_json(); } );
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
 				
 				ImGui::Separator();
-				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_all_in_one_file( m_aio_path.generic_string().c_str() ); } );
+				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();
 				menu_item( "Options...", false, [&]() { m_options.show_window(); } );
@@ -167,10 +162,7 @@ namespace SplitsMgr
 
 		file >> root;
 
-		m_lss_path = root[ "lss_path" ].asString();
-		m_json_path = root[ "json_path" ].asString();
 		m_aio_path = root[ "aio_path" ].asString();
-		m_covers_path = root[ "covers_path" ].asString();
 	}
 
 	/**
@@ -185,71 +177,13 @@ namespace SplitsMgr
 		writer_builder.settings_["emitUTF8"] = true;
 		std::unique_ptr<Json::StreamWriter> writer( writer_builder.newStreamWriter() );
 
-		root[ "lss_path" ] = m_lss_path.string().c_str();
-		root[ "json_path" ] = m_json_path.string().c_str();
 		root[ "aio_path" ] = m_aio_path.string().c_str();
-		root[ "covers_path" ] = m_covers_path.string().c_str();
 
 		writer->write( root, &file );
 	}
 
 	/**
-	* @brief Read the splits file used for 1Y1G.
-	**/
-	void SplitsManagerApp::_load_lss()
-	{
-		char file[ 100 ];
-		OPENFILENAME open_file_name;
-		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
-
-		open_file_name.lStructSize = sizeof( open_file_name );
-		open_file_name.hwndOwner = NULL;
-		open_file_name.lpstrFile = file;
-		open_file_name.lpstrFile[ 0 ] = '\0';
-		open_file_name.nMaxFile = sizeof( file );
-		open_file_name.lpstrFileTitle = NULL;
-		open_file_name.nMaxFileTitle = 0;
-		GetOpenFileName( &open_file_name );
-
-		if( open_file_name.lpstrFile[ 0 ] != '\0' )
-		{
-			m_lss_path = open_file_name.lpstrFile;
-			m_splits_mgr.read_lss( open_file_name.lpstrFile );
-		}
-
-		_save_options();
-	}
-
-	/**
-	* @brief Write the splits file once it's done being edited.
-	**/
-	void SplitsManagerApp::_save_lss()
-	{
-		tinyxml2::XMLDocument dest_file{};
-		m_splits_mgr.write_lss( dest_file );
-
-		if( dest_file.SaveFile( m_lss_path.string().c_str() ) )
-		{
-			FZN_COLOR_LOG( fzn::DBG_MSG_COL_RED, "Failure : %s (%s)", dest_file.ErrorName(), dest_file.ErrorStr() );
-			return;
-		}
-
-		FZN_DBLOG( "Saved .lss file at '%s'", m_lss_path.string().c_str() );
-
-		auto file = std::ifstream{ m_lss_path.string() };
-		std::string data( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
-		file.close();
-
-		data = std::regex_replace( data, std::regex{ "&gt;" }, ">" );
-		data = std::regex_replace( data, std::regex{ "&lt;" }, "<" );
-
-		auto out_file = std::ofstream{ m_lss_path.string() };
-		if( out_file.is_open() )
-			out_file << data.c_str();
-	}
-
-	/**
-	* @brief Read the json containing the exported times of the current 1Y1G.
+	* @brief Select game informations json file in explorer and read it. The path will be saved for later writing in the file.
 	**/
 	void SplitsManagerApp::_load_json()
 	{
@@ -268,52 +202,17 @@ namespace SplitsMgr
 
 		if( open_file_name.lpstrFile[ 0 ] != '\0' )
 		{
-			m_json_path = open_file_name.lpstrFile;
+			m_aio_path = open_file_name.lpstrFile;
 			m_splits_mgr.read_json( open_file_name.lpstrFile );
 		}
 
 		_save_options();
 	}
 
+	/**
+	* @brief Save current games informations to the previously loaded json file.
+	**/
 	void SplitsManagerApp::_save_json()
-	{
-		auto file = std::ofstream{ m_json_path };
-		auto root = Json::Value{};
-		Json::StyledWriter json_writer;
-
-		root[ "TimingMethod" ] = 0;
-		root[ "CurrentSplitTime" ] = Json::Value{};
-
-		m_splits_mgr.write_json( root );
-
-		file << root;
-	}
-
-	void SplitsManagerApp::_load_aio()
-	{
-		char file[ 100 ];
-		OPENFILENAME open_file_name;
-		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
-
-		open_file_name.lStructSize = sizeof( open_file_name );
-		open_file_name.hwndOwner = NULL;
-		open_file_name.lpstrFile = file;
-		open_file_name.lpstrFile[ 0 ] = '\0';
-		open_file_name.nMaxFile = sizeof( file );
-		open_file_name.lpstrFileTitle = NULL;
-		open_file_name.nMaxFileTitle = 0;
-		GetOpenFileName( &open_file_name );
-
-		if( open_file_name.lpstrFile[ 0 ] != '\0' )
-		{
-			m_aio_path = open_file_name.lpstrFile;
-			m_splits_mgr.read_all_in_one_file( open_file_name.lpstrFile );
-		}
-
-		_save_options();
-	}
-
-	void SplitsManagerApp::_save_aio()
 	{
 		auto file = std::ofstream{ m_aio_path };
 		auto root = Json::Value{};
@@ -323,34 +222,8 @@ namespace SplitsMgr
 		writer_builder.settings_[ "emitUTF8" ] = true;
 		std::unique_ptr<Json::StreamWriter> writer( writer_builder.newStreamWriter() );
 
-		m_splits_mgr.write_all_in_one_file( root );
+		m_splits_mgr.write_json( root );
 
 		writer->write( root, &file );
 	}
-
-	void SplitsManagerApp::_load_covers()
-	{
-		BROWSEINFO browseInfo;
-		LPITEMIDLIST pItemIDList;
-		TCHAR szDisplayName[ 256 ] = "";
-		TCHAR szPath[ MAX_PATH ];
-		browseInfo.hwndOwner = NULL;
-		browseInfo.pidlRoot = NULL;
-		browseInfo.pszDisplayName = szDisplayName;
-		browseInfo.lpszTitle = "Select destination folder";
-		browseInfo.lParam = 0;
-		browseInfo.lpfn = NULL;
-		browseInfo.ulFlags = 0;
-		browseInfo.iImage = 0;// Open dialog
-		pItemIDList = SHBrowseForFolder( &browseInfo );
-		SHGetPathFromIDList( pItemIDList, szPath );
-		if( szPath[ 0 ] )
-		{
-			m_covers_path = szPath;
-			m_splits_mgr.load_covers( szPath );
-		}
-
-		_save_options();
-	}
-
 }

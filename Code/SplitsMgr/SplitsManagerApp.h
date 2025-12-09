@@ -28,7 +28,6 @@ namespace SplitsMgr
 		const SplitsManager& get_splits_manager() const { return m_splits_mgr; }
 
 		Game*		get_current_game() const		{ return m_splits_mgr.get_current_game(); }
-		uint32_t	get_current_split_index() const;
 
 	private:
 		/**
@@ -40,40 +39,21 @@ namespace SplitsMgr
 		* @brief Read the saved options file in the Fazon Apps folder.
 		**/
 		void _load_options();
-
 		/**
 		* @brief Write the saved options file in the Fazon Apps folder.
 		**/
 		void _save_options();
 
 		/**
-		* @brief Read the splits file used for 1Y1G.
-		**/
-		void _load_lss();
-
-		/**
-		* @brief Write the splits file once it's done being edited.
-		**/
-		void _save_lss();
-
-		/**
-		* @brief Read the json containing the exported times of the current 1Y1G.
+		* @brief Select game informations json file in explorer and read it. The path will be saved for later writing in the file.
 		**/
 		void _load_json();
-
 		/**
-		* @brief Write the json file with new times.
+		* @brief Save current games informations to the previously loaded json file.
 		**/
 		void _save_json();
 
-		void _load_aio();
-		void _save_aio();
-		void _load_covers();
-
-		std::filesystem::path m_lss_path;
-		std::filesystem::path m_json_path;
 		std::filesystem::path m_aio_path;
-		std::filesystem::path m_covers_path;
 
 		SplitsManager m_splits_mgr;
 		Options m_options;

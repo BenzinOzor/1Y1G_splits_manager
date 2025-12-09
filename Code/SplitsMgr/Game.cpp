@@ -53,7 +53,7 @@ namespace SplitsMgr
 		const bool header_open = ImGui::CollapsingHeader( m_name.c_str(), is_current() ? ImGuiTreeNodeFlags_DefaultOpen : 0 );
 		const bool header_hovered = ImGui::IsItemHovered();
 		
-		_right_click();
+		_right_click( game_state );
 
 		if( Utils::is_time_valid( m_time ) )
 		{
@@ -370,206 +370,12 @@ namespace SplitsMgr
 	}
 
 	/**
-	* @brief Parse splits file to fill the games sessions.
-	* @param [in]		_element Pointer to the current xml element. Will be modified while retrieving splits informations.
-	* @param [in,out]	_split_index Current split index value. To be stored in the created splits and incremented as the parsing goes along.
+	* @brief Read the Json value containing all the informations about the game.
+	* @param _game The game informations.
+	* @param [in out] _parsing_infos State of the parsing.
+	* @return True if this is the current game.
 	**/
-	tinyxml2::XMLElement* Game::parse_game( tinyxml2::XMLElement* _element, uint32_t& _split_index )
-	{
-		if( _element == nullptr )
-			return nullptr;
-
-		tinyxml2::XMLElement* segment = _element;
-		bool parsing_game{ true };
-
-		while( parsing_game )
-		{
-			std::string split_name = Utils::get_xml_child_element_text( segment, "Name" );
-			
-			if( split_name.empty() )
-				return segment->NextSiblingElement( "Segment" );
-
-			Split new_split{ _split_index };
-
-			if( split_name.at( 0 ) == '{' )
-			{
-				std::regex reg( "\\{(.*)\\} (.*)" );
-				std::smatch matches;
-				std::regex_match( split_name, matches, reg );
-
-				if( matches.size() > 2 )
-				{
-					m_name = matches[ 1 ].str();
-					split_name = matches[ 2 ].str();
-				}
-
-				// This is the closing subsplit of the game.
-				parsing_game = false;
-
-				if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
-				{
-					m_estimation = Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
-				}
-			}
-			else if( split_name.at( 0 ) != '-' )
-			{
-				m_name = split_name;
-
-				// The game is only this split.
-				parsing_game = false;
-
-				if( tinyxml2::XMLElement* best_time_el = segment->FirstChildElement( "BestSegmentTime" ) )
-				{
-					m_estimation = Utils::get_time_from_string( Utils::get_xml_child_element_text( best_time_el, "GameTime" ) );
-				}
-			}
-			
-			if( std::string icon = Utils::get_xml_child_element_text( segment, "Icon" ); icon.empty() == false )
-				m_icon_desc = "<![CDATA[" + icon + "]]>";
-
-			// Game time splits are used for sessions added in advance
-			if( tinyxml2::XMLElement* split_times_el = segment->FirstChildElement( "SplitTimes" ) )
-			{
-				if( tinyxml2::XMLElement* split_time_el = split_times_el->FirstChildElement( "SplitTime" ) )
-				{
-					new_split.m_segment_time = Utils::get_time_from_string( Utils::get_xml_child_element_text( split_time_el, "GameTime" ) );
-					m_time += new_split.m_segment_time;
-				}
-			}
-
-			new_split.m_session_index = m_splits.size() + 1;
-			m_splits.push_back( new_split );
-
-			segment = segment->NextSiblingElement( "Segment" );
-			++_split_index;
-		}
-
-		return segment;
-	}
-
-	/**
-	* @brief Parse split times for this game. Will iterate in the array as long as it has splits.
-	* @param [in,out] _it_splits The current iterator in the times read from the json file. Will be incremented while reading the times for the splits.
-	* @return True if all the splits have retrieved a time. False if at least one doesn't have a time, meaning the timer stopped here and there's no need to go further.
-	**/
-	bool Game::parse_split_times( Json::Value::iterator& _it_splits, SplitTime& _last_time )
-	{
-		m_time = SplitTime{};
-
-		for( Split& split : m_splits )
-		{
-			split.m_run_time = Utils::get_time_from_string( (*_it_splits)[ "Time" ].asString() );
-
-			// If the run time indicates 0, we're at the current split
-			if( Utils::is_time_valid( split.m_run_time ) == false )
-				return false;
-
-			split.m_segment_time = split.m_run_time - _last_time;
-			_last_time = split.m_run_time;
-
-			m_time += split.m_segment_time;
-
-			++_it_splits;
-		}
-
-		return true;
-	}
-
-	void Game::write_game( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _segments )
-	{
-		if( _segments == nullptr )
-			return;
-
-		if( m_splits.size() == 1 )
-		{
-			tinyxml2::XMLElement* split{ _document.NewElement( "Segment" ) };
-
-			Utils::create_xml_child_element_with_text( _document, split, "Name", m_name.c_str() );
-			Utils::create_xml_child_element_with_text( _document, split, "Icon", m_icon_desc.c_str() );
-
-			if( Utils::is_time_valid( m_estimation ) == false )
-				Utils::create_xml_child_element_with_text( _document, split, "BestSegmentTime", "" );
-			else
-			{
-				tinyxml2::XMLElement* best_segment{ _document.NewElement( "BestSegmentTime" ) };
-				Utils::create_xml_child_element_with_text( _document, best_segment, "GameTime", Utils::time_to_str( m_estimation, false ) );
-				split->InsertEndChild( best_segment );
-			}
-
-			tinyxml2::XMLElement* split_times{ _document.NewElement( "SplitTimes" ) };
-			tinyxml2::XMLElement* split_time{ _document.NewElement( "SplitTime" ) };
-			split_time->SetAttribute( "name", "Personal Best" );
-			split_times->InsertEndChild( split_time );
-			split->InsertEndChild( split_times );
-
-			_segments->InsertEndChild( split );
-
-			return;
-		}
-
-		uint32_t session_number{ 0 };
-		for( Split& split : m_splits )
-		{
-			tinyxml2::XMLElement* segment{ _document.NewElement( "Segment" ) };
-			std::string split_name;
-
-			if( &split == &m_splits.back() )
-			{
-				split_name = "{" + m_name + "} " + fzn::Tools::Sprintf( "session %u", split.m_session_index );
-				Utils::create_xml_child_element_with_text( _document, segment, "Icon", m_icon_desc.c_str() );
-
-				if( Utils::is_time_valid( m_estimation ) == false )
-					Utils::create_xml_child_element_with_text( _document, segment, "BestSegmentTime", "" );
-				else
-				{
-					tinyxml2::XMLElement* best_segment{ _document.NewElement( "BestSegmentTime" ) };
-					Utils::create_xml_child_element_with_text( _document, best_segment, "GameTime", Utils::time_to_str( m_estimation, false ) );
-					segment->InsertEndChild( best_segment );
-				}
-			}
-			else
-			{
-				split_name = "-" + fzn::Tools::Sprintf( "session %u", split.m_session_index );
-				Utils::create_xml_child_element_with_text( _document, segment, "Icon", "" );
-			}
-
-			Utils::create_xml_child_element_with_text( _document, segment, "Name", split_name.c_str() );
-
-			tinyxml2::XMLElement* split_times{ _document.NewElement( "SplitTimes" ) };
-			tinyxml2::XMLElement* split_time{ _document.NewElement( "SplitTime" ) };
-			split_time->SetAttribute( "name", "Personal Best" );
-
-			if( Utils::is_time_valid( split.m_run_time ) == false && Utils::is_time_valid( split.m_segment_time ) )
-				Utils::create_xml_child_element_with_text( _document, split_time, "GameTime", Utils::time_to_str( split.m_segment_time, false ) );
-
-			split_times->InsertEndChild( split_time );
-			segment->InsertEndChild( split_times );
-
-			_segments->InsertEndChild( segment );
-		}
-	}
-
-	void Game::write_split_times( Json::Value& _root ) const
-	{
-		auto get_split_name = [ this ]( const Split& _split )
-		{
-			if( m_splits.size() == 1 )
-				return m_name;
-
-			if( _split.m_session_index < m_splits.size() )
-				return std::format( "-session {}", _split.m_session_index );
-
-			return fzn::Tools::Sprintf( "{%s} session %u", m_name.c_str(), _split.m_session_index );
-		};
-
-		for( const Split& split : m_splits )
-		{
-			_root[ "Splits" ][ split.m_split_index ][ "Time" ] = Utils::is_time_valid( split.m_run_time ) ? Utils::time_to_str( split.m_run_time, false, true ).c_str() : Json::Value{};
-			_root[ "Splits" ][ split.m_split_index ][ "Name" ] = get_split_name( split );
-		}
-	}
-
-	bool Game::parse_game_aio( Json::Value& _game, Utils::ParsingInfos& _paring_infos )
+	bool Game::read( const Json::Value& _game, Utils::ParsingInfos& _parsing_infos )
 	{
 		m_name = _game[ "Name" ].asString();
 		m_estimation = Utils::get_time_from_string( _game[ "Estimate" ].asString() );
@@ -590,33 +396,29 @@ namespace SplitsMgr
 		for( Json::Value::iterator it_session = sessions.begin(); it_session != sessions.end(); ++it_session )
 		{
 			const Json::Value& session = *it_session;
-			Split new_split{ _paring_infos.m_split_index, m_splits.size() + 1 };
+			Split new_split{ _parsing_infos.m_split_index, m_splits.size() + 1 };
 			SplitTime session_time = Utils::get_time_from_string( session.asString() );
 
 			if( Utils::is_time_valid( session_time ) == false )
 				continue;
 
-			_paring_infos.m_total_time += session_time;
+			_parsing_infos.m_total_time += session_time;
 			m_time += session_time;
 
 			new_split.m_segment_time = session_time;
-			new_split.m_run_time = _paring_infos.m_total_time;
+			new_split.m_run_time = _parsing_infos.m_total_time;
 
 			m_splits.push_back( std::move( new_split ) );
-			++_paring_infos.m_split_index;
+			++_parsing_infos.m_split_index;
 		}
 
 		if( sessions_over() == false )
 		{
 			if( m_splits.empty() )
-				m_state == State::none;
+				m_state = State::none;
 
-			m_splits.push_back( { _paring_infos.m_split_index, m_splits.size() + 1 } );
-			++_paring_infos.m_split_index;
+			m_splits.push_back( { _parsing_infos.m_split_index, m_splits.size() + 1 } );
 		}
-
-		if( contains_split_index( _paring_infos.m_current_split ) )
-			m_state = State::current;
 
 		const SplitTime tmp_delta{ m_time - m_estimation };
 
@@ -627,34 +429,30 @@ namespace SplitsMgr
 		return m_state == State::current;
 	}
 
-	void Game::write_game_aio( Json::Value& _root, uint32_t _game_index ) const
+	/**
+	* @brief Write the game infos into the given Json value
+	* @param [in out] _game The Json value that will hold the game informations.
+	**/
+	void Game::write( Json::Value& _game ) const
 	{
-		_root[ "Games" ][ _game_index ][ "Name" ] = m_name;
-		_root[ "Games" ][ _game_index ][ "Estimate" ] = Utils::time_to_str( m_estimation ).c_str();
+		_game[ "Name" ] = m_name;
+		_game[ "Estimate" ] = Utils::time_to_str( m_estimation ).c_str();
 		
 		if( m_cover_data.empty() == false )
-			_root[ "Games" ][ _game_index ][ "Cover" ] = m_cover_data;
+			_game[ "Cover" ] = m_cover_data;
 
 		if( m_state == State::none )
 			return;
 
-		_root[ "Games" ][ _game_index ][ "State" ] = get_state_str();
+		_game[ "State" ] = get_state_str();
 
 		for( uint32_t split_index{ 0 }; split_index < m_splits.size(); ++split_index )
 		{
 			if( Utils::is_time_valid( m_splits[ split_index ].m_segment_time ) == false )
 				return;
 
-			_root[ "Games" ][ _game_index ][ "Sessions" ][ split_index ] = Utils::time_to_str( m_splits[ split_index ].m_segment_time ).c_str();
+			_game[ "Sessions" ][ split_index ] = Utils::time_to_str( m_splits[ split_index ].m_segment_time ).c_str();
 		}
-	}
-
-	void Game::load_cover( std::string_view _path )
-	{
-		const std::string cover_path = fzn::Tools::Sprintf( "%s\\%s.jpg", _path.data(), m_name.c_str() );
-
-		if( std::filesystem::exists( cover_path ) )
-			m_cover = g_pFZN_DataMgr->LoadTexture( m_name, cover_path );
 	}
 
 	/**
@@ -673,7 +471,6 @@ namespace SplitsMgr
 			return;
 
 		const uint32_t last_split_index{ m_splits.back().m_split_index };
-		const uint32_t current_split_index{ g_splits_app->get_current_split_index() };
 		SplitTime run_time = get_run_time();
 
 		if( Utils::is_time_valid( run_time ) )
@@ -847,11 +644,12 @@ namespace SplitsMgr
 		ImGui_fzn::rect_filled( { rect_top_left, rect_size }, frame_bg_color );
 	}
 
-	void Game::_right_click()
+	void Game::_right_click( State _state )
 	{
 		if( ImGui::BeginPopupContextItem("bjr") )
 		{
-			ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::white );
+			//ImGui::PushStyleColor( ImGuiCol_Text, ImGui_fzn::color::white );
+			_pop_state_colors( _state );
 			
 			const bool disable_item{ is_current() || is_finished() };
 
@@ -881,7 +679,7 @@ namespace SplitsMgr
 				m_cover_data.clear();
 			}
 
-			ImGui::PopStyleColor();
+			_push_state_colors( _state );
 			ImGui::EndPopup();
 		}
 	}
