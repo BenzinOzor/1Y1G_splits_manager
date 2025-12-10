@@ -27,6 +27,7 @@ namespace SplitsMgr
 	**/
 	SplitsManagerApp::SplitsManagerApp()
 	{
+		g_splits_app = this;
 		g_pFZN_Core->AddCallback( this, &SplitsManagerApp::display, fzn::DataCallbackType::Display );
 
 		_load_options();
@@ -34,7 +35,6 @@ namespace SplitsMgr
 		if( m_aio_path.empty() == false )
 			m_splits_mgr.read_json( m_aio_path.string() );
 
-		g_splits_app = this;
 	}
 
 	SplitsManagerApp::~SplitsManagerApp()

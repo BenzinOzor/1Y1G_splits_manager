@@ -6,6 +6,8 @@
 
 #include "Externals/ImGui/imgui.h"
 
+#include "Options.h"
+
 
 namespace tinyxml2
 {
@@ -16,6 +18,7 @@ namespace tinyxml2
 namespace SplitsMgr
 {
 	using SplitTime = std::chrono::duration<int, std::milli>;
+	using SplitDate = std::chrono::year_month_day;
 	static constexpr ImVec2 DefaultWidgetSize{ 150.f, 0.f };
 
 	namespace Utils
@@ -60,8 +63,12 @@ namespace SplitsMgr
 		void create_xml_child_element_with_text( tinyxml2::XMLDocument& _document, tinyxml2::XMLElement* _container, std::string_view _child_name, std::string_view _text );
 
 		SplitTime get_time_from_string( std::string_view _time, std::string_view _format = "%4H:%M:%S" );
+		SplitDate get_date_from_string( std::string_view _date, std::string_view _format = "%F" );
 		std::string time_to_str( const SplitTime& _time, bool _floor_seconds = true, bool _separate_days = false );
+		std::string date_to_str( const SplitDate& _date, Options::DateFormat _format = Options::DateFormat::ISO8601 );
 		bool is_time_valid( const SplitTime& _time );
+		bool is_date_valid( const SplitDate& _date );
+		SplitDate today();
 
 		std::string get_cover_data( std::string_view _cover_path );
 

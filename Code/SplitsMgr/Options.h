@@ -10,9 +10,17 @@ namespace SplitsMgr
 	class Options
 	{
 	public:
+		enum DateFormat
+		{
+			ISO8601,		// yyyy-mm-dd
+			DMYName,		// dd month name yyyy
+			COUNT
+		};
+
 		struct OptionsDatas
 		{
 			bool m_global_keybinds{ false };		// If true, the app doesn't need to be in focus to handle keybinds.
+			DateFormat m_date_format{ DateFormat::ISO8601 };
 
 			sf::Vector2u m_window_size{ 900, 800 };
 
@@ -26,7 +34,7 @@ namespace SplitsMgr
 
 		void on_event();
 
-		const OptionsDatas& get_options_datas() { return m_options_datas; }
+		const OptionsDatas& get_options_datas() const { return m_options_datas; }
 
 	private:
 		void _draw_keybinds( float _column_width );

@@ -25,9 +25,10 @@ namespace SplitsMgr
 		**/
 		void display();
 
-		const SplitsManager& get_splits_manager() const { return m_splits_mgr; }
+		const SplitsManager&	get_splits_manager() const		{ return m_splits_mgr; }
+		const Options&			get_options() const				{ return m_options; }
 
-		Game*		get_current_game() const		{ return m_splits_mgr.get_current_game(); }
+		Game*					get_current_game() const		{ return m_splits_mgr.get_current_game(); }
 
 	private:
 		/**

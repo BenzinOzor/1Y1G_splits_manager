@@ -26,6 +26,7 @@ namespace SplitsMgr
 		uint32_t m_session_index{ 0 };
 		SplitTime m_run_time;
 		SplitTime m_segment_time;
+		SplitDate m_date;
 	};
 	using Splits = std::vector< Split >;
 
@@ -61,6 +62,7 @@ namespace SplitsMgr
 		SplitTime get_delta() const								{ return m_delta; }
 		SplitTime get_played() const;
 		SplitTime get_last_valid_segment_time() const;
+		SplitDate get_begin_date() const						{ return m_begin_date; }
 		sf::Texture* get_cover() const							{ return m_cover; }
 
 		/**
@@ -74,9 +76,10 @@ namespace SplitsMgr
 		* @brief Update the last split available on the game because a session has just been made.
 		* @param _run_time The new (total) run time tu put in the split.
 		* @param _segment_time The time of this split. The previous one isn't necessarily in the same game so it has to be given.
+		* @param _segment_date The date of the split.
 		* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
 		**/
-		void update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished );
+		void update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, const SplitDate& _segment_date, bool _game_finished );
 		/**
 		* @brief Increment all split indexes because a session has been added before this game.
 		**/
@@ -129,6 +132,7 @@ namespace SplitsMgr
 		SplitTime m_estimation{};
 		SplitTime m_delta{};
 		SplitTime m_time{};			// The timer for the game duration.
+		SplitDate m_begin_date{};
 		State m_state{ State::none };
 
 		Splits m_splits;
@@ -137,6 +141,7 @@ namespace SplitsMgr
 		std::string m_cover_data{};
 
 		std::string m_new_session_time;
+		std::string m_new_session_date;
 		bool m_new_session_game_finished{ false };
 
 		bool m_finished_game_popup{ false };

@@ -28,6 +28,20 @@ namespace SplitsMgr
 		g_pFZN_InputMgr->BackupActionKeys();
 	}
 
+	static std::string date_format_to_string( Options::DateFormat _format )
+	{
+		switch( _format )
+		{
+			case Options::DateFormat::ISO8601:
+				return "yyyy-mm-dd";
+			case Options::DMYName:
+				return "dd Mon yyyy";
+
+			default:
+				return"";
+		};
+	}
+
 	void Options::update()
 	{
 		if( m_show_window == false )
@@ -46,6 +60,7 @@ namespace SplitsMgr
 		if( ImGui::Begin( "Options", nullptr, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse ) )
 		{
 			const float column_width = ImGui::GetContentRegionAvail().x * 0.45f;
+			static const SplitDate dummy_date = Utils::get_date_from_string( "2025-08-06" );
 
 			if( _begin_option_table( column_width ) )
 			{
@@ -55,6 +70,26 @@ namespace SplitsMgr
 
 				ImGui::SameLine();
 				ImGui_fzn::helper_simple_tooltip( "If activated, the window doesn't need to be in focus to detect keybinds." );
+
+				ImGui::TableNextRow();
+				_first_column_text( "Date format" );
+				if( ImGui::BeginCombo( "##DateFormat", date_format_to_string( m_options_datas.m_date_format ).c_str() ) )
+				{
+					for( uint32_t format{ 0 }; format < Options::DateFormat::COUNT; ++format )
+					{
+						auto enum_format = static_cast<Options::DateFormat>( format );
+						if( ImGui::Selectable( date_format_to_string( enum_format ).c_str(), format == m_options_datas.m_date_format ) )
+						{
+							m_options_datas.m_date_format = enum_format;
+							m_need_save = true;
+						}
+
+						if( ImGui::IsItemHovered() )
+							ImGui::SetTooltip( Utils::date_to_str( dummy_date, enum_format ).c_str() );
+					}
+
+					ImGui::EndCombo();
+				}
 
 				ImGui::EndTable();
 			}
@@ -201,6 +236,7 @@ namespace SplitsMgr
 		file >> root;
 
 		m_options_datas.m_global_keybinds = root[ "global_keybinds" ].asBool();
+		m_options_datas.m_date_format = static_cast<Options::DateFormat>( root[ "date_format" ].asUInt() );
 
 		m_options_datas.m_window_size.x = std::max( root[ "window_size" ][ 0 ].asUInt(), 800u );
 		m_options_datas.m_window_size.y = std::max( root[ "window_size" ][ 1 ].asUInt(), 600u );
@@ -224,6 +260,7 @@ namespace SplitsMgr
 		Json::StyledWriter json_writer;
 
 		root[ "global_keybinds" ] = m_options_datas.m_global_keybinds;
+		root[ "date_format" ] = m_options_datas.m_date_format;
 
 		root[ "window_size" ][ 0 ] = m_options_datas.m_window_size.x;
 		root[ "window_size" ][ 1 ] = m_options_datas.m_window_size.y;

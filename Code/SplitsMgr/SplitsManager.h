@@ -31,6 +31,8 @@ namespace SplitsMgr
 
 		Game*		get_current_game() const		{ return m_current_game; }
 		uint32_t	get_nb_sessions() const			{ return m_nb_sessions; }
+		SplitTime	get_played() const				{ return m_played; }
+		SplitTime	get_remaining_time() const		{ return m_remaining_time; }
 
 		/**
 		* @brief Get the time of the run at the given split index.

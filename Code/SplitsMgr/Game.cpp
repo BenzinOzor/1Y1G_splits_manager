@@ -26,25 +26,29 @@ namespace SplitsMgr
 	static constexpr ImVec4		frame_bg_current_game		{ 0.58f, 0.43f, 0.03f, 1.f };
 
 
-	static void display_split_infos( const Split& _split, bool _display_session )
+	static void display_split_infos( const Split& _split, Options::DateFormat _date_format )
 	{
-		ImGui::TableNextColumn();
-		ImGui::Text( "%u", _split.m_split_index );
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex( 0 );
 
-		ImGui::TableNextColumn();
+		ImGui::Text( "sess. %u (%u)", _split.m_session_index, _split.m_split_index );
 
-		if( _display_session )
-			ImGui::Text( "session %u", _split.m_session_index );
+		if( Utils::is_date_valid( _split.m_date ) )
+		{
+			ImGui::TableSetColumnIndex( 1 );
+			ImGui::Text( Utils::date_to_str( _split.m_date, _date_format ).c_str() );
+		}
 
-		ImGui::TableNextColumn();
+		ImGui::TableSetColumnIndex( 2 );
 		ImGui::Text( Utils::time_to_str( _split.m_run_time ).c_str() );
 
-		ImGui::TableNextColumn();
+		ImGui::TableSetColumnIndex( 3 );
 		ImGui::Text( Utils::time_to_str( _split.m_segment_time ).c_str() );
 	}
 
 	void Game::display()
 	{
+		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };
 		// Copying the current state to avoid it changing in the middle of the frame and have imgui push/pop mismatches.
 		const State game_state{ m_state };
 		ImGui::PushID( m_name.c_str() );
@@ -79,37 +83,34 @@ namespace SplitsMgr
 
 			if( ImGui::BeginTable( "splits_infos", 4 ) )
 			{
-				ImGui::TableSetupColumn( "split_index",		ImGuiTableColumnFlags_WidthFixed, split_index_column_size );
-				ImGui::TableSetupColumn( "session",			ImGuiTableColumnFlags_WidthFixed, session_column_size );
-				ImGui::TableSetupColumn( "time",			ImGuiTableColumnFlags_WidthStretch );
-				ImGui::TableSetupColumn( "segment_time",	ImGuiTableColumnFlags_WidthFixed, segment_time_column_size );
-
-				for( Split& split : m_splits )
+				if( sessions_over() || m_splits.size() > 1 )
 				{
-					display_split_infos( split, m_splits.size() > 1 );
+					for( Split& split : m_splits )
+					{
+						if( Utils::is_time_valid( split.m_segment_time ) == false )
+							continue;
+
+						display_split_infos( split, options.m_date_format );
+					}
 				}
 
 				ImGui::EndTable();
 			}
-
 			
-			if( sessions_over() == false && ImGui::BeginTable( "add_session_table", 2 ) )
+			if( sessions_over() == false )
 			{
-				ImGui::TableSetupColumn( "input_text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x * 0.5f );
-				ImGui::TableSetupColumn( "button", ImGuiTableColumnFlags_WidthFixed );
-
-				ImGui::TableNextColumn();
-				ImGui::PushItemWidth( -1 );
+				ImGui::PushItemWidth( 80.f );
 				ImGui::InputTextWithHint( "##new_session_time", "00:00:00", &m_new_session_time );
+				ImGui::SameLine();
+				ImGui::InputTextWithHint( "##new_session_date", "yyyy-mm-dd", &m_new_session_date );
 				ImGui::PopItemWidth();
 
-				ImGui::TableNextColumn();
+				ImGui::SameLine();
 
 				ImGui::Checkbox( "Game Finished", &m_new_session_game_finished );
 				ImGui::SameLine();
 				if( ImGui_fzn::deactivable_button( "Add", m_new_session_time.empty() ) )
 					_add_new_session_time();
-				ImGui::EndTable();
 			}
 			ImGui::Unindent();
 		}
@@ -329,9 +330,10 @@ namespace SplitsMgr
 	* @brief Update the last split available on the game because a session has just been made.
 	* @param _run_time The new (total) run time tu put in the split.
 	* @param _segment_time The time of this split. The previous one isn't necessarily in the same game so it has to be given.
+	* @param _segment_date The date of the split.
 	* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
 	**/
-	void Game::update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, bool _game_finished )
+	void Game::update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, const SplitDate& _segment_date, bool _game_finished )
 	{
 		Split& last_split{ m_splits.back() };
 
@@ -339,6 +341,7 @@ namespace SplitsMgr
 			last_split.m_run_time = _run_time;
 
 		last_split.m_segment_time = _segment_time;
+		last_split.m_date = _segment_date;
 
 		_refresh_game_time();
 
@@ -396,17 +399,33 @@ namespace SplitsMgr
 		for( Json::Value::iterator it_session = sessions.begin(); it_session != sessions.end(); ++it_session )
 		{
 			const Json::Value& session = *it_session;
-			Split new_split{ _parsing_infos.m_split_index, m_splits.size() + 1 };
-			SplitTime session_time = Utils::get_time_from_string( session.asString() );
+			auto session_infos{ fzn::Tools::split( session.asString(), ',' ) };
 
-			if( Utils::is_time_valid( session_time ) == false )
+			Split new_split{ _parsing_infos.m_split_index, m_splits.size() + 1 };
+
+			if( session_infos.empty() )
 				continue;
 
-			_parsing_infos.m_total_time += session_time;
-			m_time += session_time;
+			new_split.m_segment_time = Utils::get_time_from_string( session_infos.at( 0 ) );
 
-			new_split.m_segment_time = session_time;
+			if( session_infos.size() > 1 )
+			{
+				SplitDate session_date = Utils::get_date_from_string( session_infos.at( 1 ) );
+
+				if( session_date != SplitDate{} )
+					new_split.m_date = session_date;
+			}
+
+			if( Utils::is_time_valid( new_split.m_segment_time ) == false )
+				continue;
+
+			_parsing_infos.m_total_time += new_split.m_segment_time;
+			m_time += new_split.m_segment_time;
+
 			new_split.m_run_time = _parsing_infos.m_total_time;
+
+			if( m_splits.empty() )
+				m_begin_date = new_split.m_date;
 
 			m_splits.push_back( std::move( new_split ) );
 			++_parsing_infos.m_split_index;
@@ -446,12 +465,19 @@ namespace SplitsMgr
 
 		_game[ "State" ] = get_state_str();
 
+		std::string session_infos{};
+
 		for( uint32_t split_index{ 0 }; split_index < m_splits.size(); ++split_index )
 		{
 			if( Utils::is_time_valid( m_splits[ split_index ].m_segment_time ) == false )
 				return;
 
-			_game[ "Sessions" ][ split_index ] = Utils::time_to_str( m_splits[ split_index ].m_segment_time ).c_str();
+			session_infos = Utils::time_to_str( m_splits[ split_index ].m_segment_time ).c_str();
+
+			if( Utils::is_date_valid( m_splits[ split_index ].m_date ) )
+				session_infos += fzn::Tools::Sprintf( ", %s", Utils::date_to_str( m_splits[ split_index ].m_date ).c_str() );
+
+			_game[ "Sessions" ][ split_index ] = session_infos.c_str();
 		}
 	}
 
@@ -476,7 +502,10 @@ namespace SplitsMgr
 		if( Utils::is_time_valid( run_time ) )
 			run_time += new_segment_time;
 
-		update_last_split( run_time, new_segment_time, m_new_session_game_finished );
+		SplitDate segment_date = Utils::get_date_from_string( m_new_session_date );
+		m_new_session_date.clear();
+
+		update_last_split( run_time, new_segment_time, segment_date, m_new_session_game_finished );
 
 		Event* game_event = new Event( Event::Type::session_added );
 		game_event->m_game_event.m_game = this;
@@ -605,6 +634,10 @@ namespace SplitsMgr
 		// splits lines
 		rect_size.y += ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeightWithSpacing() * m_splits.size();
 		rect_size.y += ImGui::GetStyle().ItemSpacing.y;
+
+		// We don't display the last split
+		if( m_splits.empty() == false && Utils::is_time_valid( m_splits.back().m_segment_time ) == false )
+			rect_size.y -= ImGui::GetTextLineHeightWithSpacing();
 
 		// Add session line
 		if( is_current() || m_state == State::ongoing )

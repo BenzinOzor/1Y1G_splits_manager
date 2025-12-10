@@ -64,6 +64,17 @@ namespace SplitsMgr
 			return ret_time;
 		}
 
+		SplitDate get_date_from_string( std::string_view _date, std::string_view _format /*= "%F" */ )
+		{
+			std::stringstream stream{};
+			stream << _date;
+
+			std::chrono::year_month_day ret_date{};
+			std::chrono::from_stream( stream, _format.data(), ret_date );
+
+			return ret_date;
+		}
+		
 		std::string time_to_str( const SplitTime& _time, bool _floor_seconds /*= true */, bool _separate_days /*= false*/ )
 		{
 			std::string time_string{};
@@ -88,9 +99,34 @@ namespace SplitsMgr
 			return time_string;
 		}
 
+		std::string date_to_str( const SplitDate& _date, Options::DateFormat _format /*= Options::DateFormat::ISO8601*/ )
+		{
+			switch( _format )
+			{
+				case Options::DMYName:
+					return std::format( "{:%d %b %Y}", _date );
+
+				case Options::DateFormat::ISO8601:
+				default:
+					return std::format( "{:%F}", _date );
+			};
+		}
+
 		bool is_time_valid( const SplitTime& _time )
 		{
 			return _time != SplitTime{};
+		}
+
+		bool is_date_valid( const SplitDate& _date )
+		{
+			return _date != SplitDate{};
+		}
+
+		SplitDate today()
+		{
+			const std::chrono::time_point now{ std::chrono::system_clock::now() };
+			
+			return std::chrono::floor< std::chrono::days >( now );
 		}
 
 		std::string get_cover_data( std::string_view _cover_path )

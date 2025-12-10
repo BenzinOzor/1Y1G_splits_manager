@@ -299,7 +299,7 @@ namespace SplitsMgr
 		if( Utils::is_time_valid( segment_time ) == false )
 			return;
 
-		m_current_game->update_last_split( run_time, segment_time, _game_finished );
+		m_current_game->update_last_split( run_time, segment_time, Utils::today(), _game_finished );
 
 		if( _game_finished )
 			m_finished_game = m_current_game;

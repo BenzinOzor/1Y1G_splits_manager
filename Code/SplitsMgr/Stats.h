@@ -28,6 +28,10 @@ namespace SplitsMgr
 		uint32_t	m_nb_sessions{ 0 };
 		float		m_avg_sessions{ 0.f };
 		SplitTime	m_avg_session_time{};
+		SplitDate	m_begin_date{};			// The earliest date available in the game list.
+		uint32_t	m_remaining_days{};
+		SplitTime	m_avg_session_day{};
+		SplitDate	m_end_date{};
 
 		// Working variables used while refreshing the stats
 		uint32_t	m_nb_games{ 0 };
