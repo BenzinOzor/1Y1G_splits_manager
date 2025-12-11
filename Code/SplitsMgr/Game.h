@@ -125,7 +125,14 @@ namespace SplitsMgr
 
 		void _select_cover();
 
-		void _compute_finished_game_stats();
+		/**
+		* @brief Compute all game stats from its estimate, time played and sessions.
+		**/
+		void _compute_game_stats();
+		/**
+		* @brief Displayed computed game stats, weither be in its tooltip or in the finished game popup.
+		**/
+		void _display_game_stats_table( float _window_width );
 
 		std::string m_name;
 		std::string m_icon_desc;
@@ -145,7 +152,7 @@ namespace SplitsMgr
 		bool m_new_session_game_finished{ false };
 
 		bool m_finished_game_popup{ false };
-		Stats m_finished_game_stats;
+		Stats m_game_stats;
 	};
 	using Games = std::vector< Game >;
 }
