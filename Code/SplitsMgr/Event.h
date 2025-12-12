@@ -21,7 +21,6 @@ namespace SplitsMgr
 		struct GameEvent
 		{
 			Game*		m_game{ nullptr };
-			uint32_t	m_split{ 0 };
 			bool		m_game_finished{ false };
 		};
 

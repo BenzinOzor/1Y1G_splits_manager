@@ -71,7 +71,7 @@ namespace SplitsMgr
 			m_stats.refresh( m_games );
 
 		ImGui::NewLine();
-		std::string title = m_game_name;
+		std::string title = m_title;
 		ImGui::SetWindowFontScale( 2.f );
 		ImVec2 text_size = ImGui::CalcTextSize( title.c_str() );
 		ImGui::NewLine();
@@ -153,8 +153,10 @@ namespace SplitsMgr
 			}
 			case Event::Type::new_current_game_selected:
 			{
+				if( m_current_game != nullptr )
+					m_current_game->set_state( m_current_game->has_sessions() ? Game::State::ongoing : Game::State::none );
+
 				m_current_game = split_event->m_game_event.m_game;
-				g_pFZN_Core->PushEvent( new Event( Event::Type::json_done_reading ) );
 				break;
 			}
 			case Event::Type::game_estimate_changed:
@@ -163,56 +165,6 @@ namespace SplitsMgr
 				break;
 			}
 		};
-	}
-
-	/**
-	* @brief Get the time of the run at the given split index.
-	* @param _split_index The index of the split at which we want the run time.
-	* @return The run time corresponding to the given split index.
-	**/
-	SplitTime SplitsManager::get_split_run_time( uint32_t _split_index ) const
-	{
-		for( const Game& game : m_games )
-		{
-			if( game.contains_split_index( _split_index ) == false )
-				continue;
-
-			return game.get_split_run_time( _split_index );
-		}
-	}
-
-	/**
-	* @brief Search for the last valid time in the "run", starting at the given game and then going back to previous ones.
-	* @param _threshold_game The game from which we start looking for a valid run time.
-	* @return The most recent valid run time. default SplitTime value if nothing has been found.
-	**/
-	SplitTime SplitsManager::get_last_valid_run_time( const Game* _threshold_game ) const
-	{
-		if( _threshold_game == nullptr )
-			return {};
-
-		SplitTime ret_time{};
-
-		bool game_found{ false };
-		for( int game_index{ (int)m_games.size() - 1 }; game_index >= 0; --game_index )
-		{
-			const Game& game{ m_games[ game_index ] };
-
-			if( game_found == false )
-			{
-				if( &game == _threshold_game )
-					game_found = true;
-				else
-					continue;
-			}
-
-			ret_time = game.get_run_time();
-
-			if( Utils::is_time_valid( ret_time ) )
-				break;
-		}
-
-		return ret_time;
 	}
 
 	/**
@@ -232,7 +184,7 @@ namespace SplitsMgr
 		m_games.clear();
 		m_games.reserve( 100 );
 
-		m_game_name = root[ "Title" ].asString();
+		m_title = root[ "Title" ].asString();
 
 		Json::Value games = root[ "Games" ];
 		Json::Value::iterator it_game = games.begin();
@@ -267,7 +219,7 @@ namespace SplitsMgr
 	**/
 	void SplitsManager::write_json( Json::Value& _root )
 	{
-		_root[ "Title" ] = m_game_name.c_str();
+		_root[ "Title" ] = m_title.c_str();
 
 		for( uint32_t game_index{ 0 }; game_index < m_games.size(); ++game_index )
 		{
@@ -289,17 +241,18 @@ namespace SplitsMgr
 			m_chrono.stop();
 			run_time = m_run_time + segment_time;
 		}
-		else
-		{
-			const SplitTime previous_run_time{ get_last_valid_run_time( m_current_game ) };
-			segment_time = m_run_time - previous_run_time;
-			run_time = m_run_time;
-		}
 
 		if( Utils::is_time_valid( segment_time ) == false )
 			return;
 
-		m_current_game->update_last_split( run_time, segment_time, Utils::today(), _game_finished );
+		Game::State new_state{ Game::State::ongoing };
+
+		if( _game_finished )
+			new_state = Game::State::finished;
+		else if( m_current_game->is_current() )
+			new_state = Game::State::current;
+
+		m_current_game->add_session( segment_time, Utils::today(), new_state );
 
 		if( _game_finished )
 			m_finished_game = m_current_game;
@@ -474,9 +427,8 @@ namespace SplitsMgr
 				continue;
 			}
 
-			// Giving the last valid segment of the given game will make the current loop game adapt to it if it has times already
-			// If the game is finished, we used its last split to set the new session time and didn't create a new split, so we don't need to increment the others.
-			game.update_data( last_segment_time, _game->is_finished() == false );
+			// Giving the last valid segment of the given game will make the current loop game adapt to it.
+			game.update_data( last_segment_time );
 		}
 	}
 
@@ -485,26 +437,24 @@ namespace SplitsMgr
 	**/
 	void SplitsManager::_update_run_data()
 	{
-		// If the current game is still ongoing, we get the current split value from the games last split index.
-		if( m_current_game->is_finished() == false )
+		if( m_current_game == nullptr )
+			return;
+
+		// Refresh run time from the current game, finished or not.
+		m_run_time = m_current_game->get_run_time();
+
+		if( m_current_game->is_finished() )
 		{
-			// Now we need to retrieve the closest valid run time to the current split.
-			m_run_time = get_last_valid_run_time( m_current_game );
-		}
-		else
-		{
-			// If the current game is finished, we need to look for the next empty split, it can be the next one or not, depending on the ammount of sessions added ahead of time.
+			// If the current game is finished, we look for the next eligible game to be the current one.
 			bool game_found{ false };
 			for( Game& game : m_games )
 			{
+				// First, we look for the current game.
 				if( game_found == false )
 				{
-					// We found the game, we want to look for our split in the next game, se we continue one last time.
+					// We found the game, we continue one last time so we begin looking in the next ones as potential current game.
 					if( &game == m_current_game )
-					{
 						game_found = true;
-						m_run_time = game.get_run_time();
-					}
 
 					continue;
 				}
@@ -513,13 +463,8 @@ namespace SplitsMgr
 				if( game.is_finished() )
 					continue;
 
-				// If the game isn't finished, the last split won't have a run time, so that's the one we'll use.
-				const Split& last_split{ game.get_splits().back() };
-
 				m_current_game = &game;
-
-				g_pFZN_Core->PushEvent( new Event( Event::Type::current_game_changed ) );
-
+				m_current_game->set_state( Game::State::current );
 				return;
 			}
 		}

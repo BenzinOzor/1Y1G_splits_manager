@@ -52,8 +52,10 @@ namespace SplitsMgr
 		bool contains_split_index( uint32_t _index ) const;
 		bool is_finished() const								{ return m_state == State::finished; }
 		bool is_current() const									{ return m_state == State::current; }
-		bool sessions_over() const								{ return m_state == State::finished || m_state == State::abandonned; }
+		bool are_sessions_over() const							{ return m_state == State::finished || m_state == State::abandonned; }
+		bool has_sessions() const;
 		State get_state() const									{ return m_state; }
+		void set_state( State _state )							{ m_state = _state; }
 		const char* get_state_str() const;
 		State get_state_from_str( std::string_view _state ) const;
 		const Splits& get_splits() const						{ return m_splits; }
@@ -66,24 +68,17 @@ namespace SplitsMgr
 		sf::Texture* get_cover() const							{ return m_cover; }
 
 		/**
-		* @brief Get the time of the run at the given split index.
-		* @param _split_index The index of the split at which we want the run time.
-		* @return The run time corresponding to the given split index.
+		* @brief Add a session to the game, from timer or manual add. Run time will be determined thanks to the game splits themselves.
+		* @param _time The time of the session we want to add.
+		* @param _date The date of the session.
+		* @param _state The new state of the game.
 		**/
-		SplitTime get_split_run_time( uint32_t _split_index ) const;
-
+		void add_session( const SplitTime& _time, const SplitDate& _date, State _state );
 		/**
-		* @brief Update the last split available on the game because a session has just been made.
-		* @param _run_time The new (total) run time tu put in the split.
-		* @param _segment_time The time of this split. The previous one isn't necessarily in the same game so it has to be given.
-		* @param _segment_date The date of the split.
-		* @param _game_finished True if the game is finished with this new time. If not, some adaptations tho the splits will be needed.
+		* @brief Update game datas by incrementing its splits indexes and adding a time to their run time.
+		* @param _delta_to_add The time delta that has been added on a game before this one that we need to add.
 		**/
-		void update_last_split( const SplitTime& _run_time, const SplitTime& _segment_time, const SplitDate& _segment_date, bool _game_finished );
-		/**
-		* @brief Increment all split indexes because a session has been added before this game.
-		**/
-		void update_data( const SplitTime& _delta_to_add, bool _incremeted_splits_index );
+		void update_data( const SplitTime& _delta_to_add );
 
 		/**
 		* @brief Read the Json value containing all the informations about the game.
@@ -138,7 +133,7 @@ namespace SplitsMgr
 		std::string m_icon_desc;
 		SplitTime m_estimation{};
 		SplitTime m_delta{};
-		SplitTime m_time{};			// The timer for the game duration.
+		SplitTime m_played{};			// The timer for the game duration.
 		SplitDate m_begin_date{};
 		State m_state{ State::none };
 

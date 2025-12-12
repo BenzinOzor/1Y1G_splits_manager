@@ -35,19 +35,6 @@ namespace SplitsMgr
 		SplitTime	get_remaining_time() const		{ return m_remaining_time; }
 
 		/**
-		* @brief Get the time of the run at the given split index.
-		* @param _split_index The index of the split at which we want the run time.
-		* @return The run time corresponding to the given split index.
-		**/
-		SplitTime get_split_run_time( uint32_t _split_index ) const;
-		/**
-		* @brief Search for the last valid time in the "run", starting at the given game and then going back to previous ones.
-		* @param _threshold_game The game from which we start looking for a valid run time.
-		* @return The most recent valid run time. default SplitTime value if nothing has been found.
-		**/
-		SplitTime get_last_valid_run_time( const Game* _threshold_game ) const;
-
-		/**
 		* @brief Open and read the Json file containing all games informations.
 		* @param _path The path to the Json file.
 		**/
@@ -80,8 +67,7 @@ namespace SplitsMgr
 
 		void _handle_actions();
 
-		std::string m_game_icon_desc;
-		std::string m_game_name;
+		std::string m_title;
 		std::string m_category;
 		std::string m_layout_path;
 		uint32_t m_nb_sessions{ 0 };	// Determined from the number of splits, then written in the .lss. Never read so it's always the number of split when starting a new session.
