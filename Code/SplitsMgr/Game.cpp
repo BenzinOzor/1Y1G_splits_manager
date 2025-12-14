@@ -147,6 +147,7 @@ namespace SplitsMgr
 		{
 			m_finished_game_popup = true;
 			_compute_game_stats();
+			compute_end_date();
 			ImGui::OpenPopup( popup_name.c_str() );
 		}
 
@@ -187,6 +188,33 @@ namespace SplitsMgr
 		}
 
 		return m_finished_game_popup;
+	}
+
+	void Game::display_end_date_predition()
+	{
+		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };
+
+		ImGui::Separator();
+		
+		if( has_sessions() )
+		{
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "First session:", "%s", Utils::date_to_str( m_stats.m_begin_date, options.m_date_format ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time by day:", "%s (%u day(s))", Utils::time_to_str( m_stats.m_avg_session_played_day ).c_str(), m_stats.m_played_days );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time since beginning:", "%s (%u day(s))", Utils::time_to_str( m_stats.m_avg_session_day ).c_str(), m_stats.m_days_since_start );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Remaining:", "%u day(s) | %u played day(s) | %u session(s)", m_stats.m_remaining_days, m_stats.m_remaining_played_days, m_stats.m_remaining_sessions );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Estimated last day:", "%s", Utils::date_to_str( m_stats.m_end_date, options.m_date_format ).c_str() );
+		}
+		else
+		{
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::gray, "First session:", "%s", Utils::date_to_str( Utils::today(), options.m_date_format ).c_str() );
+			ImGui::SameLine();
+			ImGui_fzn::helper_simple_tooltip( "This game doesn't have any session yet \nThe prediction is based on global stats and the end date is calculated from the current day." );
+
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time by day:", "%s", Utils::time_to_str( m_stats.m_avg_session_played_day ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time since beginning:", "%s", Utils::time_to_str( m_stats.m_avg_session_day ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Remaining:", "%u day(s) | %u played day(s) | %u session(s)", m_stats.m_remaining_days, m_stats.m_remaining_played_days, m_stats.m_remaining_sessions );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Estimated last day:", "%s", Utils::date_to_str( m_stats.m_end_date, options.m_date_format ).c_str() );
+		}
 	}
 
 	bool Game::contains_split_index( uint32_t _index ) const
@@ -297,7 +325,7 @@ namespace SplitsMgr
 			last_split.m_segment_time = _time;
 			last_split.m_date = _date;
 
-			m_begin_date = last_split.m_date;
+			m_stats.m_begin_date = last_split.m_date;
 		}
 		// If there are more than one split, sessions have already been added to the game and we can use their informations for the one we want to add.
 		else
@@ -317,6 +345,7 @@ namespace SplitsMgr
 
 		_refresh_game_time();
 		_compute_game_stats();
+		compute_end_date();
 	}
 
 	/**
@@ -333,6 +362,61 @@ namespace SplitsMgr
 
 		if( m_state != State::none )
 			m_played += m_delta;
+	}
+
+	/**
+	* @brief Calculate at which date the game could be finished, either by using its stats if it has any sessions, or the global stats compiled from all the previous games.
+	**/
+	void Game::compute_end_date()
+	{
+		const SplitTime played{ m_played };
+		const SplitTime remaining_time{ m_estimation - played };
+		std::vector< ComboStat > played_days;
+
+		if( Utils::is_date_valid( m_stats.m_begin_date ) )
+		{
+			for( const Split& split : m_splits )
+			{
+				if( Utils::is_date_valid( split.m_date ) == false )
+					continue;
+
+				if( std::ranges::find( played_days, split.m_date, &ComboStat::m_date ) == played_days.end() )
+				{
+					played_days.push_back( { .m_date = split.m_date } );
+				}
+			}
+
+			if( played_days.empty() == false )
+			{
+				m_stats.m_played_days = played_days.size();
+				m_stats.m_avg_session_played_day = played / m_stats.m_played_days;
+				m_stats.m_remaining_played_days = remaining_time / m_stats.m_avg_session_played_day;
+
+				m_stats.m_avg_sessions_days = m_splits.size() / static_cast<float>( m_stats.m_played_days );
+			}
+
+			m_stats.m_days_since_start = Utils::days_between_dates( m_stats.m_begin_date, Utils::today() );
+			m_stats.m_avg_session_day = played / m_stats.m_days_since_start;
+		}
+		// Approximation from global stats.
+		else
+		{
+			const auto& global_stats = g_splits_app->get_splits_manager().get_stats();
+
+			m_stats.m_avg_session_day = global_stats.get_avg_session_day();
+			m_stats.m_avg_session_played_day = global_stats.get_avg_session_played_day();
+
+			if( Utils::is_time_valid( m_stats.m_avg_session_played_day ) )
+				m_stats.m_remaining_played_days = remaining_time / m_stats.m_avg_session_played_day;
+
+			m_stats.m_avg_sessions_days = global_stats.get_avg_sessions_days();
+		}
+
+		if( Utils::is_time_valid( m_stats.m_avg_session_day ) )
+			m_stats.m_remaining_days = remaining_time / m_stats.m_avg_session_day;
+
+		m_stats.m_remaining_sessions = ceil( m_stats.m_remaining_played_days * m_stats.m_avg_sessions_days );
+		m_stats.m_end_date = Utils::add_days_to_date( Utils::today(), m_stats.m_remaining_days );
 	}
 
 	/**
@@ -388,7 +472,7 @@ namespace SplitsMgr
 			new_split.m_run_time = _parsing_infos.m_total_time;
 
 			if( m_splits.empty() )
-				m_begin_date = new_split.m_date;
+				m_stats.m_begin_date = new_split.m_date;
 
 			m_splits.push_back( std::move( new_split ) );
 			++_parsing_infos.m_split_index;
@@ -408,6 +492,8 @@ namespace SplitsMgr
 
 		if( has_sessions() )
 			_compute_game_stats();
+
+		compute_end_date();
 
 		return m_state == State::current;
 	}
@@ -779,29 +865,29 @@ namespace SplitsMgr
 	**/
 	void Game::_compute_game_stats()
 	{
-		m_game_stats.m_average_session_time = SplitTime{};
-		m_game_stats.m_longest_sesion = SplitTime{};
-		m_game_stats.m_shortest_session = Utils::get_time_from_string( "99:59:59" );
+		m_stats.m_average_session_time = SplitTime{};
+		m_stats.m_longest_sesion = SplitTime{};
+		m_stats.m_shortest_session = Utils::get_time_from_string( "99:59:59" );
 
 		if( m_splits.empty() )
 			return;
 
 		for( const Split& split : m_splits )
 		{
-			m_game_stats.m_average_session_time += split.m_segment_time;
+			m_stats.m_average_session_time += split.m_segment_time;
 
-			if( m_game_stats.m_longest_sesion < split.m_segment_time )
+			if( m_stats.m_longest_sesion < split.m_segment_time )
 			{
-				m_game_stats.m_longest_sesion = split.m_segment_time;
+				m_stats.m_longest_sesion = split.m_segment_time;
 			}
 
-			if( m_game_stats.m_shortest_session > split.m_segment_time )
+			if( m_stats.m_shortest_session > split.m_segment_time )
 			{
-				m_game_stats.m_shortest_session = split.m_segment_time;
+				m_stats.m_shortest_session = split.m_segment_time;
 			}
 		}
 
-		m_game_stats.m_average_session_time /= m_splits.size();
+		m_stats.m_average_session_time /= m_splits.size();
 	}
 
 	/**
@@ -852,15 +938,15 @@ namespace SplitsMgr
 
 			ImGui::TableNextColumn();
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Average session:" );
-			second_column_text( Utils::time_to_str( m_game_stats.m_average_session_time ).c_str() );
+			second_column_text( Utils::time_to_str( m_stats.m_average_session_time ).c_str() );
 
 			ImGui::TableNextColumn();
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Shortest session:" );
-			second_column_text( Utils::time_to_str( m_game_stats.m_shortest_session ).c_str() );
+			second_column_text( Utils::time_to_str( m_stats.m_shortest_session ).c_str() );
 
 			ImGui::TableNextColumn();
 			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Longest session:" );
-			second_column_text( Utils::time_to_str( m_game_stats.m_longest_sesion ).c_str() );
+			second_column_text( Utils::time_to_str( m_stats.m_longest_sesion ).c_str() );
 
 			ImGui::EndTable();
 		}

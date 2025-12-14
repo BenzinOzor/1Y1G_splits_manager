@@ -29,10 +29,11 @@ namespace SplitsMgr
 		void display_right_panel();
 		void on_event();
 
-		Game*		get_current_game() const		{ return m_current_game; }
-		uint32_t	get_nb_sessions() const			{ return m_nb_sessions; }
-		SplitTime	get_played() const				{ return m_played; }
-		SplitTime	get_remaining_time() const		{ return m_remaining_time; }
+		Game*			get_current_game() const		{ return m_current_game; }
+		uint32_t		get_nb_sessions() const			{ return m_nb_sessions; }
+		SplitTime		get_played() const				{ return m_played; }
+		SplitTime		get_remaining_time() const		{ return m_remaining_time; }
+		const Stats&	get_stats() const				{ return m_stats; }
 
 		/**
 		* @brief Open and read the Json file containing all games informations.
@@ -50,6 +51,7 @@ namespace SplitsMgr
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
 		void _display_timers( const ImVec4& _timer_color );
+		void _display_controls();
 		void _display_update_sessions_buttons();
 
 		/**
@@ -66,6 +68,10 @@ namespace SplitsMgr
 		void _update_run_stats();
 
 		void _handle_actions();
+
+		void _start_split();
+		void _toggle_pause();
+		void _stop();
 
 		std::string m_title;
 		std::string m_category;

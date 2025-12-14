@@ -81,6 +81,10 @@ namespace SplitsMgr
 		ImGui::NewLine();
 
 		_display_timers( timer_color );
+		_display_controls();
+
+		if( m_current_game != nullptr )
+			m_current_game->display_end_date_predition();
 
 		ImGui::SeparatorText( "List infos" );
 
@@ -126,7 +130,7 @@ namespace SplitsMgr
 		}
 
 		m_stats.display();
-		_display_update_sessions_buttons();
+		//_display_update_sessions_buttons();
 	}
 
 	void SplitsManager::on_event()
@@ -238,7 +242,7 @@ namespace SplitsMgr
 		if( m_chrono.has_started() )
 		{
 			segment_time = m_chrono.get_time();
-			m_chrono.stop();
+			_stop();
 			run_time = m_run_time + segment_time;
 		}
 
@@ -365,6 +369,22 @@ namespace SplitsMgr
 		}
 
 		ImGui::Spacing();
+		ImGui::Spacing();
+	}
+
+	void SplitsManager::_display_controls()
+	{
+		ImGui::Separator();
+		if( ImGui::Button( "Start / Split" ) )
+			_start_split();
+
+		ImGui::SameLine();
+		if( ImGui::Button( "Pause" ) )
+			_toggle_pause();
+
+		ImGui::SameLine();
+		if( ImGui::Button( "Stop" ) )
+			_stop();
 	}
 
 	void SplitsManager::_display_update_sessions_buttons()
@@ -514,6 +534,13 @@ namespace SplitsMgr
 		m_estimated_final_time = m_remaining_time + m_played;
 		m_stats.refresh( m_games );
 
+		// Once all the stats have been computed, they can be used for the games that don't have any sessions and can't predict their end date
+		for( Game& game : m_games )
+		{
+			if( game.has_sessions() == false )
+				game.compute_end_date();
+		}
+
 		FZN_LOG( "Est. final time %s", Utils::time_to_str( m_estimated_final_time ).c_str() );
 	}
 
@@ -530,20 +557,38 @@ namespace SplitsMgr
 
 		if( g_pFZN_InputMgr->IsActionPressed( "Start / Split" ) )
 		{
-			if( m_chrono.is_paused() && m_chrono.has_started() == false )
-				m_chrono.start();
-			else
-			{
-				_update_sessions( true );
-			}
+			_start_split();
 		}
 		else if( g_pFZN_InputMgr->IsActionPressed( "Pause" ) )
 		{
-			m_chrono.toggle_pause();
+			_toggle_pause();
 		}
 		else if( g_pFZN_InputMgr->IsActionPressed( "Stop" ) )
 		{
-			m_chrono.stop();
+			_stop();
 		}
 	}
+
+	void SplitsManager::_start_split()
+	{
+		if( m_chrono.is_paused() )
+		{
+			m_chrono.toggle_pause();
+		}
+		else
+		{
+			_update_sessions( true );
+		}
+	}
+
+	void SplitsManager::_toggle_pause()
+	{
+		m_chrono.toggle_pause();
+	}
+
+	void SplitsManager::_stop()
+	{
+		m_chrono.stop();
+	}
+
 }

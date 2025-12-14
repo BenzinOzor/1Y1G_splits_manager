@@ -101,6 +101,9 @@ namespace SplitsMgr
 
 		std::string date_to_str( const SplitDate& _date, Options::DateFormat _format /*= Options::DateFormat::ISO8601*/ )
 		{
+			if( Utils::is_date_valid( _date ) == false )
+				return "<No Date>";
+
 			switch( _format )
 			{
 				case Options::DMYName:
@@ -171,6 +174,21 @@ namespace SplitsMgr
 
 				ImGui::EndTable();
 			}
+		}
+
+		uint32_t days_between_dates( const SplitDate& _day_1, const SplitDate& _day_2 )
+		{
+			std::chrono::system_clock::time_point tp_day_1 = std::chrono::time_point<std::chrono::system_clock, std::chrono::days>( std::chrono::sys_days{ _day_1 } );
+			std::chrono::system_clock::time_point tp_day_2 = std::chrono::time_point<std::chrono::system_clock, std::chrono::days>( std::chrono::sys_days{ _day_2 } );
+
+			return std::chrono::duration_cast<std::chrono::days>( tp_day_2 - tp_day_1 ).count();
+		}
+
+		SplitDate add_days_to_date( const SplitDate& _start_day, uint32_t _nb_days )
+		{
+			std::chrono::system_clock::time_point tp_day_2 = std::chrono::time_point<std::chrono::system_clock, std::chrono::days>( std::chrono::sys_days{ _start_day } );
+			
+			return std::chrono::floor< std::chrono::days >( tp_day_2 + std::chrono::days{ _nb_days } );
 		}
 	}
 }

@@ -47,6 +47,7 @@ namespace SplitsMgr
 		void on_event();
 
 		bool display_finished_stats();
+		void display_end_date_predition();
 
 		const std::string& get_name() const						{ return m_name; }
 		bool contains_split_index( uint32_t _index ) const;
@@ -64,7 +65,7 @@ namespace SplitsMgr
 		SplitTime get_delta() const								{ return m_delta; }
 		SplitTime get_played() const;
 		SplitTime get_last_valid_segment_time() const;
-		SplitDate get_begin_date() const						{ return m_begin_date; }
+		SplitDate get_begin_date() const						{ return m_stats.m_begin_date; }
 		sf::Texture* get_cover() const							{ return m_cover; }
 
 		/**
@@ -79,6 +80,10 @@ namespace SplitsMgr
 		* @param _delta_to_add The time delta that has been added on a game before this one that we need to add.
 		**/
 		void update_data( const SplitTime& _delta_to_add );
+		/**
+		* @brief Calculate at which date the game could be finished, either by using its stats if it has any sessions, or the global stats compiled from all the previous games.
+		**/
+		void compute_end_date();
 
 		/**
 		* @brief Read the Json value containing all the informations about the game.
@@ -102,6 +107,17 @@ namespace SplitsMgr
 			SplitTime m_average_session_time;
 			SplitTime m_shortest_session;
 			SplitTime m_longest_sesion;
+
+			SplitDate	m_begin_date{};					// The earliest date available in the game list.
+			uint32_t	m_remaining_days{};
+			uint32_t	m_remaining_played_days{};
+			uint32_t	m_remaining_sessions{ 0 };
+			SplitTime	m_avg_session_day{};			// Average time on the period between current day and starting day. (taking non played days in account)
+			float		m_avg_sessions_days{ 0.f };
+			SplitTime	m_avg_session_played_day{};		// Average time by played day
+			SplitDate	m_end_date{};
+			uint32_t	m_played_days{ 0 };
+			uint32_t	m_days_since_start{ 0 };
 		};
 
 		/**
@@ -134,7 +150,6 @@ namespace SplitsMgr
 		SplitTime m_estimation{};
 		SplitTime m_delta{};
 		SplitTime m_played{};			// The timer for the game duration.
-		SplitDate m_begin_date{};
 		State m_state{ State::none };
 
 		Splits m_splits;
@@ -147,7 +162,7 @@ namespace SplitsMgr
 		bool m_new_session_game_finished{ false };
 
 		bool m_finished_game_popup{ false };
-		Stats m_game_stats;
+		Stats m_stats;
 	};
 	using Games = std::vector< Game >;
 }
