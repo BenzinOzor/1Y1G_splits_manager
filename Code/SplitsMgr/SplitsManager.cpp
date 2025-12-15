@@ -374,17 +374,33 @@ namespace SplitsMgr
 
 	void SplitsManager::_display_controls()
 	{
+		const bool disable_start_split{ m_chrono.has_started() && m_chrono.is_paused() };
+		const bool disable_pause_stop{ m_chrono.has_started() == false };
+		const float button_size{ 75.f };
+		const float all_buttons_size{ button_size * 3.f + ImGui::GetStyle().ItemSpacing.x * 2.f };
+
 		ImGui::Separator();
-		if( ImGui::Button( "Start / Split" ) )
+
+		ImGui::NewLine();
+		ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - all_buttons_size * 0.5f - ImGui::GetStyle().WindowPadding.x );
+
+		if( ImGui_fzn::deactivable_button( m_chrono.has_started() ? "Split" : "Start", disable_start_split, false, { button_size, 0.f } ) )
 			_start_split();
 
-		ImGui::SameLine();
-		if( ImGui::Button( "Pause" ) )
-			_toggle_pause();
+		if( disable_pause_stop )
+			ImGui::BeginDisabled();
 
 		ImGui::SameLine();
-		if( ImGui::Button( "Stop" ) )
+		if( ImGui::Button( m_chrono.is_paused() && m_chrono.has_started() ? "Resume" : "Pause", { button_size, 0.f } ) )
+			_toggle_pause();
+
+
+		ImGui::SameLine();
+		if( ImGui::Button( "Stop", { button_size, 0.f } ) )
 			_stop();
+
+		if( disable_pause_stop )
+			ImGui::EndDisabled();
 	}
 
 	void SplitsManager::_display_update_sessions_buttons()

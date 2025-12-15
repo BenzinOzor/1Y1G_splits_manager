@@ -30,7 +30,7 @@ int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 	//Loading of the resources that don't belong in a resource group and filling of the map containing the paths to the resources)
 	g_pFZN_DataMgr->LoadResourceFile( DATAPATH( "XMLFiles/Resources" ) );
 
-	g_pFZN_WindowMgr->AddWindow( 900, 800, sf::Style::Close | sf::Style::Resize, g_pFZN_Core->GetProjectName().c_str() );
+	g_pFZN_WindowMgr->AddWindow( 900, 830, sf::Style::Close | sf::Style::Resize, g_pFZN_Core->GetProjectName().c_str() );
 	g_pFZN_WindowMgr->SetWindowFramerate(60);
 	g_pFZN_WindowMgr->SetWindowClearColor( sf::Color::Black );
 	
