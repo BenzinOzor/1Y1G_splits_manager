@@ -130,7 +130,6 @@ namespace SplitsMgr
 		}
 
 		m_stats.display();
-		//_display_update_sessions_buttons();
 	}
 
 	void SplitsManager::on_event()
@@ -158,7 +157,7 @@ namespace SplitsMgr
 			case Event::Type::new_current_game_selected:
 			{
 				if( m_current_game != nullptr )
-					m_current_game->set_state( m_current_game->has_sessions() ? Game::State::ongoing : Game::State::none );
+					m_current_game->set_state( m_current_game->has_sessions() ? Game::State::playing : Game::State::none );
 
 				m_current_game = split_event->m_game_event.m_game;
 				break;
@@ -214,7 +213,6 @@ namespace SplitsMgr
 		m_played = parsing_infos.m_total_time;
 
 		_update_run_stats();
-		m_sessions_updated = true;
 	}
 
 	/**
@@ -231,7 +229,7 @@ namespace SplitsMgr
 		}
 	}
 
-	void SplitsManager::_update_sessions( bool _game_finished )
+	void SplitsManager::_update_sessions( Game::State _state )
 	{
 		if( m_current_game == nullptr )
 			return;
@@ -249,19 +247,12 @@ namespace SplitsMgr
 		if( Utils::is_time_valid( segment_time ) == false )
 			return;
 
-		Game::State new_state{ Game::State::ongoing };
+		m_current_game->add_session( segment_time, Utils::today(), _state );
 
-		if( _game_finished )
-			new_state = Game::State::finished;
-		else if( m_current_game->is_current() )
-			new_state = Game::State::current;
-
-		m_current_game->add_session( segment_time, Utils::today(), new_state );
-
-		if( _game_finished )
+		if( m_current_game->are_sessions_over() )
 			m_finished_game = m_current_game;
 
-		m_sessions_updated = true;
+		m_current_game_new_state = Game::State::playing;
 
 		_update_games_data( m_current_game );
 		_update_run_data();
@@ -376,13 +367,10 @@ namespace SplitsMgr
 	{
 		const bool disable_start_split{ m_chrono.has_started() && m_chrono.is_paused() };
 		const bool disable_pause_stop{ m_chrono.has_started() == false };
-		const float button_size{ 75.f };
+		const float button_size{ 65.f };
 		const float all_buttons_size{ button_size * 3.f + ImGui::GetStyle().ItemSpacing.x * 2.f };
 
 		ImGui::Separator();
-
-		ImGui::NewLine();
-		ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.5f - all_buttons_size * 0.5f - ImGui::GetStyle().WindowPadding.x );
 
 		if( ImGui_fzn::deactivable_button( m_chrono.has_started() ? "Split" : "Start", disable_start_split, false, { button_size, 0.f } ) )
 			_start_split();
@@ -401,40 +389,16 @@ namespace SplitsMgr
 
 		if( disable_pause_stop )
 			ImGui::EndDisabled();
-	}
 
-	void SplitsManager::_display_update_sessions_buttons()
-	{
-		const float cursor_height{ ImGui::GetContentRegionMax().y - ImGui::GetFrameHeightWithSpacing() * 2.f - ImGui::GetStyle().FramePadding.y };
-		ImGui::SetCursorPosY( cursor_height );
+		ImGui::SameLine( ImGui::GetContentRegionAvail().x - 100.f - button_size - ImGui::GetStyle().WindowPadding.x * 2.f - ImGui::GetStyle().ItemSpacing.x );
+		ImGui::SetNextItemWidth( 100.f );
+		Game::state_combo_box( m_current_game_new_state );
 
-		ImGui::SeparatorText( "Update sessions" );
+		const bool disable_button{ m_current_game == nullptr || m_chrono.has_started() == false || m_chrono.is_paused() == false };
 
-		const int nb_columns{ 2 };
-		if( ImGui::BeginTable( "add_session_table", nb_columns ) )
-		{
-			const bool disable_buttons{ (m_current_game == nullptr || m_sessions_updated) && (m_chrono.has_started() == false || m_chrono.is_paused() == false) };
-
-			if( disable_buttons )
-				ImGui::BeginDisabled();
-
-			const float column_size = ImGui::GetContentRegionAvail().x / nb_columns - ImGui::GetStyle().ItemSpacing.x / nb_columns;
-			ImGui::TableSetupColumn( "btn1", ImGuiTableColumnFlags_WidthFixed, column_size );
-			ImGui::TableSetupColumn( "btn2", ImGuiTableColumnFlags_WidthFixed, column_size );
-
-			ImGui::TableNextColumn();
-			if( ImGui::Button( "Game finished", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-				_update_sessions( true );
-
-			ImGui::TableNextColumn();
-			if( ImGui::Button( "Game still going", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-				_update_sessions( false );
-
-			if( disable_buttons )
-				ImGui::EndDisabled();
-
-			ImGui::EndTable();
-		}
+		ImGui::SameLine();
+		if( ImGui_fzn::deactivable_button( "Update", disable_button, false, { button_size, 0.f } ) )
+			_update_sessions( m_current_game_new_state == Game::State::playing ? Game::State::current : m_current_game_new_state );
 	}
 
 	/**
@@ -479,7 +443,7 @@ namespace SplitsMgr
 		// Refresh run time from the current game, finished or not.
 		m_run_time = m_current_game->get_run_time();
 
-		if( m_current_game->is_finished() )
+		if( m_current_game->are_sessions_over() )
 		{
 			// If the current game is finished, we look for the next eligible game to be the current one.
 			bool game_found{ false };
@@ -496,7 +460,7 @@ namespace SplitsMgr
 				}
 
 				// If the game is finished, we can't use it as our current game, so we continue looking.
-				if( game.is_finished() )
+				if( game.are_sessions_over() )
 					continue;
 
 				m_current_game = &game;
@@ -532,7 +496,7 @@ namespace SplitsMgr
 
 			if( game.get_state() == Game::State::none )
 				m_remaining_time += game.get_estimate();
-			else if( game.get_state() == Game::State::ongoing || game.get_state() == Game::State::current )
+			else if( game.get_state() == Game::State::playing || game.get_state() == Game::State::current )
 			{
 				const SplitTime played{ game.get_played() };
 
@@ -593,7 +557,7 @@ namespace SplitsMgr
 		}
 		else
 		{
-			_update_sessions( true );
+			_update_sessions( Game::State::finished );
 		}
 	}
 

@@ -39,7 +39,7 @@ namespace SplitsMgr
 			current,	// This is the game currently being played (the main focus, in the order of the list).
 			finished,	// Finished game, no more sessions possible.
 			abandonned,	// Didn't reach the end of the game but no sessions will be added.
-			ongoing,	// Sessions have been added to the game but it's not the current one.
+			playing,	// Sessions have been added to the game but it's not the current one.
 			COUNT
 		};
 
@@ -48,6 +48,8 @@ namespace SplitsMgr
 
 		bool display_finished_stats();
 		void display_end_date_predition();
+
+		static void state_combo_box( Game::State& _state );
 
 		const std::string& get_name() const						{ return m_name; }
 		bool contains_split_index( uint32_t _index ) const;
@@ -58,6 +60,7 @@ namespace SplitsMgr
 		State get_state() const									{ return m_state; }
 		void set_state( State _state )							{ m_state = _state; }
 		const char* get_state_str() const;
+		static const char* get_str_from_state( State _state );
 		State get_state_from_str( std::string_view _state ) const;
 		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
@@ -159,7 +162,7 @@ namespace SplitsMgr
 
 		std::string m_new_session_time;
 		std::string m_new_session_date;
-		bool m_new_session_game_finished{ false };
+		State m_new_session_state{ State::playing };
 
 		bool m_finished_game_popup{ false };
 		Stats m_stats;

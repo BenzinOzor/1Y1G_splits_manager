@@ -100,11 +100,13 @@ namespace SplitsMgr
 				ImGui::InputTextWithHint( "##new_session_date", "yyyy-mm-dd", &m_new_session_date );
 				ImGui::PopItemWidth();
 
-				ImGui::SameLine();
+				ImGui::SameLine( ImGui::GetContentRegionAvail().x - 165.f + ImGui::GetStyle().IndentSpacing - ImGui::GetStyle().WindowPadding.x * 2.f );
 
-				ImGui::Checkbox( "Game Finished", &m_new_session_game_finished );
+				ImGui::SetNextItemWidth( 100.f );
+				Game::state_combo_box( m_new_session_state );
+
 				ImGui::SameLine();
-				if( ImGui_fzn::deactivable_button( "Add", m_new_session_time.empty() ) )
+				if( ImGui_fzn::deactivable_button( "Update", m_new_session_time.empty(), false, { 65.f, 0.f } ) )
 					_add_new_session_time();
 
 				ImGui::Spacing();
@@ -217,6 +219,29 @@ namespace SplitsMgr
 		}
 	}
 
+	void Game::state_combo_box( Game::State& _state )
+	{
+		static uint32_t state_none_id{ static_cast<uint32_t>( Game::State::none ) };
+		static uint32_t state_current_id{ static_cast<uint32_t>( Game::State::current ) };
+		static uint32_t state_count_id{ static_cast<uint32_t>( Game::State::COUNT ) };
+		
+		uint32_t state_id{ static_cast<uint32_t>( _state ) };
+
+		if( ImGui::BeginCombo( "##StateCombo", Game::get_str_from_state( _state ) ) )
+		{
+			for( uint32_t state{ 0 }; state < state_count_id; ++state )
+			{
+				if( state == state_none_id || state == state_current_id )
+					continue;
+
+				if( ImGui::Selectable( Game::get_str_from_state( static_cast<Game::State>( state ) ), state == state_id ) )
+					_state = static_cast<Game::State>( state );
+			}
+
+			ImGui::EndCombo();
+		}
+	}
+
 	bool Game::contains_split_index( uint32_t _index ) const
 	{
 		if( m_splits.empty() )
@@ -238,19 +263,24 @@ namespace SplitsMgr
 
 	const char* Game::get_state_str() const
 	{
-		switch( m_state )
+		return get_str_from_state( m_state );
+	}
+
+	const char* Game::get_str_from_state( Game::State _state )
+	{
+		switch( _state )
 		{
-			case State::none:
+			case Game::State::none:
 				return "None";
-			case State::current:
+			case Game::State::current:
 				return "Current";
-			case State::finished:
+			case Game::State::finished:
 				return "Finished";
-			case State::abandonned:
+			case Game::State::abandonned:
 				return "Abandonned";
-			case State::ongoing:
-				return "Ongoing";
-			case State::COUNT:
+			case Game::State::playing:
+				return "Playing";
+			case Game::State::COUNT:
 			default:
 				return "COUNT";
 		};
@@ -267,8 +297,8 @@ namespace SplitsMgr
 		if( _state == "Abandonned" || _state == "abandonned" )
 			return State::abandonned;
 
-		if( _state == "Ongoing" || _state == "ongoing" )
-			return State::ongoing;
+		if( _state == "Playing" || _state == "playing" )
+			return State::playing;
 
 		return State::none;
 	}
@@ -345,7 +375,9 @@ namespace SplitsMgr
 
 		_refresh_game_time();
 		_compute_game_stats();
-		compute_end_date();
+
+		if( are_sessions_over() == false )
+			compute_end_date();
 	}
 
 	/**
@@ -396,7 +428,11 @@ namespace SplitsMgr
 			}
 
 			m_stats.m_days_since_start = Utils::days_between_dates( m_stats.m_begin_date, Utils::today() );
-			m_stats.m_avg_session_day = played / m_stats.m_days_since_start;
+
+			if( m_stats.m_days_since_start > 0 )
+				m_stats.m_avg_session_day = played / m_stats.m_days_since_start;
+			else
+				m_stats.m_avg_session_day = played;
 		}
 		// Approximation from global stats.
 		else
@@ -549,20 +585,17 @@ namespace SplitsMgr
 		SplitDate segment_date = Utils::get_date_from_string( m_new_session_date );
 		m_new_session_date.clear();
 
-		State new_state{ State::ongoing };
+		if( m_state == State::current && m_new_session_state == State::playing )
+			m_new_session_state = m_state;
 
-		if( m_new_session_game_finished )
-			new_state = State::finished;
-		else if( is_current() )
-			new_state = State::current;
-
-		add_session( new_segment_time, segment_date, new_state );
+		add_session( new_segment_time, segment_date, m_new_session_state );
 
 		Event* game_event = new Event( Event::Type::session_added );
 		game_event->m_game_event.m_game = this;
-		game_event->m_game_event.m_game_finished = m_new_session_game_finished;
+		game_event->m_game_event.m_game_finished = are_sessions_over();
 
 		g_pFZN_Core->PushEvent( game_event );
+		m_new_session_state = State::playing;
 	}
 
 	void Game::_refresh_game_time()
@@ -605,7 +638,7 @@ namespace SplitsMgr
 		// An ongoing game will have more than one split, as there is always an empty one for its next session in addition to already submitted sessions.
 		if( m_splits.size() > 1 )
 		{
-			m_state = State::ongoing;
+			m_state = State::playing;
 			return;
 		}
 
@@ -641,7 +674,7 @@ namespace SplitsMgr
 				ImGui::PushStyleColor( ImGuiCol_HeaderActive,	Utils::Color::abandonned_game_header_active );
 				break;
 			}
-			case State::ongoing:
+			case State::playing:
 			{
 				ImGui::PushStyleColor( ImGuiCol_Text,			ImGui_fzn::color::black );
 				ImGui::PushStyleColor( ImGuiCol_Header,			Utils::Color::ongoing_game_header );
@@ -659,7 +692,7 @@ namespace SplitsMgr
 			case State::current:
 			case State::finished:
 			case State::abandonned:
-			case State::ongoing:
+			case State::playing:
 			{
 				ImGui::PopStyleColor( 4 );
 				break;
@@ -708,7 +741,7 @@ namespace SplitsMgr
 				frame_bg_color = Utils::Color::abandonned_game_frame_bg;
 				break;
 			}
-			case Game::State::ongoing:
+			case Game::State::playing:
 			{
 				frame_bg_color = Utils::Color::ongoing_game_frame_bg;
 				break;

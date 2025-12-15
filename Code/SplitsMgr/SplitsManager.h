@@ -47,12 +47,11 @@ namespace SplitsMgr
 		void write_json( Json::Value& _root );
 
 	private:
-		void _update_sessions( bool _game_finished );
+		void _update_sessions( Game::State _state );
 		void _on_game_session_added( const Event::GameEvent& _event_infos );
 
 		void _display_timers( const ImVec4& _timer_color );
 		void _display_controls();
-		void _display_update_sessions_buttons();
 
 		/**
 		* @brief Update splits index and run time of games coming after the given one.
@@ -91,7 +90,7 @@ namespace SplitsMgr
 
 		SplitTime m_run_time{};
 
-		bool m_sessions_updated{ false };	// True if all the sessions have been updated with the right splits created.
+		Game::State m_current_game_new_state{ Game::State::playing };
 
 		Stats m_stats;
 	};
