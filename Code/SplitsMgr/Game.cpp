@@ -46,6 +46,24 @@ namespace SplitsMgr
 		ImGui::Text( Utils::time_to_str( _split.m_run_time ).c_str() );
 	}
 
+	Game::Game( const Desc& _desc, Utils::ParsingInfos& _parsing_infos )
+	{
+		m_name = _desc.m_name;
+		m_state = _desc.m_state;
+		m_estimation = _desc.m_estimation;
+
+		m_splits.push_back( { _parsing_infos.m_split_index, 1, _parsing_infos.m_total_time, _desc.m_played } );
+
+		_refresh_game_time();
+
+		if( Utils::is_time_valid( m_played ) )
+			++_parsing_infos.m_split_index;
+
+		_parsing_infos.m_total_time += m_played;
+
+		_compute_game_stats();
+	}
+
 	void Game::display()
 	{
 		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };

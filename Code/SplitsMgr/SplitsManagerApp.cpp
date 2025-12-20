@@ -20,7 +20,7 @@ namespace SplitsMgr
 	static constexpr uint32_t version_minor = 3;
 	static constexpr uint32_t version_feature = 1;
 	static constexpr uint32_t version_bugfix = 0;
-	static constexpr bool WIP_version = false;
+	static constexpr bool WIP_version = true;
 
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
@@ -94,7 +94,7 @@ namespace SplitsMgr
 		m_splits_mgr.display_right_panel();
 		ImGui::EndChild();
 
-		
+		m_creator.display_creation_popup();
 
 		ImGui::End();
 
@@ -124,12 +124,18 @@ namespace SplitsMgr
 			if( ImGui::BeginMenu( "File" ) )
 			{
 				const bool aio_invalid = m_aio_path.empty();
+				menu_item( "Create...", false, [&]() { _create_json(); } );
+				ImGui_fzn::simple_tooltip_on_hover( "Close current file and create a new one." );
+
 				menu_item( "Load...", false, [&]() { _load_json(); } );
 				menu_item( "Save", aio_invalid, [&]() { _save_json(); } );
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
-				
+
+				menu_item( "Save As...", aio_invalid, [&]() {} );
+
 				ImGui::Separator();
-				menu_item( "Reload files", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
+				menu_item( "Close", aio_invalid, [&]() {} );
+				menu_item( "Reload Json", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();
 				menu_item( "Options...", false, [&]() { m_options.show_window(); } );
@@ -225,5 +231,10 @@ namespace SplitsMgr
 		m_splits_mgr.write_json( root );
 
 		writer->write( root, &file );
+	}
+
+	void SplitsManagerApp::_create_json()
+	{
+		m_creator.show_creation_popup();
 	}
 }

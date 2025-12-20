@@ -250,6 +250,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="SplitsMgr\Game.cpp" />
+    <ClCompile Include="SplitsMgr\ListCreator.cpp" />
     <ClCompile Include="SplitsMgr\main.cpp" />
     <ClCompile Include="SplitsMgr\Options.cpp" />
     <ClCompile Include="SplitsMgr\SplitsManager.cpp" />
@@ -274,6 +275,7 @@
     <ClInclude Include="External\base64.hpp" />
     <ClInclude Include="SplitsMgr\Event.h" />
     <ClInclude Include="SplitsMgr\Game.h" />
+    <ClInclude Include="SplitsMgr\ListCreator.h" />
     <ClInclude Include="SplitsMgr\Options.h" />
     <ClInclude Include="SplitsMgr\SplitsManager.h" />
     <ClInclude Include="SplitsMgr\SplitsManagerApp.h" />

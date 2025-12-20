@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "ListCreator.h"
 #include "SplitsManager.h"
 #include "Options.h"
 
@@ -54,10 +55,13 @@ namespace SplitsMgr
 		**/
 		void _save_json();
 
+		void _create_json();
+
 		std::filesystem::path m_aio_path;
 
 		SplitsManager m_splits_mgr;
 		Options m_options;
+		ListCreator m_creator;
 	};
 }
 

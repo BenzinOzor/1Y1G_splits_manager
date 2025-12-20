@@ -20,6 +20,8 @@ class sf::Texture;
 
 namespace SplitsMgr
 {
+	class ListCreator;
+
 	struct Split
 	{
 		uint32_t m_split_index{ 0 };
@@ -42,6 +44,28 @@ namespace SplitsMgr
 			playing,	// Sessions have been added to the game but it's not the current one.
 			COUNT
 		};
+
+		/**
+		* @brief Small description of the game used when creating a new list.
+		**/
+		struct Desc
+		{
+			bool is_valid() const
+			{
+				if( m_name.empty() || Utils::is_time_valid( m_estimation ) == false )
+					return false;
+
+				return true;
+			}
+
+			std::string m_name;
+			SplitTime m_estimation{};
+			SplitTime m_played{};			// If there is a played time, a single split for the whole time will be created.
+			State m_state{ State::none };
+		};
+
+		Game() {}
+		Game( const Desc& _desc, Utils::ParsingInfos& _parsing_infos );
 
 		void display();
 		void on_event();
@@ -149,7 +173,6 @@ namespace SplitsMgr
 		void _display_game_stats_table( float _window_width );
 
 		std::string m_name;
-		std::string m_icon_desc;
 		SplitTime m_estimation{};
 		SplitTime m_delta{};
 		SplitTime m_played{};			// The timer for the game duration.
