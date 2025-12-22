@@ -212,6 +212,10 @@ namespace SplitsMgr
 
 	void Game::display_end_date_predition()
 	{
+		// If there is no valid begin date in the global stats, there won't be in the game either sor there is no need to go further.
+		if( Utils::is_date_valid( g_splits_app->get_splits_manager().get_stats().get_begin_date() ) == false )
+			return;
+
 		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };
 
 		ImGui::Separator();
@@ -456,6 +460,10 @@ namespace SplitsMgr
 		else
 		{
 			const auto& global_stats = g_splits_app->get_splits_manager().get_stats();
+
+			// If there is no valid begin date in the global stat, nothing will be able to be computed so there's no need continuing.
+			if( Utils::is_date_valid( global_stats.get_begin_date() ) == false )
+				return;
 
 			m_stats.m_avg_session_day = global_stats.get_avg_session_day();
 			m_stats.m_avg_session_played_day = global_stats.get_avg_session_played_day();

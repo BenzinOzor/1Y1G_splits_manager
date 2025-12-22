@@ -25,10 +25,11 @@ namespace SplitsMgr
 		float get_avg_sessions_days() const				{ return m_avg_sessions_days; }
 		SplitTime get_avg_session_played_day() const	{ return m_avg_session_played_day; }
 		SplitTime get_avg_session_day() const			{ return m_avg_session_day; }
+		SplitDate get_begin_date() const				{ return m_begin_date; }
+
+		void reset();
 
 	private:
-		void _reset();
-
 		// Displayed final variables
 		uint32_t	m_nb_sessions{ 0 };
 		float		m_avg_sessions{ 0.f };

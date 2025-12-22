@@ -29,11 +29,17 @@ namespace SplitsMgr
 		void display_right_panel();
 		void on_event();
 
+		/**
+		* @brief Clear current game list and stats.
+		*/
+		void close_game_list();
+
 		Game*			get_current_game() const		{ return m_current_game; }
 		uint32_t		get_nb_sessions() const			{ return m_nb_sessions; }
 		SplitTime		get_played() const				{ return m_played; }
 		SplitTime		get_remaining_time() const		{ return m_remaining_time; }
 		const Stats&	get_stats() const				{ return m_stats; }
+		bool			are_there_games() const			{ return m_games.size() > 0; }
 
 		/**
 		* @brief Open and read the Json file containing all games informations.

@@ -29,6 +29,7 @@ namespace SplitsMgr
 	{
 		g_splits_app = this;
 		g_pFZN_Core->AddCallback( this, &SplitsManagerApp::display, fzn::DataCallbackType::Display );
+		g_pFZN_Core->AddCallback( this, &SplitsManagerApp::on_event, fzn::DataCallbackType::Event );
 
 		_load_options();
 
@@ -40,6 +41,7 @@ namespace SplitsMgr
 	SplitsManagerApp::~SplitsManagerApp()
 	{
 		g_pFZN_Core->RemoveCallback( this, &SplitsManagerApp::display, fzn::DataCallbackType::Display );
+		g_pFZN_Core->RemoveCallback( this, &SplitsManagerApp::on_event, fzn::DataCallbackType::Event );
 	}
 
 	/**
@@ -102,6 +104,36 @@ namespace SplitsMgr
 		ImGui::PopStyleColor( 8 );
 	}
 
+	void SplitsManagerApp::on_event()
+	{
+		const fzn::Event& fzn_event = g_pFZN_Core->GetEvent();
+
+		if( fzn_event.m_eType != fzn::Event::eUserEvent || fzn_event.m_pUserData == nullptr )
+			return;
+
+		Event* split_event = static_cast<Event*>(fzn_event.m_pUserData);
+
+		if( split_event == nullptr )
+			return;
+
+		switch( split_event->m_type )
+		{
+			case Event::Type::game_list_generated:
+			{
+				close_game_list();
+				break;
+			}
+		};
+	}
+
+	/**
+	* @brief Clear current game list and all in one file path.
+	*/
+	void SplitsManagerApp::close_game_list()
+	{
+		m_aio_path.clear();
+	}
+
 	/**
 	* @brief Display the window menu bar.
 	**/
@@ -123,7 +155,8 @@ namespace SplitsMgr
 		{
 			if( ImGui::BeginMenu( "File" ) )
 			{
-				const bool aio_invalid = m_aio_path.empty();
+				const bool aio_invalid	= m_aio_path.empty();
+				const bool no_games		= m_splits_mgr.are_there_games() == false;
 				menu_item( "Create...", false, [&]() { _create_json(); } );
 				ImGui_fzn::simple_tooltip_on_hover( "Close current file and create a new one." );
 
@@ -131,10 +164,10 @@ namespace SplitsMgr
 				menu_item( "Save", aio_invalid, [&]() { _save_json(); } );
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
 
-				menu_item( "Save As...", aio_invalid, [&]() {} );
+				menu_item( "Save As...", no_games, [&]() {} );
 
 				ImGui::Separator();
-				menu_item( "Close", aio_invalid, [&]() {} );
+				menu_item( "Close", no_games, [&]() { close_game_list(); m_splits_mgr.close_game_list(); } );
 				menu_item( "Reload Json", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();

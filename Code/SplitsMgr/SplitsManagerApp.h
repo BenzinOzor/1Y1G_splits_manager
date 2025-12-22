@@ -25,6 +25,12 @@ namespace SplitsMgr
 		* @brief Display of the main ImGui interface.
 		**/
 		void display();
+		void on_event();
+
+		/**
+		* @brief Clear current game list and all in one file path.
+		*/
+		void close_game_list();
 
 		const SplitsManager&	get_splits_manager() const		{ return m_splits_mgr; }
 		const Options&			get_options() const				{ return m_options; }

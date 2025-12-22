@@ -167,7 +167,26 @@ namespace SplitsMgr
 				_update_run_stats();
 				break;
 			}
+			case Event::Type::game_list_generated:
+			{
+				close_game_list();
+				m_games = *split_event->m_game_event.m_games;
+				m_current_game = split_event->m_game_event.m_game;
+				_update_run_stats();
+				m_stats.refresh( m_games );
+				break;
+			}
 		};
+	}
+
+	/**
+	* @brief Clear current game list and stats.
+	*/
+	void SplitsManager::close_game_list()
+	{
+		m_games.clear();
+		m_stats.reset();
+		m_current_game = nullptr;
 	}
 
 	/**

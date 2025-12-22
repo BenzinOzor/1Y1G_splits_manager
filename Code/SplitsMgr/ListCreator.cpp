@@ -1,10 +1,12 @@
 #include <codecvt>
 
+#include <FZN/Managers/FazonCore.h>
 #include <FZN/Managers/WindowManager.h>
 #include <FZN/UI/ImGui.h>
 #include <FZN/Tools/Logging.h>
 
 #include "ListCreator.h"
+#include "Event.h"
 
 
 namespace SplitsMgr
@@ -13,6 +15,8 @@ namespace SplitsMgr
 	{
 		m_show_creation_popup = true;
 		m_copy_paste_options.fill( true );
+		m_games.clear();
+		m_game_list_source.clear();
 	}
 
 	void ListCreator::display_creation_popup()
@@ -50,9 +54,9 @@ namespace SplitsMgr
 
 				ImGui::Checkbox( "Merge year and game name", &m_merge_year_and_game );
 				ImGui::SameLine();
-				ImGui_fzn::helper_simple_tooltip( "Combine yar and game name to create a new name using this format: '<year> - <game name>'." );
+				ImGui_fzn::helper_simple_tooltip( "Combine year and game name to create a new name using this format: '<year> - <game name>'." );
 
-				if( ImGui::Button( "Generate Game List" ) )
+				if( ImGui_fzn::deactivable_button( "Generate Game List", m_game_list_source.empty() ) )
 					generate_game_list_from_copy_paste();
 
 				ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
@@ -66,7 +70,15 @@ namespace SplitsMgr
 
 				ImGui::PopStyleColor();
 
-				ImGui::Button( "Confirm" );
+				if( m_games.empty() == false && ImGui::Button( "Confirm" ) )
+				{
+					Event* game_event = new Event( Event::Type::game_list_generated );
+					game_event->m_game_event.m_games = &m_games;
+					game_event->m_game_event.m_game = m_current_game;
+
+					g_pFZN_Core->PushEvent( game_event );
+					m_show_creation_popup = false;
+				}
 
 				ImGui::EndPopup();
 			}
@@ -204,11 +216,13 @@ namespace SplitsMgr
 		FZN_LOG( "Selected options: %s", options.c_str() );
 
 		m_games.clear();
+		m_games.reserve( 100 );
 
 		size_t cursor{ 0 };
 		size_t end_of_line{ std::string::npos };
 		Utils::ParsingInfos parsing_infos{};
 		GameInfosMap elements;
+		m_current_game = nullptr;
 
 		while( cursor < m_game_list_source.size() )
 		{
@@ -230,11 +244,22 @@ namespace SplitsMgr
 			{
 				m_games.push_back( Game( game_desc, parsing_infos ) );
 
-				const Game& last_game{ m_games.back() };
+				Game& last_game{ m_games.back() };
 				FZN_LOG( "Game added: %s (%s) | %s / %s", last_game.get_name().c_str(), last_game.get_state_str(), Utils::time_to_str( last_game.get_played() ).c_str(), Utils::time_to_str( last_game.get_estimate() ).c_str() );
+
+				if( m_current_game == nullptr && last_game.get_state() == Game::State::playing )
+					m_current_game = &last_game;
 			}
 
 			cursor = end_of_line + 1;
+		}
+
+		if( m_current_game == nullptr && m_games.empty() == false )
+			m_current_game = &m_games.front();
+
+		if( m_current_game != nullptr )
+		{
+			m_current_game->set_state( Game::State::current );
 		}
 	}
 }

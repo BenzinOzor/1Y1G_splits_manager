@@ -16,39 +16,42 @@ namespace SplitsMgr
 
 		if( ImGui::BeginChild( "stats" ) )
 		{
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average sessions per game:", "%.2f", m_avg_sessions );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average sessions per played day:", "%.2f", m_avg_sessions_days );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average session time:", Utils::time_to_str( m_avg_session_time ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Most sessions:", "%s (%u)", m_game_most_sessions.m_string.c_str(), m_game_most_sessions.m_number );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Longest sessions (avg):", "%s (%s)", m_game_longest_sessions.m_string.c_str(), Utils::time_to_str( m_game_longest_sessions.m_time ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Single longest session:", "%s (%s)", m_game_longest_session.m_string.c_str(), Utils::time_to_str( m_game_longest_session.m_time ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Shortest sessions (avg):", "%s (%s)", m_game_shortest_sessions.m_string.c_str(), Utils::time_to_str( m_game_shortest_sessions.m_time ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Single shortest session:", "%s (%s)", m_game_shortest_session.m_string.c_str(), Utils::time_to_str( m_game_shortest_session.m_time ).c_str() );
-		
-		ImGui::Separator();
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Day with most sessions:", "%s (%u)", Utils::date_to_str( m_day_most_sessions.m_date, options.m_date_format ).c_str(), m_day_most_sessions.m_number );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Day with longest played time:", "%s (%s)", Utils::date_to_str( m_day_longest_played.m_date, options.m_date_format ).c_str(), Utils::time_to_str( m_day_longest_played.m_time ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Day with shortest played time:", "%s (%s)", Utils::date_to_str( m_day_shortest_played.m_date, options.m_date_format ).c_str(), Utils::time_to_str( m_day_shortest_played.m_time ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Game that took the most days:", "%s (%u)", m_game_most_days.m_string.c_str(), m_game_most_days.m_number );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Game that took the fewest days:", "%s (%u)", m_game_fewest_days.m_string.c_str(), m_game_fewest_days.m_number );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Number of sessions:", "%u", m_nb_sessions );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average sessions per game:", "%.2f", m_avg_sessions );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average sessions per played day:", "%.2f", m_avg_sessions_days );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average session time:", Utils::time_to_str( m_avg_session_time ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Most sessions:", "%s (%u)", m_game_most_sessions.m_string.c_str(), m_game_most_sessions.m_number );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Longest sessions (avg):", "%s (%s)", m_game_longest_sessions.m_string.c_str(), Utils::time_to_str( m_game_longest_sessions.m_time ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Single longest session:", "%s (%s)", m_game_longest_session.m_string.c_str(), Utils::time_to_str( m_game_longest_session.m_time ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Shortest sessions (avg):", "%s (%s)", m_game_shortest_sessions.m_string.c_str(), Utils::time_to_str( m_game_shortest_sessions.m_time ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Single shortest session:", "%s (%s)", m_game_shortest_session.m_string.c_str(), Utils::time_to_str( m_game_shortest_session.m_time ).c_str() );
 
-		ImGui::Separator();
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "First session:", "%s", Utils::date_to_str( m_begin_date, options.m_date_format ).c_str() );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time by day:", "%s (%u day(s))", Utils::time_to_str( m_avg_session_played_day ).c_str(), m_played_days );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time since beginning:", "%s (%u day(s))", Utils::time_to_str( m_avg_session_day ).c_str(), m_days_since_start );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Remaining:", "%u day(s) | %u played day(s) | %u session(s)", m_remaining_days, m_remaining_played_days, m_remaining_sessions );
-		ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Estimated last day:", "%s", Utils::date_to_str( m_end_date, options.m_date_format ).c_str() );
+			if( Utils::is_date_valid( m_begin_date ) )
+			{
+				ImGui::Separator();
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Day with most sessions:", "%s (%u)", Utils::date_to_str( m_day_most_sessions.m_date, options.m_date_format ).c_str(), m_day_most_sessions.m_number );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Day with longest played time:", "%s (%s)", Utils::date_to_str( m_day_longest_played.m_date, options.m_date_format ).c_str(), Utils::time_to_str( m_day_longest_played.m_time ).c_str() );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Day with shortest played time:", "%s (%s)", Utils::date_to_str( m_day_shortest_played.m_date, options.m_date_format ).c_str(), Utils::time_to_str( m_day_shortest_played.m_time ).c_str() );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Game that took the most days:", "%s (%u)", m_game_most_days.m_string.c_str(), m_game_most_days.m_number );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Game that took the fewest days:", "%s (%u)", m_game_fewest_days.m_string.c_str(), m_game_fewest_days.m_number );
 
-		ImGui::Spacing();
-		ImGui::EndChild();
+				ImGui::Separator();
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "First session:", "%s", Utils::date_to_str( m_begin_date, options.m_date_format ).c_str() );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time by day:", "%s (%u day(s))", Utils::time_to_str( m_avg_session_played_day ).c_str(), m_played_days );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time since beginning:", "%s (%u day(s))", Utils::time_to_str( m_avg_session_day ).c_str(), m_days_since_start );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Remaining:", "%u day(s) | %u played day(s) | %u session(s)", m_remaining_days, m_remaining_played_days, m_remaining_sessions );
+				ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Estimated last day:", "%s", Utils::date_to_str( m_end_date, options.m_date_format ).c_str() );
+			}
+
+			ImGui::Spacing();
+			ImGui::EndChild();
 		}
 	}
 
 	void Stats::refresh( const Games& _games )
 	{
 		FZN_DBLOG( "Refreshing stats..." );
-		_reset();
+		reset();
 
 		const SplitTime played{ g_splits_app->get_splits_manager().get_played() };
 		const SplitTime remaining_time{ g_splits_app->get_splits_manager().get_remaining_time() };
@@ -199,7 +202,7 @@ namespace SplitsMgr
 		m_end_date = Utils::add_days_to_date( Utils::today(), m_remaining_days );
 	}
 
-	void Stats::_reset()
+	void Stats::reset()
 	{
 		m_nb_sessions				= 0;
 		m_avg_sessions				= 0.f;

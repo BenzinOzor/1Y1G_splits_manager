@@ -49,5 +49,6 @@ namespace SplitsMgr
 		std::array< bool, CopyPasteField::COUNT > m_copy_paste_options;
 
 		Games m_games;
+		Game* m_current_game{ nullptr };
 	};
 }
