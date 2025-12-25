@@ -60,6 +60,7 @@ namespace SplitsMgr
 		* @brief Save current games informations to the previously loaded json file.
 		**/
 		void _save_json();
+		void _save_json_as();
 
 		void _create_json();
 

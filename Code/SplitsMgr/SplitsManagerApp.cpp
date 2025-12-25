@@ -16,9 +16,9 @@ SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
 
 namespace SplitsMgr
 {
-	static constexpr uint32_t version_major = 2;
-	static constexpr uint32_t version_minor = 3;
-	static constexpr uint32_t version_feature = 1;
+	static constexpr uint32_t version_major = 3;
+	static constexpr uint32_t version_minor = 0;
+	static constexpr uint32_t version_feature = 0;
 	static constexpr uint32_t version_bugfix = 0;
 	static constexpr bool WIP_version = true;
 
@@ -34,7 +34,10 @@ namespace SplitsMgr
 		_load_options();
 
 		if( m_aio_path.empty() == false )
-			m_splits_mgr.read_json( m_aio_path.string() );
+		{
+			if( m_splits_mgr.read_json( m_aio_path.string() ) == false )
+				m_aio_path.clear();
+		}
 
 	}
 
@@ -164,10 +167,10 @@ namespace SplitsMgr
 				menu_item( "Save", aio_invalid, [&]() { _save_json(); } );
 				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
 
-				menu_item( "Save As...", no_games, [&]() {} );
+				menu_item( "Save As...", no_games, [&]() { _save_json_as(); } );
 
 				ImGui::Separator();
-				menu_item( "Close", no_games, [&]() { close_game_list(); m_splits_mgr.close_game_list(); } );
+				menu_item( "Close Game List", no_games, [&]() { close_game_list(); m_splits_mgr.close_game_list(); } );
 				menu_item( "Reload Json", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();
@@ -237,6 +240,8 @@ namespace SplitsMgr
 		open_file_name.nMaxFile = sizeof( file );
 		open_file_name.lpstrFileTitle = NULL;
 		open_file_name.nMaxFileTitle = 0;
+		open_file_name.lpstrFilter =	"(*.json) 1A1J Games List\0*.json\0"
+										"(*.*) All files \0*.*\0";
 		GetOpenFileName( &open_file_name );
 
 		if( open_file_name.lpstrFile[ 0 ] != '\0' )
@@ -264,6 +269,36 @@ namespace SplitsMgr
 		m_splits_mgr.write_json( root );
 
 		writer->write( root, &file );
+	}
+
+	void SplitsManagerApp::_save_json_as()
+	{
+		char file[100];
+		OPENFILENAME open_file_name;
+		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+
+		open_file_name.lStructSize = sizeof( open_file_name );
+		open_file_name.hwndOwner = NULL;
+		open_file_name.lpstrFile = file;
+		open_file_name.lpstrFile[0] = '\0';
+		open_file_name.nMaxFile = sizeof( file );
+		open_file_name.lpstrFileTitle = NULL;
+		open_file_name.nMaxFileTitle = 0;
+		open_file_name.lpstrFilter =	"(*.json) 1A1J Games List\0*.json\0"
+										"(*.*) All files \0*.*\0";
+		GetSaveFileName( &open_file_name );
+
+		if( open_file_name.lpstrFile[0] != '\0' )
+		{
+			m_aio_path = open_file_name.lpstrFile;
+
+			size_t last_slash = m_aio_path.string().find_last_of( '\\' );
+			if( last_slash != std::string::npos && m_aio_path.string().find( '.', last_slash ) == std::string::npos )
+				m_aio_path = m_aio_path.string() + ".json";
+
+			_save_options();
+			_save_json();
+		}
 	}
 
 	void SplitsManagerApp::_create_json()

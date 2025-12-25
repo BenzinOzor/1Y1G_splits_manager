@@ -44,8 +44,9 @@ namespace SplitsMgr
 		/**
 		* @brief Open and read the Json file containing all games informations.
 		* @param _path The path to the Json file.
+		* @return True if the file has been open and loaded, false otherwise.
 		**/
-		void read_json( std::string_view _path );
+		bool read_json( std::string_view _path );
 		/**
 		* @brief Write games informations in the given Json root.
 		* @param [in out] _root The Json root that will hold all the games informations

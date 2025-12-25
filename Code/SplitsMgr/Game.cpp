@@ -542,14 +542,13 @@ namespace SplitsMgr
 
 		if( are_sessions_over() == false && m_splits.empty() )
 		{
-			m_state = State::none;
 			m_splits.push_back( { _parsing_infos.m_split_index, 1, _parsing_infos.m_total_time } );
 		}
 
 		const SplitTime tmp_delta{ m_played - m_estimation };
 
 		// Update the delta if the game is finished, or the estimate has been exceeded.
-		if( m_state == State::finished || m_state != State::none && tmp_delta > std::chrono::seconds{ 0 } )
+		if( m_state == State::finished || has_sessions() && tmp_delta > std::chrono::seconds{ 0 } )
 			m_delta = tmp_delta;
 
 		if( has_sessions() )
@@ -784,7 +783,7 @@ namespace SplitsMgr
 
 	void Game::_right_click( State _state )
 	{
-		if( ImGui::BeginPopupContextItem("bjr") )
+		if( ImGui::BeginPopupContextItem( "game_ricght_click" ) )
 		{
 			_pop_state_colors( _state );
 

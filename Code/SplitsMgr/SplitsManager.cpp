@@ -192,13 +192,17 @@ namespace SplitsMgr
 	/**
 	* @brief Open and read the Json file containing all games informations.
 	* @param _path The path to the Json file.
+	* @return True if the file has been open and loaded, false otherwise.
 	**/
-	void SplitsManager::read_json( std::string_view _path )
+	bool SplitsManager::read_json( std::string_view _path )
 	{
 		auto file = std::ifstream{ _path.data() };
 
 		if( file.is_open() == false )
-			return;
+		{
+			FZN_LOG( "Couldn't open file: %s", _path.data() );
+			return false;
+		}
 
 		auto root = Json::Value{};
 		file >> root;
@@ -232,6 +236,8 @@ namespace SplitsMgr
 		m_played = parsing_infos.m_total_time;
 
 		_update_run_stats();
+
+		return true;
 	}
 
 	/**
