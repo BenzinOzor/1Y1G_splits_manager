@@ -18,7 +18,7 @@ namespace SplitsMgr
 {
 	static constexpr uint32_t version_major = 3;
 	static constexpr uint32_t version_minor = 0;
-	static constexpr uint32_t version_feature = 0;
+	static constexpr uint32_t version_feature = 2;
 	static constexpr uint32_t version_bugfix = 0;
 	static constexpr bool WIP_version = true;
 
@@ -52,6 +52,7 @@ namespace SplitsMgr
 	**/
 	void SplitsManagerApp::display()
 	{
+		_handle_actions();
 		const auto window_size = g_pFZN_WindowMgr->GetWindowSize();
 
 		ImGui::SetNextWindowPos( { 0.f, 0.f } );
@@ -187,6 +188,18 @@ namespace SplitsMgr
 			ImGui::TextColored( ImGui_fzn::color::light_gray, version.c_str() );
 
 			ImGui::EndMainMenuBar();
+		}
+	}
+
+	void SplitsManagerApp::_handle_actions()
+	{
+		if( m_aio_path.empty() == false && g_pFZN_InputMgr->IsActionPressed( "Save" ) )
+		{
+			_save_json();
+		}
+		else if( m_splits_mgr.are_there_games() && g_pFZN_InputMgr->IsActionPressed( "Save As" ) )
+		{
+			_save_json_as();
 		}
 	}
 

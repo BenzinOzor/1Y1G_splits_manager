@@ -1,0 +1,40 @@
+{
+	"available_languages" : ["english","french","spanish"],
+	"entries" :
+	[
+		{
+			"name" : "yes",
+			"translations":
+			[
+				["english","yes"],
+				["french","oui"],
+				["spanish","si"]
+			]
+		},
+		{
+			"name" : "no",
+			"translations":
+			[
+				["english","no"],
+				["spanish","no"]
+			]
+		},
+		{
+			"name" : "long_sentense",
+			"translations":
+			[
+				["english","This is an example of long sentense to see how well it would fit in the json file."],
+				["french","Ceci est un exemple de longue phrase pour voir si elle s'intègre bien dans le fichier json."],
+				["spanish","Este es un ejemplo de una oración larga para ver qué tan bien encajaría en el archivo json."]
+			]
+		},
+		{
+			"name" : "some_example",
+			"translations":
+			[
+				["english","Hello World!"],
+				["spanish","¡Hola Mundo!"]
+			]
+		}
+	]
+}

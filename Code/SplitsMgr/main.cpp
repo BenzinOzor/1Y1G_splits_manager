@@ -7,6 +7,7 @@
 #include <FZN/Includes.h>
 #include <FZN/Managers/DataManager.h>
 #include <FZN/Managers/WindowManager.h>
+#include <FZN/Managers/LocalisationManager.h>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
@@ -28,7 +29,7 @@ int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 	g_pFZN_Core->SetConsolePosition( sf::Vector2i( 10, 10 ) );
 
 	//Loading of the resources that don't belong in a resource group and filling of the map containing the paths to the resources)
-	g_pFZN_DataMgr->LoadResourceFile( DATAPATH( "XMLFiles/Resources" ) );
+	g_pFZN_DataMgr->LoadResourceFile( DATAPATH( "Files/Resources" ) );
 
 	g_pFZN_WindowMgr->AddWindow( 900, 830, sf::Style::Close | sf::Style::Resize, g_pFZN_Core->GetProjectName().c_str() );
 	g_pFZN_WindowMgr->SetWindowFramerate(60);

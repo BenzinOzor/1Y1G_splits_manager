@@ -259,11 +259,14 @@
     <ClCompile Include="SplitsMgr\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Data\Files\Localisation.json" />
+    <None Include="..\Data\Files\Resources" />
     <None Include="..\Data\XMLFiles\Resources">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="..\Data\Files\actionKeys.xml" />
     <Xml Include="..\Data\XMLFiles\actionKeys.xml">
       <SubType>Designer</SubType>
     </Xml>

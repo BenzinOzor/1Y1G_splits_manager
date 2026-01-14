@@ -43,6 +43,8 @@ namespace SplitsMgr
 		**/
 		void _display_menu_bar();
 
+		void _handle_actions();
+
 		/**
 		* @brief Read the saved options file in the Fazon Apps folder.
 		**/

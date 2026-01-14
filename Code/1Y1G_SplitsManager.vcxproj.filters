@@ -42,9 +42,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Data\XMLFiles\Resources" />
+    <None Include="..\Data\Files\Localisation.json" />
+    <None Include="..\Data\Files\Resources" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\Data\XMLFiles\actionKeys.xml" />
+    <Xml Include="..\Data\Files\actionKeys.xml" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Data\res.rc">

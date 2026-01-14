@@ -1,11 +1,14 @@
 <Actions>
 	<Action Name="Start / Split">
-		 <Input Type="Keyboard" Map="Space"/>
+		<Input Type="Keyboard" Map="Space"/>
 	</Action>
 	<Action Name="Pause">
 		<Input Type="Keyboard" Map="P"/>
 	</Action>
 	<Action Name="Stop">
 		<Input Type="Keyboard" Map="S"/>
+	</Action>
+	<Action Name="Save">
+		<Input Type="Keyboard" Map="LControl + S"/>
 	</Action>
 </Actions>

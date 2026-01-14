@@ -579,6 +579,9 @@ namespace SplitsMgr
 		if( m_chrono.is_paused() )
 		{
 			m_chrono.toggle_pause();
+
+			if( m_current_game != nullptr )
+				g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s - Running...", m_current_game->get_name().c_str() ) );
 		}
 		else
 		{
@@ -589,11 +592,17 @@ namespace SplitsMgr
 	void SplitsManager::_toggle_pause()
 	{
 		m_chrono.toggle_pause();
+
+		if( m_current_game != nullptr )
+			g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s - %s", m_current_game->get_name().c_str(), m_chrono.is_paused() ? "Paused" : "Running..." ) );
 	}
 
 	void SplitsManager::_stop()
 	{
 		m_chrono.stop();
+
+		if( m_current_game != nullptr )
+			g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s", m_current_game->get_name().c_str() ) );
 	}
 
 }
