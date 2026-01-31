@@ -413,9 +413,6 @@ namespace SplitsMgr
 			++split.m_split_index;
 			split.m_run_time += _delta_to_add;
 		}
-
-		if( m_state != State::none )
-			m_played += m_delta;
 	}
 
 	/**

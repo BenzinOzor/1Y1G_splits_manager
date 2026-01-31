@@ -193,9 +193,16 @@ namespace SplitsMgr
 
 	void SplitsManagerApp::_handle_actions()
 	{
-		if( m_aio_path.empty() == false && g_pFZN_InputMgr->IsActionPressed( "Save" ) )
+		if( m_aio_path.empty() == false )
 		{
-			_save_json();
+			if( g_pFZN_InputMgr->IsActionPressed( "Save" ) )
+			{
+				_save_json();
+			}
+			else if( g_pFZN_InputMgr->IsActionPressed( "Reload json" ) )
+			{
+				m_splits_mgr.read_json( m_aio_path.generic_string().c_str() );
+			}
 		}
 		else if( m_splits_mgr.are_there_games() && g_pFZN_InputMgr->IsActionPressed( "Save As" ) )
 		{
