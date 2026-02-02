@@ -127,9 +127,18 @@ namespace SplitsMgr
 
 		SplitDate today()
 		{
-			const std::chrono::time_point now{ std::chrono::system_clock::now() };
+			auto tp = std::chrono::zoned_time{ std::chrono::current_zone(), std::chrono::system_clock::now() }.get_local_time();
+			auto dp = floor<std::chrono::days>( tp );
 			
-			return std::chrono::floor< std::chrono::days >( now );
+			return std::chrono::year_month_day{ dp };
+		}
+
+		std::chrono::seconds now_seconds()
+		{
+			std::chrono::zoned_time current_time{ std::chrono::current_zone(), floor<std::chrono::seconds>( std::chrono::system_clock::now() ) };
+			std::chrono::local_seconds local_time = current_time.get_local_time();
+
+			return local_time - floor<std::chrono::days>( local_time );
 		}
 
 		std::string get_cover_data( std::string_view _cover_path )
@@ -189,6 +198,13 @@ namespace SplitsMgr
 			std::chrono::system_clock::time_point tp_day_2 = std::chrono::time_point<std::chrono::system_clock, std::chrono::days>( std::chrono::sys_days{ _start_day } );
 			
 			return std::chrono::floor< std::chrono::days >( tp_day_2 + std::chrono::days{ _nb_days } );
+		}
+
+		SplitDate remove_days_to_date( const SplitDate& _start_day, uint32_t _nb_days )
+		{
+			std::chrono::system_clock::time_point tp_day_2 = std::chrono::time_point<std::chrono::system_clock, std::chrono::days>( std::chrono::sys_days{ _start_day } );
+
+			return std::chrono::floor< std::chrono::days >( tp_day_2 - std::chrono::days{ _nb_days } );
 		}
 	}
 }

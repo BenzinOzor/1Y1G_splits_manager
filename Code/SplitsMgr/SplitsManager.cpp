@@ -1,5 +1,7 @@
 #include <format>
 
+#include <chrono>
+
 #include <SFML/Graphics/Texture.hpp>
 
 #include <Externals/json/json.h>
@@ -272,7 +274,12 @@ namespace SplitsMgr
 		if( Utils::is_time_valid( segment_time ) == false )
 			return;
 
-		m_current_game->add_session( segment_time, Utils::today(), _state );
+		const std::chrono::seconds segment_time_sec{ floor< std::chrono::seconds >( segment_time ) };
+		const std::chrono::seconds local_time_sec{ Utils::now_seconds() };
+		const std::chrono::seconds half_segment_time_sec{ static_cast< int >( ceil( segment_time_sec.count() * 0.5f ) ) };
+
+		// We check what proportion of the segment is in today or yesterday. If the segment is 2hrs and it is 0h05, 1h55 would be played the day before, so it will be the day atributed to the session.
+		m_current_game->add_session( segment_time, local_time_sec > half_segment_time_sec ? Utils::today() : Utils::remove_days_to_date( Utils::today(), 1 ), _state );
 
 		if( m_current_game->are_sessions_over() )
 			m_finished_game = m_current_game;

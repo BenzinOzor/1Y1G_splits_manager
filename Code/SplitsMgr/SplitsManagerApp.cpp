@@ -18,7 +18,7 @@ namespace SplitsMgr
 {
 	static constexpr uint32_t version_major = 3;
 	static constexpr uint32_t version_minor = 0;
-	static constexpr uint32_t version_feature = 2;
+	static constexpr uint32_t version_feature = 3;
 	static constexpr uint32_t version_bugfix = 0;
 	static constexpr bool WIP_version = true;
 
@@ -166,7 +166,7 @@ namespace SplitsMgr
 
 				menu_item( "Load...", false, [&]() { _load_json(); } );
 				menu_item( "Save", aio_invalid, [&]() { _save_json(); } );
-				ImGui_fzn::simple_tooltip_on_hover( fzn::Tools::Sprintf( "Loaded file path: %s", m_aio_path.string().c_str() ) );
+				ImGui_fzn::simple_tooltip_on_hover( "Loaded file path: %s", m_aio_path.string().c_str() );
 
 				menu_item( "Save As...", no_games, [&]() { _save_json_as(); } );
 

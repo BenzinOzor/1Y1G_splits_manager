@@ -69,8 +69,10 @@ namespace SplitsMgr
 		bool is_time_valid( const SplitTime& _time );
 		bool is_date_valid( const SplitDate& _date );
 		SplitDate today();
+		std::chrono::seconds now_seconds();
 		uint32_t days_between_dates( const SplitDate& _day_1, const SplitDate& _day_2 );
 		SplitDate add_days_to_date( const SplitDate& _start_day, uint32_t _nb_days );
+		SplitDate remove_days_to_date( const SplitDate& _start_day, uint32_t _nb_days );
 
 		std::string get_cover_data( std::string_view _cover_path );
 

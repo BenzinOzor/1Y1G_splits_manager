@@ -780,7 +780,7 @@ namespace SplitsMgr
 
 	void Game::_right_click( State _state )
 	{
-		if( ImGui::BeginPopupContextItem( "game_ricght_click" ) )
+		if( ImGui::BeginPopupContextItem( "game_right_click" ) )
 		{
 			_pop_state_colors( _state );
 
