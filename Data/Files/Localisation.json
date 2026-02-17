@@ -1,40 +1,44 @@
 {
-	"available_languages" : ["english","french","spanish"],
-	"entries" :
-	[
-		{
-			"name" : "yes",
-			"translations":
-			[
-				["english","yes"],
-				["french","oui"],
-				["spanish","si"]
-			]
-		},
-		{
-			"name" : "no",
-			"translations":
-			[
-				["english","no"],
-				["spanish","no"]
-			]
-		},
-		{
-			"name" : "long_sentense",
-			"translations":
-			[
-				["english","This is an example of long sentense to see how well it would fit in the json file."],
-				["french","Ceci est un exemple de longue phrase pour voir si elle s'intègre bien dans le fichier json."],
-				["spanish","Este es un ejemplo de una oración larga para ver qué tan bien encajaría en el archivo json."]
-			]
-		},
-		{
-			"name" : "some_example",
-			"translations":
-			[
-				["english","Hello World!"],
-				["spanish","¡Hola Mundo!"]
-			]
-		}
-	]
+   "available_languages" : [ "english", "french", "spanish" ],
+   "entries" : [
+      {
+         "name" : "yes",
+         "translations" : [
+            [ "english", "yes" ],
+            [ "french", "oui" ],
+            [ "spanish", "si" ]
+         ]
+      },
+      {
+         "name" : "no",
+         "translations" : [
+            [ "english", "no" ],
+            [ "spanish", "no" ]
+         ]
+      },
+      {
+         "name" : "long_sentense",
+         "translations" : [
+            [
+               "english",
+               "This is an example of long sentense to see how well it would fit in the json file."
+            ],
+            [
+               "french",
+               "Ceci est un exemple de longue phrase pour voir si elle s'int\u00e8gre bien dans le fichier json."
+            ],
+            [
+               "spanish",
+               "Este es un ejemplo de una oraci\u00f3n larga para ver qu\u00e9 tan bien encajar\u00eda en el archivo json."
+            ]
+         ]
+      },
+      {
+         "name" : "some_example",
+         "translations" : [
+            [ "english", "Hello World!" ],
+            [ "spanish", "\u00a1Hola Mundo!" ]
+         ]
+      }
+   ]
 }

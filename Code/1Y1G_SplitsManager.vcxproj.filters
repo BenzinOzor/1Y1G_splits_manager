@@ -41,12 +41,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Data\XMLFiles\Resources" />
     <None Include="..\Data\Files\Localisation.json" />
     <None Include="..\Data\Files\Resources" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\Data\XMLFiles\actionKeys.xml" />
     <Xml Include="..\Data\Files\actionKeys.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SplitsMgr\ListCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitsMgr\localisation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -261,15 +261,9 @@
   <ItemGroup>
     <None Include="..\Data\Files\Localisation.json" />
     <None Include="..\Data\Files\Resources" />
-    <None Include="..\Data\XMLFiles\Resources">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\Data\Files\actionKeys.xml" />
-    <Xml Include="..\Data\XMLFiles\actionKeys.xml">
-      <SubType>Designer</SubType>
-    </Xml>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Data\res.rc" />
@@ -279,6 +273,7 @@
     <ClInclude Include="SplitsMgr\Event.h" />
     <ClInclude Include="SplitsMgr\Game.h" />
     <ClInclude Include="SplitsMgr\ListCreator.h" />
+    <ClInclude Include="SplitsMgr\localisation.h" />
     <ClInclude Include="SplitsMgr\Options.h" />
     <ClInclude Include="SplitsMgr\SplitsManager.h" />
     <ClInclude Include="SplitsMgr\SplitsManagerApp.h" />
