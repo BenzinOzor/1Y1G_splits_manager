@@ -10,7 +10,7 @@ namespace SplitsMgr
 {
 	void Stats::display()
 	{
-		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };
+		const Options::Data& options{ g_splits_app->get_options().get_options_datas() };
 
 		ImGui::SeparatorText( "Stats" );
 

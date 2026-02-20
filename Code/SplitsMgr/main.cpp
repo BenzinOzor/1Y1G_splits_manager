@@ -18,6 +18,7 @@ int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 {
 	fzn::FazonCore::ProjectDesc desc{ "1Y1G Splits Manager", FZNProjectType::Application };
 	fzn::Tools::MaskRaiseFlag( desc.m_uModules, fzn::FazonCore::CoreModuleFlags_InputModule );
+	fzn::Tools::MaskRaiseFlag( desc.m_uModules, fzn::FazonCore::CoreModuleFlags_LocalisationModule );
 
 	fzn::FazonCore::CreateInstance( desc );
 
@@ -30,6 +31,8 @@ int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 
 	//Loading of the resources that don't belong in a resource group and filling of the map containing the paths to the resources)
 	g_pFZN_DataMgr->LoadResourceFile( DATAPATH( "Files/Resources" ) );
+	g_pFZN_InputMgr->load_default_action_keys_from_xml( DATAPATH( "Files/ActionKeys.xml" ) );
+	g_pFZN_LocMgr->load_entries( DATAPATH( "Files/Localisation.json" ) );
 
 	g_pFZN_WindowMgr->AddWindow( 900, 830, sf::Style::Close | sf::Style::Resize, g_pFZN_Core->GetProjectName().c_str() );
 	g_pFZN_WindowMgr->SetWindowFramerate(60);

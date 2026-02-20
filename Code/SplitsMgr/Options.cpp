@@ -4,28 +4,41 @@
 #include <Externals/json/json.h>
 
 #include <FZN/Managers/FazonCore.h>
+#include <FZN/Managers/LocalisationManager.h>
 #include <FZN/UI/ImGui.h>
 
 #include "Options.h"
+#include "localisation.h"
 #include "Utils.h"
 
 
 namespace SplitsMgr
 {
-	Options::Options()
+	Options::Options():
+		AppOptions()
 	{
 		g_pFZN_Core->AddCallback( this, &Options::on_event, fzn::DataCallbackType::Event );
+
+		m_data.m_languages.resize( static_cast< int >( Language::COUNT ) );
+		m_data.m_languages[ static_cast< int >( Language::english ) ] = g_pFZN_LocMgr->get_string( LocID::english, Language::english );
+		m_data.m_languages[ static_cast< int >( Language::french ) ] = g_pFZN_LocMgr->get_string( LocID::french, Language::french );
 
 		_load_options();
 	}
 
-	void Options::show_window()
+	Options::~Options()
 	{
-		m_show_window = true;
-		m_temp_options_datas = m_options_datas;
-		m_need_save = false;
+		g_pFZN_Core->RemoveCallback( this, &Options::on_event, fzn::DataCallbackType::Event );
+	}
 
-		g_pFZN_InputMgr->BackupActionKeys();
+	/**
+	* @brief Prepare the option window to be displayed. Setup its first state.
+	**/
+	void Options::open_options()
+	{
+		AppOptions::open_options();
+
+		m_data_backup = m_data;
 	}
 
 	static std::string date_format_to_string( Options::DateFormat _format )
@@ -42,250 +55,128 @@ namespace SplitsMgr
 		};
 	}
 
-	void Options::update()
+	/**
+	* @brief Main display function for custom options data. Called by display().
+	**/
+	void Options::_display_custom_options()
 	{
-		if( m_show_window == false )
-			return;
+		static const SplitDate dummy_date = Utils::today();
 
-		auto second_column_widget = [&]( bool _widget_edited ) -> bool
+		if( _begin_option_table() )
 		{
-			if( _widget_edited )
-				m_need_save = true;
-
-			return _widget_edited;
-		};
-
-		ImGui::SetNextWindowSize( { 400.f, 0.f } );
-
-		if( ImGui::Begin( "Options", nullptr, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse ) )
-		{
-			const float column_width = ImGui::GetContentRegionAvail().x * 0.45f;
-			static const SplitDate dummy_date = Utils::get_date_from_string( "2025-08-06" );
-
-			if( _begin_option_table( column_width ) )
-			{
-				_first_column_text( "Global keybinds" );
-				if( second_column_widget( ImGui::Checkbox( "##GlobalKeybinds", &m_options_datas.m_global_keybinds ) ) )
-					g_pFZN_InputMgr->SetInputSystem( m_options_datas.m_global_keybinds ? fzn::InputManager::ScanSystem : fzn::InputManager::EventSystem );
-
-				ImGui::SameLine();
-				ImGui_fzn::helper_simple_tooltip( "If activated, the window doesn't need to be in focus to detect keybinds." );
-
-				ImGui::TableNextRow();
-				_first_column_text( "Date format" );
-				if( ImGui::BeginCombo( "##DateFormat", date_format_to_string( m_options_datas.m_date_format ).c_str() ) )
+			_first_column_label( g_pFZN_LocMgr->get_string( LocID::language ) );
+			_second_column_widget( [ & ]() -> bool
 				{
-					for( uint32_t format{ 0 }; format < Options::DateFormat::COUNT; ++format )
+					if( ImGui::BeginCombo( "##LanguageCombo", m_data.m_languages[ g_pFZN_LocMgr->get_current_language_id() ].c_str() ) )
 					{
-						auto enum_format = static_cast<Options::DateFormat>( format );
-						if( ImGui::Selectable( date_format_to_string( enum_format ).c_str(), format == m_options_datas.m_date_format ) )
+						for( uint32_t language{ 0 }; language < static_cast< int >( Language::COUNT ); ++language )
 						{
-							m_options_datas.m_date_format = enum_format;
-							m_need_save = true;
+							if( ImGui::Selectable( m_data.m_languages[ language ].c_str(), language == g_pFZN_LocMgr->get_current_language_id() ) )
+							{
+								g_pFZN_LocMgr->set_current_language( language );
+								m_edited = true;
+							}
 						}
 
-						if( ImGui::IsItemHovered() )
-							ImGui::SetTooltip( Utils::date_to_str( dummy_date, enum_format ).c_str() );
+						ImGui::EndCombo();
 					}
 
-					ImGui::EndCombo();
-				}
+					return m_edited;
+				} );
 
-				ImGui::EndTable();
-			}
-
-			_draw_keybinds( column_width );
-
-			Utils::window_bottom_table( 2, [&]()
-			{
-				if( ImGui_fzn::deactivable_button( "Apply", m_need_save == false, false, DefaultWidgetSize ) )
+			_first_column_label( "Global keybinds", "If activated, the window doesn't need to be in focus to detect keybinds." );
+			_second_column_widget( [ & ]() -> bool
 				{
-					m_show_window = false;
-					_save_options();
-				}
+					bool ret = ImGui::Checkbox( "##GlobalKeybinds", &m_data.m_global_keybinds );
 
-				ImGui::TableSetColumnIndex( 2 );
-				if( ImGui::Button( "Cancel", DefaultWidgetSize ) )
+					if( ret )
+						g_pFZN_InputMgr->SetInputSystem( m_data.m_global_keybinds ? fzn::InputManager::ScanSystem : fzn::InputManager::EventSystem );
+
+					return ret;
+				} );
+
+			_first_column_label( "Date format" );
+			_second_column_widget( [ & ]() -> bool
 				{
-					m_show_window = false;
-					m_options_datas = m_temp_options_datas;
-					g_pFZN_InputMgr->RestoreBackupActionKeys();
-				}
-			} );
-		}
-
-		ImGui::End();
-	}
-
-	void Options::on_event()
-	{
-		sf::Event sf_event = g_pFZN_WindowMgr->GetWindowEvent();
-
-		switch( sf_event.type )
-		{
-			case sf::Event::Closed:
-			{
-				_save_options();
-				return;
-			};
-			case sf::Event::Resized:
-			{
-				m_options_datas.m_window_size = g_pFZN_WindowMgr->GetWindowSize();
-			};
-		};
-
-		fzn::Event oEvent = g_pFZN_Core->GetEvent();
-
-		if( oEvent.m_eType == fzn::Event::eActionKeyBindDone )
-			m_need_save = true;
-	}
-
-	void Options::_draw_keybinds( float _column_width )
-	{
-		const bool popup_open{ g_pFZN_InputMgr->IsWaitingActionKeyBind() };
-		std::string_view replaced_binding_name{};
-		static std::string popup_name{};
-		ImGui::SeparatorText( "Keybinds" );
-
-		if( ImGui::BeginTable( "Keybinds", 3 ) )
-		{
-			ImGui::TableSetupColumn( "##Action", ImGuiTableColumnFlags_WidthFixed, _column_width );
-			ImGui::TableSetupColumn( "##Bind", ImGuiTableColumnFlags_WidthStretch );
-			ImGui::TableSetupColumn( "##Del.", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize( "Del." ).x + ImGui::GetStyle().FramePadding.x + ImGui::GetStyle().ItemSpacing.x );
-
-			for( const fzn::ActionKey& action_key : g_pFZN_InputMgr->GetActionKeys() )
-			{
-
-				ImGui::PushID( &action_key );
-				ImGui::TableNextRow();
-				_first_column_text( action_key.m_sName.c_str() );
-
-				if( ImGui::Button( g_pFZN_InputMgr->GetActionKeyString( action_key.m_sName, true, 0, false ).c_str(), { ImGui::GetContentRegionAvail().x, 0.f } ) )
-				{
-					g_pFZN_InputMgr->replace_action_key_bind( action_key.m_sName, fzn::InputManager::BindTypeFlag_All, 0 );
-					replaced_binding_name = action_key.m_sName;
-				}
-
-				if( ImGui::IsItemHovered() )
-					ImGui::SetTooltip( "Replace" );
-
-				ImGui::TableNextColumn();
-				if( ImGui::Button( "Del.", { ImGui::GetContentRegionAvail().x, 0.f } ) )
-				{
-					if( g_pFZN_InputMgr->RemoveActionKeyBind( action_key.m_sName, fzn::InputManager::BindType::eKey ) )
+					if( ImGui::BeginCombo( "##DateFormat", date_format_to_string( m_data.m_date_format ).c_str() ) )
 					{
-						m_need_save = true;
+						for( uint32_t format{ 0 }; format < Options::DateFormat::COUNT; ++format )
+						{
+							auto enum_format = static_cast< Options::DateFormat >( format );
+							if( ImGui::Selectable( date_format_to_string( enum_format ).c_str(), format == m_data.m_date_format ) )
+							{
+								m_data.m_date_format = enum_format;
+								m_edited = true;
+							}
+
+							if( ImGui::IsItemHovered() )
+								ImGui::SetTooltip( Utils::date_to_str( dummy_date, enum_format ).c_str() );
+						}
+
+						ImGui::EndCombo();
 					}
-				}
 
-				if( ImGui::IsItemHovered() )
-					ImGui::SetTooltip( "Delete shortcut" );
-
-				ImGui::PopID();
-			}
+					return m_edited;
+				} );
 
 			ImGui::EndTable();
 		}
 
-		if( popup_open != g_pFZN_InputMgr->IsWaitingActionKeyBind() )
-		{
-			popup_name = fzn::Tools::Sprintf( "Replace binding: %s", replaced_binding_name.data() );
-			ImGui::OpenPopup( popup_name.c_str() );
-		}
+		_display_bindings();
 
-		if( g_pFZN_InputMgr->IsWaitingActionKeyBind() )
-		{
-			const ImVec2 title_size{ ImGui::CalcTextSize( popup_name.c_str() ) };
-			static const ImVec2 text_size{ ImGui::CalcTextSize( "Press any key to replace this binding" ) };
-
-			float popup_width{ text_size.x > title_size.x ? text_size.x : title_size.x + ImGui::GetStyle().WindowPadding.x * 2.f };
-			sf::Vector2u window_size = g_pFZN_WindowMgr->GetWindowSize();
-
-			ImGui::SetNextWindowPos( { window_size.x * 0.5f - popup_width * 0.5f, window_size.y * 0.5f - popup_width * 0.5f }, ImGuiCond_Appearing );
-			ImGui::SetNextWindowSize( { popup_width, ImGui::GetFrameHeightWithSpacing() * 3.f } );
-
-			if( ImGui::BeginPopupModal( popup_name.c_str(), nullptr, ImGuiWindowFlags_NoMove ) )
+		ImGui_fzn::window_bottom_table( 2, [ & ]()
 			{
-				ImGui::NewLine();
-				ImGui::Text( "Press any key to replace this binding" );
+				if( ImGui_fzn::deactivable_button( "Apply", m_edited == false, false, ImGui_fzn::default_widget_size ) )
+					_confirm_options();
 
-				ImGui::EndPopup();
-			}
-		}
+				ImGui::TableSetColumnIndex( 2 );
+				if( ImGui::Button( "Cancel", ImGui_fzn::default_widget_size ) )
+					_cancel_options();
+			} );
 	}
 
-	void Options::_load_options()
+	/**
+	* @brief Cancel edited options and restore old ones, then close window.
+	**/
+	void Options::_cancel_options()
 	{
-		const std::string option_file_path{ g_pFZN_Core->GetSaveFolderPath() + "/options.json" };
-		auto file = std::ifstream{ option_file_path };
+		AppOptions::_cancel_options();
 
-		if( file.is_open() == false )
-		{
-			// If the reason we could not open the option file is that it doesn't exist, create it.
-			if( std::filesystem::exists( option_file_path ) == false )
-			{
-				m_options_datas.m_window_size = g_pFZN_WindowMgr->GetWindowSize();
-				_save_options();
-			}
+		m_data = m_data_backup;
+	}
 
-			return;
-		}
+	/**
+	* @brief Custom load function called by the default one to let user read the given json root.
+	* @param _root The json root to read the custom data it contains.
+	**/
+	void Options::_load_options_from_json( Json::Value& _root )
+	{
+		m_data.m_global_keybinds = _root[ "global_keybinds" ].asBool();
+		m_data.m_date_format = static_cast< Options::DateFormat >( _root[ "date_format" ].asUInt() );
 
-		auto root = Json::Value{};
+		m_data.m_window_size.x = std::max( _root[ "window_size" ][ 0 ].asUInt(), 800u );
+		m_data.m_window_size.y = std::max( _root[ "window_size" ][ 1 ].asUInt(), 600u );
 
-		file >> root;
-
-		m_options_datas.m_global_keybinds = root[ "global_keybinds" ].asBool();
-		m_options_datas.m_date_format = static_cast<Options::DateFormat>( root[ "date_format" ].asUInt() );
-
-		m_options_datas.m_window_size.x = std::max( root[ "window_size" ][ 0 ].asUInt(), 800u );
-		m_options_datas.m_window_size.y = std::max( root[ "window_size" ][ 1 ].asUInt(), 600u );
-
-		g_pFZN_WindowMgr->SetWindowSize( m_options_datas.m_window_size );
+		g_pFZN_WindowMgr->SetWindowSize( m_data.m_window_size );
 
 		RECT desktop_size;
 		const HWND desktop_handle = GetDesktopWindow();
 		GetWindowRect( desktop_handle, &desktop_size );
 
-		g_pFZN_InputMgr->SetInputSystem( m_options_datas.m_global_keybinds ? fzn::InputManager::ScanSystem : fzn::InputManager::EventSystem );
-		g_pFZN_WindowMgr->SetWindowPosition( { desktop_size.right / 2 - static_cast<int>( m_options_datas.m_window_size.x ) / 2, desktop_size.bottom / 2 - static_cast<int>( m_options_datas.m_window_size.y ) / 2 } );
-
-		m_options_datas.m_bindings = g_pFZN_InputMgr->GetActionKeys();
+		g_pFZN_InputMgr->SetInputSystem( m_data.m_global_keybinds ? fzn::InputManager::ScanSystem : fzn::InputManager::EventSystem );
+		g_pFZN_WindowMgr->SetWindowPosition( { desktop_size.right / 2 - static_cast< int >( m_data.m_window_size.x ) / 2, desktop_size.bottom / 2 - static_cast< int >( m_data.m_window_size.y ) / 2 } );
 	}
 
-	void Options::_save_options()
+	/**
+	* @brief Custom save function called by the default one to let user fill the given json root.
+	* @param _root The json root to fill with custom data.
+	**/
+	void Options::_save_options_to_json( Json::Value& _root )
 	{
-		auto file = std::ofstream{ g_pFZN_Core->GetSaveFolderPath() + "/options.json" };
-		auto root = Json::Value{};
-		Json::StyledWriter json_writer;
+		_root[ "global_keybinds" ] = m_data.m_global_keybinds;
+		_root[ "date_format" ] = m_data.m_date_format;
 
-		root[ "global_keybinds" ] = m_options_datas.m_global_keybinds;
-		root[ "date_format" ] = m_options_datas.m_date_format;
-
-		root[ "window_size" ][ 0 ] = m_options_datas.m_window_size.x;
-		root[ "window_size" ][ 1 ] = m_options_datas.m_window_size.y;
-
-		file << json_writer.write( root );
-
-		g_pFZN_InputMgr->SaveCustomActionKeysToFile();
-	}
-
-	bool Options::_begin_option_table( float _column_width )
-	{
-		const bool ret = ImGui::BeginTable( "options", 2 );
-
-		ImGui::TableSetupColumn( "label", ImGuiTableColumnFlags_WidthFixed, _column_width );
-		ImGui::TableNextRow();
-
-		return ret;
-	}
-
-	void Options::_first_column_text( const char* _text )
-	{
-		ImGui::TableSetColumnIndex( 0 );
-		ImGui::SameLine( ImGui::GetStyle().IndentSpacing * 0.5f );
-		ImGui::Text( _text );
-
-		ImGui::TableSetColumnIndex( 1 );
+		_root[ "window_size" ][ 0 ] = m_data.m_window_size.x;
+		_root[ "window_size" ][ 1 ] = m_data.m_window_size.y;
 	}
 }

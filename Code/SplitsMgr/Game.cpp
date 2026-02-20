@@ -66,7 +66,7 @@ namespace SplitsMgr
 
 	void Game::display()
 	{
-		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };
+		const Options::Data& options{ g_splits_app->get_options().get_options_datas() };
 		// Copying the current state to avoid it changing in the middle of the frame and have imgui push/pop mismatches.
 		const State game_state{ m_state };
 		ImGui::PushID( m_name.c_str() );
@@ -216,7 +216,7 @@ namespace SplitsMgr
 		if( Utils::is_date_valid( g_splits_app->get_splits_manager().get_stats().get_begin_date() ) == false )
 			return;
 
-		const Options::OptionsDatas& options{ g_splits_app->get_options().get_options_datas() };
+		const Options::Data& options{ g_splits_app->get_options().get_options_datas() };
 
 		ImGui::Separator();
 		

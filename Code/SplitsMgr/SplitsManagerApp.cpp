@@ -80,7 +80,7 @@ namespace SplitsMgr
 		ImGui::PopStyleVar( 3 );
 
 		_display_menu_bar();
-		m_options.update();
+		m_options.display();
 
 		ImVec2 panel_size{ window_size };
 
@@ -175,7 +175,7 @@ namespace SplitsMgr
 				menu_item( "Reload Json", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
 
 				ImGui::Separator();
-				menu_item( "Options...", false, [&]() { m_options.show_window(); } );
+				menu_item( "Options...", false, [&]() { m_options.open_options(); } );
 
 				ImGui::EndMenu();
 			}
