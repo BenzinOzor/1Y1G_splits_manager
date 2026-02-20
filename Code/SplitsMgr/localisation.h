@@ -6,15 +6,13 @@ enum class Language
 {
 	english,
 	french,
-	spanish,
 	COUNT
 };
 
 enum class LocID
 {
-	yes,		// yes
-	no,		// no
-	long_sentense,		// This is an example of long sentense to see how well it would fit in the json file.
-	some_example,		// Hello World!
+	language,		// Language
+	english,		// English
+	french,		// French
 	COUNT
 };
