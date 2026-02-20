@@ -23,7 +23,6 @@ namespace SplitsMgr
 		{
 			bool m_global_keybinds{ false };		// If true, the app doesn't need to be in focus to handle keybinds.
 			DateFormat m_date_format{ DateFormat::ISO8601 };
-			StringVector m_languages;
 
 			sf::Vector2u m_window_size{ 900, 800 };
 		};
@@ -47,6 +46,10 @@ namespace SplitsMgr
 		* @brief Main display function for custom options data. Called by display().
 		**/
 		void _display_custom_options() override;
+		/**
+		* @brief Fill the languages vectors with the languages we want to offer to the user in the options menu. Called by the constructor.
+		**/
+		virtual void _fill_available_languages() override;
 
 		/**
 		* @brief Cancel edited options and restore old ones, then close window.

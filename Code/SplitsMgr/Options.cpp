@@ -19,10 +19,6 @@ namespace SplitsMgr
 	{
 		g_pFZN_Core->AddCallback( this, &Options::on_event, fzn::DataCallbackType::Event );
 
-		m_data.m_languages.resize( static_cast< int >( Language::COUNT ) );
-		m_data.m_languages[ static_cast< int >( Language::english ) ] = g_pFZN_LocMgr->get_string( LocID::english, Language::english );
-		m_data.m_languages[ static_cast< int >( Language::french ) ] = g_pFZN_LocMgr->get_string( LocID::french, Language::french );
-
 		_load_options();
 	}
 
@@ -64,25 +60,7 @@ namespace SplitsMgr
 
 		if( _begin_option_table() )
 		{
-			_first_column_label( g_pFZN_LocMgr->get_string( LocID::language ) );
-			_second_column_widget( [ & ]() -> bool
-				{
-					if( ImGui::BeginCombo( "##LanguageCombo", m_data.m_languages[ g_pFZN_LocMgr->get_current_language_id() ].c_str() ) )
-					{
-						for( uint32_t language{ 0 }; language < static_cast< int >( Language::COUNT ); ++language )
-						{
-							if( ImGui::Selectable( m_data.m_languages[ language ].c_str(), language == g_pFZN_LocMgr->get_current_language_id() ) )
-							{
-								g_pFZN_LocMgr->set_current_language( language );
-								m_edited = true;
-							}
-						}
-
-						ImGui::EndCombo();
-					}
-
-					return m_edited;
-				} );
+			_display_language_setting( LocID::language );
 
 			_first_column_label( "Global keybinds", "If activated, the window doesn't need to be in focus to detect keybinds." );
 			_second_column_widget( [ & ]() -> bool
@@ -117,7 +95,7 @@ namespace SplitsMgr
 					}
 
 					return m_edited;
-				} );
+				}, m_second_column_width );
 
 			ImGui::EndTable();
 		}
@@ -133,6 +111,15 @@ namespace SplitsMgr
 				if( ImGui::Button( "Cancel", ImGui_fzn::default_widget_size ) )
 					_cancel_options();
 			} );
+	}
+
+	/**
+	* @brief Fill the languages vectors with the languages we want to offer to the user in the options menu. Called by the constructor.
+	**/
+	void Options::_fill_available_languages()
+	{
+		_set_language_string( LocID::english, Language::english );
+		_set_language_string( LocID::french, Language::french );
 	}
 
 	/**
