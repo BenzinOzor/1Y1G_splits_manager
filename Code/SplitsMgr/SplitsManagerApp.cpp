@@ -9,6 +9,7 @@
 #include <FZN/UI/ImGui.h>
 
 #include "SplitsManagerApp.h"
+#include "localisation.h"
 
 #include <ShlObj.h>
 
@@ -16,11 +17,11 @@ SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
 
 namespace SplitsMgr
 {
-	static constexpr uint32_t version_major = 3;
+	static constexpr uint32_t version_major = 4;
 	static constexpr uint32_t version_minor = 0;
-	static constexpr uint32_t version_feature = 3;
+	static constexpr uint32_t version_feature = 0;
 	static constexpr uint32_t version_bugfix = 0;
-	static constexpr bool WIP_version = true;
+	static constexpr bool WIP_version = false;
 
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
@@ -143,12 +144,12 @@ namespace SplitsMgr
 	**/
 	void SplitsManagerApp::_display_menu_bar()
 	{
-		auto menu_item = [&]( const char* _label, bool _disable, std::function< void(void) > _fct )
+		auto menu_item = [&]( const char* _label, bool _dots, bool _disable, std::function< void(void) > _fct )
 		{
 			if( _disable )
 				ImGui::BeginDisabled();
 
-			if( ImGui::MenuItem( _label ) )
+			if( ImGui::MenuItem( _dots ? fzn::Tools::Sprintf( "%s...", _label ).c_str() : _label ) )
 				_fct();
 
 			if( _disable )
@@ -157,25 +158,25 @@ namespace SplitsMgr
 
 		if( ImGui::BeginMainMenuBar() )
 		{
-			if( ImGui::BeginMenu( "File" ) )
+			if( ImGui::BeginMenu( g_pFZN_LocMgr->get_string( LocID::file ).data() ) )
 			{
 				const bool aio_invalid	= m_aio_path.empty();
 				const bool no_games		= m_splits_mgr.are_there_games() == false;
-				menu_item( "Create...", false, [&]() { _create_json(); } );
-				ImGui_fzn::simple_tooltip_on_hover( "Close current file and create a new one." );
+				menu_item( g_pFZN_LocMgr->get_string( LocID::create ).data(), true, false, [ & ]() { _create_json(); } );
+				ImGui_fzn::simple_tooltip_on_hover( g_pFZN_LocMgr->get_string( LocID::create_tooltip ).data() );
 
-				menu_item( "Load...", false, [&]() { _load_json(); } );
-				menu_item( "Save", aio_invalid, [&]() { _save_json(); } );
-				ImGui_fzn::simple_tooltip_on_hover( "Loaded file path: %s", m_aio_path.string().c_str() );
+				menu_item( g_pFZN_LocMgr->get_string( LocID::open ).data(), true, false, [&]() { _load_json(); } );
+				menu_item( g_pFZN_LocMgr->get_string( LocID::save ).data(), false, aio_invalid, [&]() { _save_json(); } );
+				ImGui_fzn::simple_tooltip_on_hover( "%s: %s", g_pFZN_LocMgr->get_string( LocID::save_tooltip ).data(), m_aio_path.string().c_str() );
 
-				menu_item( "Save As...", no_games, [&]() { _save_json_as(); } );
-
-				ImGui::Separator();
-				menu_item( "Close Game List", no_games, [&]() { close_game_list(); m_splits_mgr.close_game_list(); } );
-				menu_item( "Reload Json", aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
+				menu_item( g_pFZN_LocMgr->get_string( LocID::save_as ).data(), true, no_games, [&]() { _save_json_as(); } );
 
 				ImGui::Separator();
-				menu_item( "Options...", false, [&]() { m_options.open_options(); } );
+				menu_item( g_pFZN_LocMgr->get_string( LocID::close_list ).data(), false, no_games, [&]() { close_game_list(); m_splits_mgr.close_game_list(); } );
+				menu_item( g_pFZN_LocMgr->get_string( LocID::refresh_json ).data(), false, aio_invalid, [&]() { m_splits_mgr.read_json( m_aio_path.generic_string().c_str() ); } );
+
+				ImGui::Separator();
+				menu_item( g_pFZN_LocMgr->get_string( LocID::options ).data(), true, false, [&]() { m_options.open_options(); } );
 
 				ImGui::EndMenu();
 			}
@@ -249,26 +250,13 @@ namespace SplitsMgr
 	**/
 	void SplitsManagerApp::_load_json()
 	{
-		char file[ 100 ];
-		OPENFILENAME open_file_name;
-		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+		const std::string path = fzn::Tools::open_file( "(*.json) 1A1J Games List\0*.json\0 (*.*) All files \0*.*\0", g_pFZN_LocMgr->get_string( LocID::open_dialog_title ) );
 
-		open_file_name.lStructSize = sizeof( open_file_name );
-		open_file_name.hwndOwner = NULL;
-		open_file_name.lpstrFile = file;
-		open_file_name.lpstrFile[ 0 ] = '\0';
-		open_file_name.nMaxFile = sizeof( file );
-		open_file_name.lpstrFileTitle = NULL;
-		open_file_name.nMaxFileTitle = 0;
-		open_file_name.lpstrFilter =	"(*.json) 1A1J Games List\0*.json\0"
-										"(*.*) All files \0*.*\0";
-		GetOpenFileName( &open_file_name );
+		if( path.empty() )
+			return;
 
-		if( open_file_name.lpstrFile[ 0 ] != '\0' )
-		{
-			m_aio_path = open_file_name.lpstrFile;
-			m_splits_mgr.read_json( open_file_name.lpstrFile );
-		}
+		m_aio_path = path;
+		m_splits_mgr.read_json( path );
 
 		_save_options();
 	}
@@ -293,32 +281,15 @@ namespace SplitsMgr
 
 	void SplitsManagerApp::_save_json_as()
 	{
-		char file[100];
-		OPENFILENAME open_file_name;
-		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+		std::string new_path = fzn::Tools::save_file_as( "(*.json) 1A1J Games List\0*.json\0 (*.*) All files \0*.*\0", ".json", g_pFZN_LocMgr->get_string( LocID::save_dialog_title ) );
 
-		open_file_name.lStructSize = sizeof( open_file_name );
-		open_file_name.hwndOwner = NULL;
-		open_file_name.lpstrFile = file;
-		open_file_name.lpstrFile[0] = '\0';
-		open_file_name.nMaxFile = sizeof( file );
-		open_file_name.lpstrFileTitle = NULL;
-		open_file_name.nMaxFileTitle = 0;
-		open_file_name.lpstrFilter =	"(*.json) 1A1J Games List\0*.json\0"
-										"(*.*) All files \0*.*\0";
-		GetSaveFileName( &open_file_name );
+		if( new_path.empty() )
+			return;
 
-		if( open_file_name.lpstrFile[0] != '\0' )
-		{
-			m_aio_path = open_file_name.lpstrFile;
+		m_aio_path = new_path;
 
-			size_t last_slash = m_aio_path.string().find_last_of( '\\' );
-			if( last_slash != std::string::npos && m_aio_path.string().find( '.', last_slash ) == std::string::npos )
-				m_aio_path = m_aio_path.string() + ".json";
-
-			_save_options();
-			_save_json();
-		}
+		_save_options();
+		_save_json();
 	}
 
 	void SplitsManagerApp::_create_json()

@@ -31,7 +31,7 @@ namespace SplitsMgr
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex( 0 );
 
-		ImGui::Text( "sess. %u (%u)", _split.m_session_index, _split.m_split_index );
+		ImGui::Text( "%s %u (%u)", g_pFZN_LocMgr->get_string( LocID::session_short ).data(), _split.m_session_index, _split.m_split_index );
 
 		if( Utils::is_date_valid( _split.m_date ) )
 		{
@@ -124,7 +124,7 @@ namespace SplitsMgr
 				Game::state_combo_box( m_new_session_state );
 
 				ImGui::SameLine();
-				if( ImGui_fzn::deactivable_button( "Update", m_new_session_time.empty(), false, { 65.f, 0.f } ) )
+				if( ImGui_fzn::deactivable_button( g_pFZN_LocMgr->get_string( LocID::btn_update ).data(), m_new_session_time.empty(), false, { 65.f, 0.f } ) )
 					_add_new_session_time();
 
 				ImGui::Spacing();
@@ -161,7 +161,7 @@ namespace SplitsMgr
 
 	bool Game::display_finished_stats()
 	{
-		std::string popup_name{ "Game finished!" };
+		const std::string popup_name{ g_pFZN_LocMgr->get_string( LocID::game_finished_title ) };
 
 		if( m_finished_game_popup == false )
 		{
@@ -220,24 +220,30 @@ namespace SplitsMgr
 
 		ImGui::Separator();
 		
+		const std::string string_number_days_format{ fzn::Tools::Sprintf( "%s%s)", "%s (%u ", g_pFZN_LocMgr->get_string( LocID::stat_day ).data() ) };
+		std::string remaining_day_session_format{ "%u " };
+		fzn::Tools::sprintf_cat( remaining_day_session_format, "%s%s", g_pFZN_LocMgr->get_string( LocID::stat_day ).data(), " | %u " );
+		fzn::Tools::sprintf_cat( remaining_day_session_format, "%s%s", g_pFZN_LocMgr->get_string( LocID::stat_played_day ).data(), " | %u " );
+		fzn::Tools::sprintf_cat( remaining_day_session_format, "%s", g_pFZN_LocMgr->get_string( LocID::stat_session ).data() );
+
 		if( has_sessions() )
 		{
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "First session:", "%s", Utils::date_to_str( m_stats.m_begin_date, options.m_date_format ).c_str() );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time by day:", "%s (%u day(s))", Utils::time_to_str( m_stats.m_avg_session_played_day ).c_str(), m_stats.m_played_days );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time since beginning:", "%s (%u day(s))", Utils::time_to_str( m_stats.m_avg_session_day ).c_str(), m_stats.m_days_since_start );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Remaining:", "%u day(s) | %u played day(s) | %u session(s)", m_stats.m_remaining_days, m_stats.m_remaining_played_days, m_stats.m_remaining_sessions );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Estimated last day:", "%s", Utils::date_to_str( m_stats.m_end_date, options.m_date_format ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::first_session ), "%s", Utils::date_to_str( m_stats.m_begin_date, options.m_date_format ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::avg_play_time_played_day ), string_number_days_format.c_str(), Utils::time_to_str( m_stats.m_avg_session_played_day ).c_str(), m_stats.m_played_days );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::avg_play_time_day ), string_number_days_format.c_str(), Utils::time_to_str( m_stats.m_avg_session_day ).c_str(), m_stats.m_days_since_start );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::remaining ), remaining_day_session_format.c_str(), m_stats.m_remaining_days, m_stats.m_remaining_played_days, m_stats.m_remaining_sessions );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::est_last_day ), "%s", Utils::date_to_str( m_stats.m_end_date, options.m_date_format ).c_str() );
 		}
 		else
 		{
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::gray, "First session:", "%s", Utils::date_to_str( Utils::today(), options.m_date_format ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::gray, Utils::localised_label_colon( LocID::first_session ), "%s", Utils::date_to_str( Utils::today(), options.m_date_format ).c_str() );
 			ImGui::SameLine();
-			ImGui_fzn::helper_simple_tooltip( "This game doesn't have any session yet \nThe prediction is based on global stats and the end date is calculated from the current day." );
+			ImGui_fzn::helper_simple_tooltip( g_pFZN_LocMgr->get_string( LocID::first_session_tooltip ).data() );
 
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time by day:", "%s", Utils::time_to_str( m_stats.m_avg_session_played_day ).c_str() );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Average play time since beginning:", "%s", Utils::time_to_str( m_stats.m_avg_session_day ).c_str() );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Remaining:", "%u day(s) | %u played day(s) | %u session(s)", m_stats.m_remaining_days, m_stats.m_remaining_played_days, m_stats.m_remaining_sessions );
-			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, "Estimated last day:", "%s", Utils::date_to_str( m_stats.m_end_date, options.m_date_format ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::avg_play_time_played_day ), "%s", Utils::time_to_str( m_stats.m_avg_session_played_day ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::avg_play_time_day ), "%s", Utils::time_to_str( m_stats.m_avg_session_day ).c_str() );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::remaining ), remaining_day_session_format.c_str(), m_stats.m_remaining_days, m_stats.m_remaining_played_days, m_stats.m_remaining_sessions );
+			ImGui_fzn::bicolor_text( ImGui_fzn::color::light_yellow, ImGui_fzn::color::white, Utils::localised_label_colon( LocID::est_last_day ), "%s", Utils::date_to_str( m_stats.m_end_date, options.m_date_format ).c_str() );
 		}
 	}
 
@@ -249,14 +255,14 @@ namespace SplitsMgr
 		
 		uint32_t state_id{ static_cast<uint32_t>( _state ) };
 
-		if( ImGui::BeginCombo( "##StateCombo", Game::get_str_from_state( _state ) ) )
+		if( ImGui::BeginCombo( "##StateCombo", Game::get_str_from_state( _state, true ) ) )
 		{
 			for( uint32_t state{ 0 }; state < state_count_id; ++state )
 			{
 				if( state == state_none_id || state == state_current_id )
 					continue;
 
-				if( ImGui::Selectable( Game::get_str_from_state( static_cast<Game::State>( state ) ), state == state_id ) )
+				if( ImGui::Selectable( Game::get_str_from_state( static_cast<Game::State>( state ), true ), state == state_id ) )
 					_state = static_cast<Game::State>( state );
 			}
 
@@ -283,25 +289,41 @@ namespace SplitsMgr
 		return true;
 	}
 
-	const char* Game::get_state_str() const
+	const char* Game::get_state_str( bool _localised ) const
 	{
-		return get_str_from_state( m_state );
+		return get_str_from_state( m_state, _localised );
 	}
 
-	const char* Game::get_str_from_state( Game::State _state )
+	const char* Game::get_str_from_state( Game::State _state, bool _localised )
 	{
+		if( _localised == false )
+		{
+			switch( _state )
+			{
+				case Game::State::none:
+					return "None";
+				case Game::State::current:
+					return "Current";
+				case Game::State::finished:
+					return "Finished";
+				case Game::State::abandonned:
+					return "Abandonned";
+				case Game::State::playing:
+					return "Playing";
+				case Game::State::COUNT:
+				default:
+					return "COUNT";
+			};
+		}
+
 		switch( _state )
 		{
-			case Game::State::none:
-				return "None";
-			case Game::State::current:
-				return "Current";
 			case Game::State::finished:
-				return "Finished";
+				return g_pFZN_LocMgr->get_string( LocID::game_state_finished ).data();
 			case Game::State::abandonned:
-				return "Abandonned";
+				return g_pFZN_LocMgr->get_string( LocID::game_state_abandonned ).data();
 			case Game::State::playing:
-				return "Playing";
+				return g_pFZN_LocMgr->get_string( LocID::game_state_playing ).data();
 			case Game::State::COUNT:
 			default:
 				return "COUNT";
@@ -468,7 +490,7 @@ namespace SplitsMgr
 			if( Utils::is_time_valid( m_stats.m_avg_session_played_day ) )
 				m_stats.m_remaining_played_days = remaining_time / m_stats.m_avg_session_played_day;
 
-			m_stats.m_avg_sessions_days = global_stats.get_avg_sessions_days();
+			m_stats.m_avg_sessions_days = global_stats.get_avg_sessions_played_day();
 		}
 
 		if( Utils::is_time_valid( m_stats.m_avg_session_day ) )
@@ -571,7 +593,7 @@ namespace SplitsMgr
 		if( m_state == State::none )
 			return;
 
-		_game[ "State" ] = get_state_str();
+		_game[ "State" ] = get_state_str( false );
 
 		std::string session_infos{};
 
@@ -784,9 +806,9 @@ namespace SplitsMgr
 		{
 			_pop_state_colors( _state );
 
-			if( ImGui::BeginMenu( "Set State" ) )
+			if( ImGui::BeginMenu( g_pFZN_LocMgr->get_string( LocID::set_state ).data() ) )
 			{
-				if( ImGui::MenuItem( "Current", 0, false, are_sessions_over() == false ) )
+				if( ImGui::MenuItem( g_pFZN_LocMgr->get_string( LocID::game_state_current ).data(), 0, false, are_sessions_over() == false ) )
 				{
 					m_state = State::current;
 
@@ -796,19 +818,19 @@ namespace SplitsMgr
 					g_pFZN_Core->PushEvent( game_event );
 				}
 
-				if( ImGui::MenuItem( "Finished", 0, false, has_sessions() ) ) {}
-				if( ImGui::MenuItem( "Abandonned" ) ) {}
-				if( ImGui::MenuItem( "Ongoing", 0, false, has_sessions() ) ) {}
+				if( ImGui::MenuItem( g_pFZN_LocMgr->get_string( LocID::game_state_playing ).data(), 0, false, has_sessions() ) ) {}
+				if( ImGui::MenuItem( g_pFZN_LocMgr->get_string( LocID::game_state_finished ).data(), 0, false, has_sessions() ) ) {}
+				if( ImGui::MenuItem( g_pFZN_LocMgr->get_string( LocID::game_state_abandonned ).data() ) ) {}
 
 				ImGui::EndMenu();
 			}
 
-			if( ImGui::Selectable( "Set Cover" ) )
+			if( ImGui::Selectable( g_pFZN_LocMgr->get_string( LocID::set_cover ).data() ) )
 			{
 				_select_cover();
 			}
 
-			if( m_cover != nullptr && ImGui::Selectable( "Remove Cover" ) )
+			if( m_cover != nullptr && ImGui::Selectable( g_pFZN_LocMgr->get_string( LocID::remove_cover ).data() ) )
 			{
 				g_pFZN_DataMgr->UnloadTexture( m_name );
 				m_cover = nullptr;
@@ -860,7 +882,7 @@ namespace SplitsMgr
 
 			ImGui::TableNextColumn();
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text( "Estimate:");
+			ImGui::Text( Utils::localised_label_colon( LocID::estimate ).c_str() );
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth( 70.f );
 			std::string estimate = Utils::time_to_str( m_estimation );
@@ -875,13 +897,13 @@ namespace SplitsMgr
 			{
 				if( m_delta < std::chrono::seconds{ 0 } )
 				{
-					ImGui::Text( "Delta:" );
+					ImGui::Text( Utils::localised_label_colon( LocID::delta ).c_str() );
 					ImGui::SameLine();
 					ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 				}
 				else
 				{
-					ImGui::Text( "Delta:" );
+					ImGui::Text( Utils::localised_label_colon( LocID::delta ).c_str() );
 					ImGui::SameLine();
 					ImGui::Text( "+%s", Utils::time_to_str( m_delta ).c_str() );
 				}
@@ -895,24 +917,13 @@ namespace SplitsMgr
 
 	void Game::_select_cover()
 	{
-		char file[ 100 ];
-		OPENFILENAME open_file_name;
-		ZeroMemory( &open_file_name, sizeof( open_file_name ) );
+		const std::string path = fzn::Tools::open_file( "", g_pFZN_LocMgr->get_string( LocID::select_cover_title ) );
 
-		open_file_name.lStructSize = sizeof( open_file_name );
-		open_file_name.hwndOwner = NULL;
-		open_file_name.lpstrFile = file;
-		open_file_name.lpstrFile[ 0 ] = '\0';
-		open_file_name.nMaxFile = sizeof( file );
-		open_file_name.lpstrFileTitle = NULL;
-		open_file_name.nMaxFileTitle = 0;
-		GetOpenFileName( &open_file_name );
+		if( path.empty() )
+			return;
 
-		if( open_file_name.lpstrFile[ 0 ] != '\0' )
-		{
-			m_cover = g_pFZN_DataMgr->LoadTexture( m_name, open_file_name.lpstrFile );
-			m_cover_data = Utils::get_cover_data( open_file_name.lpstrFile );
-		}
+		m_cover = g_pFZN_DataMgr->LoadTexture( m_name, path );
+		m_cover_data = Utils::get_cover_data( path );
 	}
 
 	/**
@@ -943,6 +954,11 @@ namespace SplitsMgr
 		}
 
 		m_stats.m_average_session_time /= m_splits.size();
+
+		if( Utils::is_date_valid( m_stats.m_begin_date ) == false )
+			return;
+
+		m_stats.m_days = Utils::days_between_dates( m_stats.m_begin_date, m_splits.back().m_date ) + 1;
 	}
 
 	/**
@@ -970,15 +986,15 @@ namespace SplitsMgr
 			ImGui::TableSetupColumn( "labels", ImGuiTableColumnFlags_WidthFixed, first_column_size );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::played ).c_str() );
 			second_column_text( Utils::time_to_str( m_played ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::estimate ).c_str() );
 			second_column_text( Utils::time_to_str( m_estimation ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::delta ).c_str() );
 			second_column_text( Utils::time_to_str( m_delta ).c_str() );
 
 			if( has_sessions() == false )
@@ -988,19 +1004,27 @@ namespace SplitsMgr
 			}
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Number of sessions:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::nb_sessions ).c_str() );
 			second_column_text( fzn::Tools::Sprintf( "%d", m_splits.size() ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Average session:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::game_stat_played_day ).c_str() );
+			second_column_text( fzn::Tools::Sprintf( "%d", m_stats.m_played_days ).c_str() );
+
+			ImGui::TableNextColumn();
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::game_stat_day ).c_str() );
+			second_column_text( fzn::Tools::Sprintf( "%d", m_stats.m_days ).c_str() );
+
+			ImGui::TableNextColumn();
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::game_stat_avg_session ).c_str() );
 			second_column_text( Utils::time_to_str( m_stats.m_average_session_time ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Shortest session:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::shortest_session ).c_str() );
 			second_column_text( Utils::time_to_str( m_stats.m_shortest_session ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Longest session:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::longest_session ).c_str() );
 			second_column_text( Utils::time_to_str( m_stats.m_longest_sesion ).c_str() );
 
 			ImGui::EndTable();

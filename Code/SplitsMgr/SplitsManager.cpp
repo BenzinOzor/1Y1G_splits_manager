@@ -13,6 +13,7 @@
 
 #include "SplitsManager.h"
 #include "Utils.h"
+#include "localisation.h"
 
 
 namespace SplitsMgr
@@ -62,6 +63,7 @@ namespace SplitsMgr
 		if( m_current_game == nullptr )
 			return;
 
+		static const float max_timer_width{ ImGui::CalcTextSize( "+9999:99:99" ).x };
 		ImVec4 timer_color = ImGui_fzn::color::white;
 
 		if( m_chrono.is_paused() == false )
@@ -92,6 +94,11 @@ namespace SplitsMgr
 
 		if( ImGui::BeginTable( "run_infos_2", 4 ) )
 		{
+			ImGui::TableSetupColumn( "col_1" );
+			ImGui::TableSetupColumn( "col_2", ImGuiTableColumnFlags_WidthFixed, max_timer_width );
+			ImGui::TableSetupColumn( "col_3" );
+			ImGui::TableSetupColumn( "col_4", ImGuiTableColumnFlags_WidthFixed, max_timer_width );
+
 			SplitTime timer{};
 			SplitTime game_time{ m_current_game->get_played() + m_chrono.get_time() };
 			SplitTime game_delta{ game_time - m_current_game->get_estimate() };
@@ -99,9 +106,9 @@ namespace SplitsMgr
 			const SplitTime previous_delta{ m_current_game->get_played() - m_current_game->get_estimate() };
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate:" );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played:" );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::estimate ).c_str() );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::played ).c_str() );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::delta ).c_str() );
 
 			ImGui::TableNextColumn();
 			ImGui::Text( Utils::time_to_str( m_estimate ).c_str() );
@@ -113,8 +120,8 @@ namespace SplitsMgr
 				ImGui::Text( Utils::time_to_str( m_delta ).c_str() );
 
 			ImGui::TableNextColumn();
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Rem. Time:" );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Est. Final Time:" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::rem_time ).c_str() );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, Utils::localised_label_colon( LocID::est_final_time ).c_str() );
 
 			ImGui::TableNextColumn();
 
@@ -300,9 +307,9 @@ namespace SplitsMgr
 
 	void SplitsManager::_display_timers( const ImVec4& _timer_color )
 	{
-		const float default_text_height = ImGui::CalcTextSize( "T" ).y;
+		const float default_text_height = ImGui::GetTextLineHeight();
 		ImGui::SetWindowFontScale( 2.f );
-		const float doubled_text_height = ImGui::CalcTextSize( "T" ).y;
+		const float doubled_text_height = ImGui::GetTextLineHeight();
 		ImGui::SetWindowFontScale( 1.f );
 
 		ImGui::SeparatorText( m_current_game->get_name().c_str() );
@@ -348,7 +355,7 @@ namespace SplitsMgr
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Played" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, g_pFZN_LocMgr->get_string( LocID::played ).data() );
 
 			ImGui::TableNextColumn();
 			ImGui::SetWindowFontScale( 2.f );
@@ -362,7 +369,7 @@ namespace SplitsMgr
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Estimate" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, g_pFZN_LocMgr->get_string( LocID::estimate ).data() );
 
 			ImGui::TableNextColumn();
 			ImGui::SetWindowFontScale( 2.f );
@@ -376,7 +383,7 @@ namespace SplitsMgr
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			ImGui::SetCursorPos( { ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + doubled_text_height - default_text_height - ImGui::GetStyle().CellPadding.y } );
-			ImGui::TextColored( ImGui_fzn::color::light_yellow, "Delta" );
+			ImGui::TextColored( ImGui_fzn::color::light_yellow, g_pFZN_LocMgr->get_string( LocID::delta ).data() );
 
 			ImGui::TableNextColumn();
 			ImGui::SetWindowFontScale( 2.f );
@@ -399,24 +406,26 @@ namespace SplitsMgr
 	{
 		const bool disable_start_split{ m_chrono.has_started() && m_chrono.is_paused() };
 		const bool disable_pause_stop{ m_chrono.has_started() == false };
-		const float button_size{ 65.f };
+		const float button_size{ 70.f };
 		const float all_buttons_size{ button_size * 3.f + ImGui::GetStyle().ItemSpacing.x * 2.f };
 
 		ImGui::Separator();
 
-		if( ImGui_fzn::deactivable_button( m_chrono.has_started() ? "Split" : "Start", disable_start_split, false, { button_size, 0.f } ) )
+		std::string text = g_pFZN_LocMgr->get_string( m_chrono.has_started() ? LocID::btn_split : LocID::btn_start ).data();
+		if( ImGui_fzn::deactivable_button( text.c_str(), disable_start_split, false, { button_size, 0.f } ) )
 			_start_split();
 
 		if( disable_pause_stop )
 			ImGui::BeginDisabled();
 
 		ImGui::SameLine();
-		if( ImGui::Button( m_chrono.is_paused() && m_chrono.has_started() ? "Resume" : "Pause", { button_size, 0.f } ) )
+		text = g_pFZN_LocMgr->get_string( m_chrono.is_paused() && m_chrono.has_started() ? LocID::btn_resume : LocID::btn_pause ).data();
+		if( ImGui::Button( text.c_str(), { button_size, 0.f } ) )
 			_toggle_pause();
 
 
 		ImGui::SameLine();
-		if( ImGui::Button( "Stop", { button_size, 0.f } ) )
+		if( ImGui::Button( g_pFZN_LocMgr->get_string( LocID::btn_stop ).data(), { button_size, 0.f } ) )
 			_stop();
 
 		if( disable_pause_stop )
@@ -429,7 +438,7 @@ namespace SplitsMgr
 		const bool disable_button{ m_current_game == nullptr || m_chrono.has_started() == false || m_chrono.is_paused() == false };
 
 		ImGui::SameLine();
-		if( ImGui_fzn::deactivable_button( "Update", disable_button, false, { button_size, 0.f } ) )
+		if( ImGui_fzn::deactivable_button( g_pFZN_LocMgr->get_string( LocID::btn_update ).data(), disable_button, false, { button_size, 0.f } ) )
 			_update_sessions( m_current_game_new_state == Game::State::playing ? Game::State::current : m_current_game_new_state );
 	}
 
@@ -539,7 +548,7 @@ namespace SplitsMgr
 				}
 			}
 
-			FZN_LOG( "%s (%s) - est. %s / played %s / delta %s", game.get_name().c_str(), game.get_state_str(), Utils::time_to_str( game.get_estimate() ).c_str(), Utils::time_to_str( game.get_played() ).c_str(), Utils::time_to_str( game.get_delta() ).c_str() );
+			FZN_LOG( "%s (%s) - est. %s / played %s / delta %s", game.get_name().c_str(), game.get_state_str( false ), Utils::time_to_str( game.get_estimate() ).c_str(), Utils::time_to_str( game.get_played() ).c_str(), Utils::time_to_str( game.get_delta() ).c_str() );
 			FZN_LOG( "RUN - est. %s / rem. time %s / played %s / delta %s\n", Utils::time_to_str( m_estimate ).c_str(), Utils::time_to_str( m_remaining_time ).c_str(), Utils::time_to_str( m_played ).c_str(), Utils::time_to_str( m_delta ).c_str() );
 		}
 
@@ -588,7 +597,7 @@ namespace SplitsMgr
 			m_chrono.toggle_pause();
 
 			if( m_current_game != nullptr )
-				g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s - Running...", m_current_game->get_name().c_str() ) );
+				g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s - %s...", m_current_game->get_name().c_str(), g_pFZN_LocMgr->get_string( LocID::timer_running_title ).data() ) );
 		}
 		else
 		{
@@ -601,7 +610,7 @@ namespace SplitsMgr
 		m_chrono.toggle_pause();
 
 		if( m_current_game != nullptr )
-			g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s - %s", m_current_game->get_name().c_str(), m_chrono.is_paused() ? "Paused" : "Running..." ) );
+			g_pFZN_WindowMgr->SetWindowTitle( fzn::Tools::Sprintf( "1A1J - %s - %s", m_current_game->get_name().c_str(), g_pFZN_LocMgr->get_string( m_chrono.is_paused() ? LocID::timer_paused_title : LocID::timer_running_title ).data() ) );
 	}
 
 	void SplitsManager::_stop()

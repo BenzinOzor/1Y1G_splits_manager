@@ -7,6 +7,7 @@
 #include "Externals/ImGui/imgui.h"
 
 #include "Options.h"
+#include "localisation.h"
 
 
 namespace tinyxml2
@@ -77,5 +78,7 @@ namespace SplitsMgr
 		std::string get_cover_data( std::string_view _cover_path );
 
 		void window_bottom_table( uint8_t _nb_items, std::function<void( void )> _table_content_fct );
+
+		std::string localised_label_colon( LocID _loc_id );
 	}
 }

@@ -7,6 +7,7 @@
 
 #include "ListCreator.h"
 #include "Event.h"
+#include "localisation.h"
 
 
 namespace SplitsMgr
@@ -26,7 +27,7 @@ namespace SplitsMgr
 
 		if( m_show_creation_popup )
 		{
-			ImGui::OpenPopup( "Create Game List" );
+			ImGui::OpenPopup( g_pFZN_LocMgr->get_string( LocID::creator_title ).data() );
 
 			ImVec2 popup_size{};
 
@@ -37,26 +38,33 @@ namespace SplitsMgr
 			ImGui::SetNextWindowPos( { window_size.x * 0.5f - popup_size.x * 0.5f, window_size.y * 0.5f - popup_size.y * 0.5f }, ImGuiCond_FirstUseEver );
 			ImGui::SetNextWindowSize( popup_size, ImGuiCond_FirstUseEver );
 
-			if( ImGui::BeginPopupModal( "Create Game List", &m_show_creation_popup ) )
+			if( ImGui::BeginPopupModal( g_pFZN_LocMgr->get_string( LocID::creator_title ).data(), &m_show_creation_popup ) )
 			{
 				ImGui::InputTextMultiline( "##Source", &m_game_list_source, { ImGui::GetContentRegionAvail().x, 300.f }, ImGuiInputTextFlags_AllowTabInput );
 
-				ImGui::Text( "Select which fields are present in the pasted text above." );
+				ImGui::Text( g_pFZN_LocMgr->get_string( LocID::select_field ).data() );
 
-				for( uint32_t field{ 0 }; field < CopyPasteField::COUNT; ++field)
+				if( ImGui::BeginTable( "Fields", 2 ) )
 				{
-					if( field > 0 )
-						ImGui::SameLine();
+					ImGui::TableNextColumn();
+					uint32_t field{ 0 };
+					for( ; field < CopyPasteField::COUNT / 2; ++field )
+						ImGui::Checkbox( copy_paste_field_to_str( static_cast< CopyPasteField >( field ) ).c_str(), &m_copy_paste_options[ field ] );
 
-					bool temp{ false };
-					ImGui::Checkbox( copy_paste_field_to_str( static_cast< CopyPasteField >( field ) ).c_str(), &m_copy_paste_options[ field ] );
+					ImGui::TableNextColumn();
+					for( ; field < CopyPasteField::COUNT; ++field )
+						ImGui::Checkbox( copy_paste_field_to_str( static_cast< CopyPasteField >( field ) ).c_str(), &m_copy_paste_options[ field ] );
+
+					ImGui::EndTable();
 				}
 
-				ImGui::Checkbox( "Merge year and game name", &m_merge_year_and_game );
+				ImGui::NewLine();
+				ImGui::Checkbox( g_pFZN_LocMgr->get_string( LocID::merge_year_name ).data(), &m_merge_year_and_game );
 				ImGui::SameLine();
-				ImGui_fzn::helper_simple_tooltip( "Combine year and game name to create a new name using this format: '<year> - <game name>'." );
+				ImGui_fzn::helper_simple_tooltip( g_pFZN_LocMgr->get_string( LocID::merge_year_name_tooltip ).data() );
 
-				if( ImGui_fzn::deactivable_button( "Generate Game List", m_game_list_source.empty() ) )
+				ImGui::NewLine();
+				if( ImGui_fzn::deactivable_button( g_pFZN_LocMgr->get_string( LocID::generate_game_list ).data(), m_game_list_source.empty() ) )
 					generate_game_list_from_copy_paste();
 
 				ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
@@ -70,7 +78,7 @@ namespace SplitsMgr
 
 				ImGui::PopStyleColor();
 
-				if( m_games.empty() == false && ImGui::Button( "Confirm" ) )
+				if( m_games.empty() == false && ImGui::Button( g_pFZN_LocMgr->get_string( LocID::confirm ).data() ) )
 				{
 					Event* game_event = new Event( Event::Type::game_list_generated );
 					game_event->m_game_event.m_games = &m_games;
@@ -90,21 +98,21 @@ namespace SplitsMgr
 		switch( _value )
 		{
 			case CopyPasteField::state:
-				return "State";
+				return g_pFZN_LocMgr->get_string( LocID::field_state ).data();
 			case CopyPasteField::year:
-				return "Year";
+				return g_pFZN_LocMgr->get_string( LocID::field_year ).data();
 			case CopyPasteField::name:
-				return "Name";
+				return g_pFZN_LocMgr->get_string( LocID::field_name ).data();
 			case CopyPasteField::type:
-				return "Type";
+				return g_pFZN_LocMgr->get_string( LocID::field_type ).data();
 			case CopyPasteField::platform:
-				return "Platform";
+				return g_pFZN_LocMgr->get_string( LocID::field_platform ).data();
 			case CopyPasteField::version:
-				return "Version";
+				return g_pFZN_LocMgr->get_string( LocID::field_version ).data();
 			case CopyPasteField::estimate:
-				return "Estimate";
+				return g_pFZN_LocMgr->get_string( LocID::field_estimate ).data();
 			case CopyPasteField::played:
-				return "Played";
+				return g_pFZN_LocMgr->get_string( LocID::field_played ).data();
 			default:
 				return "";
 		};
@@ -245,7 +253,7 @@ namespace SplitsMgr
 				m_games.push_back( Game( game_desc, parsing_infos ) );
 
 				Game& last_game{ m_games.back() };
-				FZN_LOG( "Game added: %s (%s) | %s / %s", last_game.get_name().c_str(), last_game.get_state_str(), Utils::time_to_str( last_game.get_played() ).c_str(), Utils::time_to_str( last_game.get_estimate() ).c_str() );
+				FZN_LOG( "Game added: %s (%s) | %s / %s", last_game.get_name().c_str(), last_game.get_state_str( false ), Utils::time_to_str( last_game.get_played() ).c_str(), Utils::time_to_str( last_game.get_estimate() ).c_str() );
 
 				if( m_current_game == nullptr && last_game.get_state() == Game::State::playing )
 					m_current_game = &last_game;

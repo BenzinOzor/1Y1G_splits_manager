@@ -21,10 +21,9 @@ namespace SplitsMgr
 
 		struct Data
 		{
-			bool m_global_keybinds{ false };		// If true, the app doesn't need to be in focus to handle keybinds.
-			DateFormat m_date_format{ DateFormat::ISO8601 };
-
-			sf::Vector2u m_window_size{ 900, 800 };
+			bool		m_global_keybinds{ false };					// If true, the app doesn't need to be in focus to handle keybinds.
+			DateFormat	m_date_format{ DateFormat::ISO8601 };
+			uint32_t	m_language_id{ 0 };							// The language currently used in the application.
 		};
 
 		Options();

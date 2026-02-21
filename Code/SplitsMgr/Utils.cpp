@@ -206,5 +206,10 @@ namespace SplitsMgr
 
 			return std::chrono::floor< std::chrono::days >( tp_day_2 - std::chrono::days{ _nb_days } );
 		}
+
+		std::string localised_label_colon( LocID _loc_id )
+		{
+			return fzn::Tools::Sprintf( "%s:", g_pFZN_LocMgr->get_string( _loc_id ).data() );
+		}
 	}
 }

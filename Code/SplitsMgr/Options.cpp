@@ -61,8 +61,9 @@ namespace SplitsMgr
 		if( _begin_option_table() )
 		{
 			_display_language_setting( LocID::language );
+			m_data.m_language_id = g_pFZN_LocMgr->get_current_language_id();
 
-			_first_column_label( "Global keybinds", "If activated, the window doesn't need to be in focus to detect keybinds." );
+			_first_column_label( g_pFZN_LocMgr->get_string(  LocID::global_keybinds ), g_pFZN_LocMgr->get_string( LocID::global_keybinds_tooltip ) );
 			_second_column_widget( [ & ]() -> bool
 				{
 					bool ret = ImGui::Checkbox( "##GlobalKeybinds", &m_data.m_global_keybinds );
@@ -73,7 +74,7 @@ namespace SplitsMgr
 					return ret;
 				} );
 
-			_first_column_label( "Date format" );
+			_first_column_label( g_pFZN_LocMgr->get_string( LocID::date_format ) );
 			_second_column_widget( [ & ]() -> bool
 				{
 					if( ImGui::BeginCombo( "##DateFormat", date_format_to_string( m_data.m_date_format ).c_str() ) )
@@ -93,6 +94,8 @@ namespace SplitsMgr
 
 						ImGui::EndCombo();
 					}
+					else if( ImGui::IsItemHovered() )
+						ImGui::SetTooltip( Utils::date_to_str( dummy_date, m_data.m_date_format ).c_str() );
 
 					return m_edited;
 				}, m_second_column_width );
@@ -104,11 +107,11 @@ namespace SplitsMgr
 
 		ImGui_fzn::window_bottom_table( 2, [ & ]()
 			{
-				if( ImGui_fzn::deactivable_button( "Apply", m_edited == false, false, ImGui_fzn::default_widget_size ) )
+				if( ImGui_fzn::deactivable_button( g_pFZN_LocMgr->get_string( LocID::apply ).data(), m_edited == false, false, ImGui_fzn::default_widget_size ) )
 					_confirm_options();
 
 				ImGui::TableSetColumnIndex( 2 );
-				if( ImGui::Button( "Cancel", ImGui_fzn::default_widget_size ) )
+				if( ImGui::Button( g_pFZN_LocMgr->get_string( LocID::cancel ).data(), ImGui_fzn::default_widget_size ) )
 					_cancel_options();
 			} );
 	}
@@ -140,18 +143,10 @@ namespace SplitsMgr
 	{
 		m_data.m_global_keybinds = _root[ "global_keybinds" ].asBool();
 		m_data.m_date_format = static_cast< Options::DateFormat >( _root[ "date_format" ].asUInt() );
+		m_data.m_language_id = _root[ "language" ].asUInt();
 
-		m_data.m_window_size.x = std::max( _root[ "window_size" ][ 0 ].asUInt(), 800u );
-		m_data.m_window_size.y = std::max( _root[ "window_size" ][ 1 ].asUInt(), 600u );
-
-		g_pFZN_WindowMgr->SetWindowSize( m_data.m_window_size );
-
-		RECT desktop_size;
-		const HWND desktop_handle = GetDesktopWindow();
-		GetWindowRect( desktop_handle, &desktop_size );
-
+		g_pFZN_LocMgr->set_current_language( m_data.m_language_id );
 		g_pFZN_InputMgr->SetInputSystem( m_data.m_global_keybinds ? fzn::InputManager::ScanSystem : fzn::InputManager::EventSystem );
-		g_pFZN_WindowMgr->SetWindowPosition( { desktop_size.right / 2 - static_cast< int >( m_data.m_window_size.x ) / 2, desktop_size.bottom / 2 - static_cast< int >( m_data.m_window_size.y ) / 2 } );
 	}
 
 	/**
@@ -162,8 +157,6 @@ namespace SplitsMgr
 	{
 		_root[ "global_keybinds" ] = m_data.m_global_keybinds;
 		_root[ "date_format" ] = m_data.m_date_format;
-
-		_root[ "window_size" ][ 0 ] = m_data.m_window_size.x;
-		_root[ "window_size" ][ 1 ] = m_data.m_window_size.y;
+		_root[ "language" ] = m_data.m_language_id;
 	}
 }

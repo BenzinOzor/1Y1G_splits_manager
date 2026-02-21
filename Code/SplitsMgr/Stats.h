@@ -22,7 +22,7 @@ namespace SplitsMgr
 
 		void refresh( const Games& _games );
 
-		float get_avg_sessions_days() const				{ return m_avg_sessions_days; }
+		float get_avg_sessions_played_day() const		{ return m_avg_sessions_played_day; }
 		SplitTime get_avg_session_played_day() const	{ return m_avg_session_played_day; }
 		SplitTime get_avg_session_day() const			{ return m_avg_session_day; }
 		SplitDate get_begin_date() const				{ return m_begin_date; }
@@ -33,7 +33,8 @@ namespace SplitsMgr
 		// Displayed final variables
 		uint32_t	m_nb_sessions{ 0 };
 		float		m_avg_sessions{ 0.f };
-		float		m_avg_sessions_days{ 0.f };
+		float		m_avg_sessions_played_day{ 0.f };
+		float		m_avg_sessions_day{ 0.f };
 		SplitTime	m_avg_session_time{};
 
 		SplitDate	m_begin_date{};					// The earliest date available in the game list.

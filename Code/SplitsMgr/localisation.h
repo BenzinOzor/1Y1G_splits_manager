@@ -14,5 +14,87 @@ enum class LocID
 	language,		// Language
 	english,		// English
 	french,		// French
+	global_keybinds,		// Global keybinds
+	global_keybinds_tooltip,		// If activated, the window doesn't need to be in focus to detect keybinds.
+	date_format,		// Date format
+	apply,		// Apply
+	cancel,		// Cancel
+	file,		// File
+	create,		// Create
+	create_tooltip,		// Close current list and create a new one.
+	open,		// Open
+	save,		// Save
+	save_tooltip,		// Saved file path
+	save_as,		// Save As
+	close_list,		// Close Game List
+	refresh_json,		// Refresh Json
+	options,		// Options
+	creator_title,		// Create Game List
+	select_field,		// Select which fields are present in the pasted text above.
+	field_state,		// State
+	field_year,		// Year
+	field_name,		// Game
+	field_type,		// Type
+	field_platform,		// Platform
+	field_version,		// Version
+	field_estimate,		// Estimate
+	field_played,		// Played
+	merge_year_name,		// Merge year and game name
+	merge_year_name_tooltip,		// Combine year and game name to create a new name using this format: '<year> - <game name>'.
+	generate_game_list,		// Generate Game List
+	confirm,		// Confirm
+	open_dialog_title,		// Select Game List
+	save_dialog_title,		// Save Game List As
+	estimate,		// Estimate
+	played,		// Played
+	delta,		// Delta
+	rem_time,		// Rem. Time
+	est_final_time,		// Est. Final Time
+	first_session,		// First session
+	first_session_tooltip,		// This game doesn't have any session yet.\nThe prediction is based on global stats and the end date is calculated from the current day.
+	avg_play_time_played_day,		// Average play time by played day
+	avg_play_time_day,		// Average play time by day
+	remaining,		// Remaining
+	est_last_day,		// Estimated last day
+	btn_start,		// Start
+	btn_split,		// Split
+	btn_pause,		// Pause
+	btn_resume,		// Resume
+	btn_stop,		// Stop
+	btn_update,		// Update
+	game_state_current,		// Current
+	game_state_finished,		// Finished
+	game_state_abandonned,		// Abandonned
+	game_state_playing,		// Playing
+	stats_title,		// Stats
+	nb_sessions,		// Number of sessions
+	avg_sessions_game,		// Average sessions (game)
+	avg_sessions_played_day,		// Average sessions (played day)
+	avg_sessions_day,		// Average sessions (day)
+	avg_session_time,		// Average session time
+	most_sessions_game,		// Most sessions (game)
+	longest_session,		// Longest session
+	longest_sessions_avg,		// Longest sessions (avg)
+	shortest_session,		// Shortest session
+	shortest_sessions_avg,		// Shortest sessions (avg)
+	most_sessions_day,		// Most sessions (day)
+	longest_play_time_day,		// Longest play time (day)
+	shortest_play_time_day,		// Shortest play time (day)
+	most_days_game,		// Most days (game)
+	fewest_days_game,		// Fewest days (game)
+	stat_day,		// day(s)
+	stat_played_day,		// played day(s)
+	stat_session,		// session(s)
+	session_short,		// sess.
+	set_state,		// Set State
+	set_cover,		// Set Cover
+	remove_cover,		// Remove Cover
+	select_cover_title,		// Select Cover
+	game_stat_avg_session,		// Average session
+	game_stat_day,		// Day(s)
+	game_stat_played_day,		// Played day(s)
+	game_finished_title,		// Game finished!
+	timer_running_title,		// Running
+	timer_paused_title,		// Paused
 	COUNT
 };

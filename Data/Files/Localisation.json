@@ -21,6 +21,604 @@
             [ "english", "French" ],
             [ "french", "Fran\u00e7ais" ]
          ]
+      },
+      {
+         "name" : "global_keybinds",
+         "translations" : [
+            [ "english", "Global keybinds" ],
+            [ "french", "Raccourcis Globaux" ]
+         ]
+      },
+      {
+         "name" : "global_keybinds_tooltip",
+         "translations" : [
+            [
+               "english",
+               "If activated, the window doesn't need to be in focus to detect keybinds."
+            ],
+            [
+               "french",
+               "Si activ\u00e9, la fen\u00eatre n'a pas besoin d'\u00eatre en focus pour d\u00e9tecter les touches."
+            ]
+         ]
+      },
+      {
+         "name" : "date_format",
+         "translations" : [
+            [ "english", "Date format" ],
+            [ "french", "Format de la date" ]
+         ]
+      },
+      {
+         "name" : "apply",
+         "translations" : [
+            [ "english", "Apply" ],
+            [ "french", "Appliquer" ]
+         ]
+      },
+      {
+         "name" : "cancel",
+         "translations" : [
+            [ "english", "Cancel" ],
+            [ "french", "Annuler" ]
+         ]
+      },
+      {
+         "name" : "file",
+         "translations" : [
+            [ "english", "File" ],
+            [ "french", "Fichier" ]
+         ]
+      },
+      {
+         "name" : "create",
+         "translations" : [
+            [ "english", "Create" ],
+            [ "french", "Cr\u00e9er" ]
+         ]
+      },
+      {
+         "name" : "create_tooltip",
+         "translations" : [
+            [ "english", "Close current list and create a new one." ],
+            [ "french", "Fermer la liste courante et en cr\u00e9er une nouvelle." ]
+         ]
+      },
+      {
+         "name" : "open",
+         "translations" : [
+            [ "english", "Open" ],
+            [ "french", "Ouvrir" ]
+         ]
+      },
+      {
+         "name" : "save",
+         "translations" : [
+            [ "english", "Save" ],
+            [ "french", "Enregistrer" ]
+         ]
+      },
+      {
+         "name" : "save_tooltip",
+         "translations" : [
+            [ "english", "Saved file path" ],
+            [ "french", "Chemin enregistr\u00e9" ]
+         ]
+      },
+      {
+         "name" : "save_as",
+         "translations" : [
+            [ "english", "Save As" ],
+            [ "french", "Enregistrer Sous" ]
+         ]
+      },
+      {
+         "name" : "close_list",
+         "translations" : [
+            [ "english", "Close Game List" ],
+            [ "french", "Fermer Liste de Jeux" ]
+         ]
+      },
+      {
+         "name" : "refresh_json",
+         "translations" : [
+            [ "english", "Refresh Json" ],
+            [ "french", "Rafraichir Json" ]
+         ]
+      },
+      {
+         "name" : "options",
+         "translations" : [
+            [ "english", "Options" ],
+            [ "french", "Options" ]
+         ]
+      },
+      {
+         "name" : "creator_title",
+         "translations" : [
+            [ "english", "Create Game List" ],
+            [ "french", "Cr\u00e9er une Liste de Jeux" ]
+         ]
+      },
+      {
+         "name" : "select_field",
+         "translations" : [
+            [
+               "english",
+               "Select which fields are present in the pasted text above."
+            ],
+            [
+               "french",
+               "Selectionner les champs pr\u00e9sents dans le texte coll\u00e9 au dessus."
+            ]
+         ]
+      },
+      {
+         "name" : "field_state",
+         "translations" : [
+            [ "english", "State" ],
+            [ "french", "Compl\u00e9tion" ]
+         ]
+      },
+      {
+         "name" : "field_year",
+         "translations" : [
+            [ "english", "Year" ],
+            [ "french", "Ann\u00e9e" ]
+         ]
+      },
+      {
+         "name" : "field_name",
+         "translations" : [
+            [ "english", "Game" ],
+            [ "french", "Jeu" ]
+         ]
+      },
+      {
+         "name" : "field_type",
+         "translations" : [
+            [ "english", "Type" ],
+            [ "french", "Genre" ]
+         ]
+      },
+      {
+         "name" : "field_platform",
+         "translations" : [
+            [ "english", "Platform" ],
+            [ "french", "Plateforme" ]
+         ]
+      },
+      {
+         "name" : "field_version",
+         "translations" : [
+            [ "english", "Version" ],
+            [ "french", "Version" ]
+         ]
+      },
+      {
+         "name" : "field_estimate",
+         "translations" : [
+            [ "english", "Estimate" ],
+            [ "french", "Estimation" ]
+         ]
+      },
+      {
+         "name" : "field_played",
+         "translations" : [
+            [ "english", "Played" ],
+            [ "french", "Temps Pass\u00e9" ]
+         ]
+      },
+      {
+         "name" : "merge_year_name",
+         "translations" : [
+            [ "english", "Merge year and game name" ],
+            [ "french", "Fusionner l'ann\u00e9e et le nom des jeux" ]
+         ]
+      },
+      {
+         "name" : "merge_year_name_tooltip",
+         "translations" : [
+            [
+               "english",
+               "Combine year and game name to create a new name using this format: '<year> - <game name>'."
+            ],
+            [
+               "french",
+               "Combiner l'ann\u00e9e et le nom des jeux pour cr\u00e9er un nouveau nom utilisant ce format: '<ann\u00e9e> - <jeu>'."
+            ]
+         ]
+      },
+      {
+         "name" : "generate_game_list",
+         "translations" : [
+            [ "english", "Generate Game List" ],
+            [ "french", "G\u00e9n\u00e9rer Liste de Jeux" ]
+         ]
+      },
+      {
+         "name" : "confirm",
+         "translations" : [
+            [ "english", "Confirm" ],
+            [ "french", "Confirmer" ]
+         ]
+      },
+      {
+         "name" : "open_dialog_title",
+         "translations" : [
+            [ "english", "Select Game List" ],
+            [ "french", "Selectionner une Liste de Jeux" ]
+         ]
+      },
+      {
+         "name" : "save_dialog_title",
+         "translations" : [
+            [ "english", "Save Game List As" ],
+            [ "french", "Enregistrer Liste de Jeux Sous" ]
+         ]
+      },
+      {
+         "name" : "estimate",
+         "translations" : [
+            [ "english", "Estimate" ],
+            [ "french", "Estimation" ]
+         ]
+      },
+      {
+         "name" : "played",
+         "translations" : [
+            [ "english", "Played" ],
+            [ "french", "Temps Pass\u00e9" ]
+         ]
+      },
+      {
+         "name" : "delta",
+         "translations" : [
+            [ "english", "Delta" ],
+            [ "french", "Delta" ]
+         ]
+      },
+      {
+         "name" : "rem_time",
+         "translations" : [
+            [ "english", "Rem. Time" ],
+            [ "french", "Temps Restant" ]
+         ]
+      },
+      {
+         "name" : "est_final_time",
+         "translations" : [
+            [ "english", "Est. Final Time" ],
+            [ "french", "Est. Temps Final" ]
+         ]
+      },
+      {
+         "name" : "first_session",
+         "translations" : [
+            [ "english", "First session" ],
+            [ "french", "Premi\u00e8re session" ]
+         ]
+      },
+      {
+         "name" : "first_session_tooltip",
+         "translations" : [
+            [
+               "english",
+               "This game doesn't have any session yet.\\nThe prediction is based on global stats and the end date is calculated from the current day."
+            ],
+            [
+               "french",
+               "Ce jeu n'a pas encore de session.\\nLa pr\u00e9diction est bas\u00e9e sur les stats globales et la date de fin est calcul\u00e9e depuis aujourd'hui."
+            ]
+         ]
+      },
+      {
+         "name" : "avg_play_time_played_day",
+         "translations" : [
+            [ "english", "Average play time by played day" ],
+            [ "french", "Temps de jeu moyen par jour jou\u00e9" ]
+         ]
+      },
+      {
+         "name" : "avg_play_time_day",
+         "translations" : [
+            [ "english", "Average play time by day" ],
+            [ "french", "Temps de jeu moyen par jour" ]
+         ]
+      },
+      {
+         "name" : "remaining",
+         "translations" : [
+            [ "english", "Remaining" ],
+            [ "french", "Restants" ]
+         ]
+      },
+      {
+         "name" : "est_last_day",
+         "translations" : [
+            [ "english", "Estimated last day" ],
+            [ "french", "Estimation dernier jour" ]
+         ]
+      },
+      {
+         "name" : "btn_start",
+         "translations" : [
+            [ "english", "Start" ],
+            [ "french", "D\u00e9marrer" ]
+         ]
+      },
+      {
+         "name" : "btn_split",
+         "translations" : [
+            [ "english", "Split" ],
+            [ "french", "Finir" ]
+         ]
+      },
+      {
+         "name" : "btn_pause",
+         "translations" : [
+            [ "english", "Pause" ],
+            [ "french", "Pause" ]
+         ]
+      },
+      {
+         "name" : "btn_resume",
+         "translations" : [
+            [ "english", "Resume" ],
+            [ "french", "Reprendre" ]
+         ]
+      },
+      {
+         "name" : "btn_stop",
+         "translations" : [
+            [ "english", "Stop" ],
+            [ "french", "Arr\u00eater" ]
+         ]
+      },
+      {
+         "name" : "btn_update",
+         "translations" : [
+            [ "english", "Update" ],
+            [ "french", "M\u00e0j" ]
+         ]
+      },
+      {
+         "name" : "game_state_current",
+         "translations" : [
+            [ "english", "Current" ],
+            [ "french", "Courant" ]
+         ]
+      },
+      {
+         "name" : "game_state_finished",
+         "translations" : [
+            [ "english", "Finished" ],
+            [ "french", "Termin\u00e9" ]
+         ]
+      },
+      {
+         "name" : "game_state_abandonned",
+         "translations" : [
+            [ "english", "Abandonned" ],
+            [ "french", "Abandonn\u00e9" ]
+         ]
+      },
+      {
+         "name" : "game_state_playing",
+         "translations" : [
+            [ "english", "Playing" ],
+            [ "french", "En cours" ]
+         ]
+      },
+      {
+         "name" : "stats_title",
+         "translations" : [
+            [ "english", "Stats" ],
+            [ "french", "Stats" ]
+         ]
+      },
+      {
+         "name" : "nb_sessions",
+         "translations" : [
+            [ "english", "Number of sessions" ],
+            [ "french", "Nombre de sessions" ]
+         ]
+      },
+      {
+         "name" : "avg_sessions_game",
+         "translations" : [
+            [ "english", "Average sessions (game)" ],
+            [ "french", "Moyenne sessions (jeu)" ]
+         ]
+      },
+      {
+         "name" : "avg_sessions_played_day",
+         "translations" : [
+            [ "english", "Average sessions (played day)" ],
+            [ "french", "Moyenne sessions (jour jou\u00e9)" ]
+         ]
+      },
+      {
+         "name" : "avg_sessions_day",
+         "translations" : [
+            [ "english", "Average sessions (day)" ],
+            [ "french", "Moyenne sessions (jour)" ]
+         ]
+      },
+      {
+         "name" : "avg_session_time",
+         "translations" : [
+            [ "english", "Average session time" ],
+            [ "french", "Temps de session moyen" ]
+         ]
+      },
+      {
+         "name" : "most_sessions_game",
+         "translations" : [
+            [ "english", "Most sessions (game)" ],
+            [ "french", "Le plus de sessions (jeu)" ]
+         ]
+      },
+      {
+         "name" : "longest_session",
+         "translations" : [
+            [ "english", "Longest session" ],
+            [ "french", "Plus longue session" ]
+         ]
+      },
+      {
+         "name" : "longest_sessions_avg",
+         "translations" : [
+            [ "english", "Longest sessions (avg)" ],
+            [ "french", "Plus longues sessions (moy)" ]
+         ]
+      },
+      {
+         "name" : "shortest_session",
+         "translations" : [
+            [ "english", "Shortest session" ],
+            [ "french", "Plus courte session" ]
+         ]
+      },
+      {
+         "name" : "shortest_sessions_avg",
+         "translations" : [
+            [ "english", "Shortest sessions (avg)" ],
+            [ "french", "Plus courtes sessions (moy)" ]
+         ]
+      },
+      {
+         "name" : "most_sessions_day",
+         "translations" : [
+            [ "english", "Most sessions (day)" ],
+            [ "french", "Le plus de sessions (jour)" ]
+         ]
+      },
+      {
+         "name" : "longest_play_time_day",
+         "translations" : [
+            [ "english", "Longest play time (day)" ],
+            [ "french", "Plus long temps de jeu (jour)" ]
+         ]
+      },
+      {
+         "name" : "shortest_play_time_day",
+         "translations" : [
+            [ "english", "Shortest play time (day)" ],
+            [ "french", "Plus cours temps de jeu (jour)" ]
+         ]
+      },
+      {
+         "name" : "most_days_game",
+         "translations" : [
+            [ "english", "Most days (game)" ],
+            [ "french", "Le plus de jours (jeu)" ]
+         ]
+      },
+      {
+         "name" : "fewest_days_game",
+         "translations" : [
+            [ "english", "Fewest days (game)" ],
+            [ "french", "Le moins de jours (jeu)" ]
+         ]
+      },
+      {
+         "name" : "stat_day",
+         "translations" : [
+            [ "english", "day(s)" ],
+            [ "french", "jour(s)" ]
+         ]
+      },
+      {
+         "name" : "stat_played_day",
+         "translations" : [
+            [ "english", "played day(s)" ],
+            [ "french", "jour(s) jou\u00e9(s)" ]
+         ]
+      },
+      {
+         "name" : "stat_session",
+         "translations" : [
+            [ "english", "session(s)" ],
+            [ "french", "session(s)" ]
+         ]
+      },
+      {
+         "name" : "session_short",
+         "translations" : [
+            [ "english", "sess." ],
+            [ "french", "sess." ]
+         ]
+      },
+      {
+         "name" : "set_state",
+         "translations" : [
+            [ "english", "Set State" ],
+            [ "french", "Changer \u00c9tat" ]
+         ]
+      },
+      {
+         "name" : "set_cover",
+         "translations" : [
+            [ "english", "Set Cover" ],
+            [ "french", "Changer Jaquette" ]
+         ]
+      },
+      {
+         "name" : "remove_cover",
+         "translations" : [
+            [ "english", "Remove Cover" ],
+            [ "french", "Enlever Jaquette" ]
+         ]
+      },
+      {
+         "name" : "select_cover_title",
+         "translations" : [
+            [ "english", "Select Cover" ],
+            [ "french", "Selectionner Jaquette" ]
+         ]
+      },
+      {
+         "name" : "game_stat_avg_session",
+         "translations" : [
+            [ "english", "Average session" ],
+            [ "french", "Session moyenne" ]
+         ]
+      },
+      {
+         "name" : "game_stat_day",
+         "translations" : [
+            [ "english", "Day(s)" ],
+            [ "french", "Jour(s)" ]
+         ]
+      },
+      {
+         "name" : "game_stat_played_day",
+         "translations" : [
+            [ "english", "Played day(s)" ],
+            [ "french", "Jour(s) Jou\u00e9(s)" ]
+         ]
+      },
+      {
+         "name" : "game_finished_title",
+         "translations" : [
+            [ "english", "Game finished!" ],
+            [ "french", "Jeu termin\u00e9!" ]
+         ]
+      },
+      {
+         "name" : "timer_running_title",
+         "translations" : [
+            [ "english", "Running" ],
+            [ "french", "En cours d'execution" ]
+         ]
+      },
+      {
+         "name" : "timer_paused_title",
+         "translations" : [
+            [ "english", "Paused" ],
+            [ "french", "En pause" ]
+         ]
       }
    ]
 }

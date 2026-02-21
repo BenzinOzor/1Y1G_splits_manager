@@ -83,8 +83,8 @@ namespace SplitsMgr
 		bool has_sessions() const;
 		State get_state() const									{ return m_state; }
 		void set_state( State _state )							{ m_state = _state; }
-		const char* get_state_str() const;
-		static const char* get_str_from_state( State _state );
+		const char* get_state_str( bool _localised ) const;
+		static const char* get_str_from_state( State _state, bool _localised );
 		State get_state_from_str( std::string_view _state ) const;
 		const Splits& get_splits() const						{ return m_splits; }
 		SplitTime get_run_time() const;
@@ -144,6 +144,7 @@ namespace SplitsMgr
 			SplitTime	m_avg_session_played_day{};		// Average time by played day
 			SplitDate	m_end_date{};
 			uint32_t	m_played_days{ 0 };
+			uint32_t	m_days{ 0 };
 			uint32_t	m_days_since_start{ 0 };
 		};
 
