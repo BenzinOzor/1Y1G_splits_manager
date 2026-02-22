@@ -40,10 +40,15 @@ namespace SplitsMgr
 		ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
 
 		ImGui::BeginChild( "Games" );
+		
+		bool display_alt_bg{ true };
+		SplitDate current_date{ m_stats.get_begin_date() };
+		
 		for( Game& game : m_games )
 		{
-			game.display();
+			game.display( current_date, display_alt_bg );
 		}
+
 		ImGui::EndChild();
 
 		ImGui::PopStyleColor();
@@ -171,7 +176,7 @@ namespace SplitsMgr
 				m_current_game = split_event->m_game_event.m_game;
 				break;
 			}
-			case Event::Type::game_estimate_changed:
+			case Event::Type::game_data_changed:
 			{
 				_update_run_stats();
 				break;

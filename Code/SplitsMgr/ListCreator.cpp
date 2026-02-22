@@ -70,10 +70,15 @@ namespace SplitsMgr
 				ImGui::PushStyleColor( ImGuiCol_Separator, ImGui_fzn::color::white );
 
 				ImGui::BeginChild( "Games", ImVec2{ 0.f, ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing() } );
+
+				bool display_alt_bg{ true };
+				SplitDate current_date{ m_games.front().get_begin_date() };
+
 				for( Game& game : m_games )
 				{
-					game.display();
+					game.display( current_date, display_alt_bg );
 				}
+
 				ImGui::EndChild();
 
 				ImGui::PopStyleColor();

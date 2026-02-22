@@ -67,7 +67,7 @@ namespace SplitsMgr
 		Game() {}
 		Game( const Desc& _desc, Utils::ParsingInfos& _parsing_infos );
 
-		void display();
+		void display( SplitDate& _last_split_date, bool& _display_alt_bg );
 		void on_event();
 
 		bool display_finished_stats();
@@ -164,6 +164,10 @@ namespace SplitsMgr
 
 		void _select_cover();
 
+		/**
+		* @brief Game data full refresh, recompute game time and stats.
+		**/
+		void _refresh_game_data();
 		/**
 		* @brief Compute all game stats from its estimate, time played and sessions.
 		**/

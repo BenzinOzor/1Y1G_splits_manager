@@ -1,5 +1,6 @@
 #include <regex>
 #include <format>
+#include <functional>
 
 #include <tinyXML2/tinyxml2.h>
 
@@ -24,26 +25,90 @@ namespace SplitsMgr
 	static constexpr float		segment_time_column_size	{ 150.f };
 
 	static constexpr ImVec4		frame_bg_current_game		{ 0.58f, 0.43f, 0.03f, 1.f };
+	static constexpr ImVec4		cell_alt_bg					{ 1.f, 1.f, 1.f, 0.1f };
+	static constexpr ImVec4		cell_highlight				{ 1.f, 1.f, 1.f, 0.3f };
 
+	// A pair containing a split index and a table column id.
+	using SplitCell = std::pair< uint32_t, int >;
+	static constexpr SplitCell invalid_cell{ Uint32_Max, -1 };
+	static SplitCell active_cell{ invalid_cell };
 
-	static void display_split_infos( const Split& _split, Options::DateFormat _date_format )
+	static void split_cell_input_text( const char* _label, std::string _text, bool _row_hovered, SplitCell _cell, std::function<void( std::string_view )> _callback )
 	{
+		const bool cell_hovered = _row_hovered && ImGui::TableGetHoveredColumn() == _cell.second || active_cell == _cell;
+		if( cell_hovered )
+			ImGui::PushStyleColor( ImGuiCol_FrameBg, cell_highlight );
+
+		ImGui::SetNextItemWidth( ImGui::GetContentRegionAvail().x );
+		ImGui::InputText( _label, &_text );
+
+		// If the item is active, we edit the active_cell value to keep it highlighted.
+		if( ImGui::IsItemActive() )
+			active_cell = _cell;
+
+		// If the input text has been used, we call the given callback to edit the split data that has been modified.
+		if( ImGui::IsItemDeactivatedAfterEdit() )
+			_callback( _text );
+
+		// If the cell was active and isn't anymore, we reset the active cell to stop the highlight.
+		// We separate this test from the previous one in case the user deactivate the input text with Return or Escape without editing its content.
+		if( ImGui::IsItemDeactivated() )
+			active_cell = invalid_cell;
+
+		if( cell_hovered )
+			ImGui::PopStyleColor();
+	}
+
+	static bool display_split_infos( Split& _split, Options::DateFormat _date_format, bool _display_alt_bg, bool _row_hovered )
+	{
+		bool edited{ false };
+		ImGui::PushID( &_split );
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex( 0 );
 
 		ImGui::Text( "%s %u (%u)", g_pFZN_LocMgr->get_string( LocID::session_short ).data(), _split.m_session_index, _split.m_split_index );
 
+		std::string lol{};
+		bool cell_hovered{ false };
+		static std::pair< uint32_t, int > active_cell{ Uint32_Max, -1 };
 		if( Utils::is_date_valid( _split.m_date ) )
 		{
 			ImGui::TableSetColumnIndex( 1 );
-			ImGui::Text( Utils::date_to_str( _split.m_date, _date_format ).c_str() );
+
+			// I don't understand what's happening here. The two first column are column id 0 for some reason, no matter what I do. I'm scared.
+			split_cell_input_text( "##date", Utils::date_to_str( _split.m_date, _date_format ), _row_hovered, { _split.m_split_index, 0 }, [ & ]( std::string_view _text )
+				{
+					SplitDate entered_date = Utils::get_date_from_string( _text, _date_format );
+
+					if( Utils::is_date_valid( entered_date ) )
+					{
+						_split.m_date = entered_date;
+						edited = true;
+					}
+				} );
 		}
 
 		ImGui::TableSetColumnIndex( 2 );
-		ImGui::Text( Utils::time_to_str( _split.m_segment_time ).c_str() );
+
+		split_cell_input_text( "##segment_time", Utils::time_to_str( _split.m_segment_time ), _row_hovered, { _split.m_split_index, 1 }, [ & ]( std::string_view _text )
+			{
+				SplitTime entered_time = Utils::get_time_from_string( _text );
+
+				if( Utils::is_time_valid( entered_time ) )
+				{
+					_split.m_segment_time = entered_time;
+					edited = true;
+				}
+			} );
 
 		ImGui::TableSetColumnIndex( 3 );
 		ImGui::Text( Utils::time_to_str( _split.m_run_time ).c_str() );
+
+		if( _display_alt_bg )
+			ImGui::GetCurrentTable()->RowBgColor[ 1 ] = ImGui::GetColorU32( cell_alt_bg );
+		ImGui::PopID();
+
+		return edited;
 	}
 
 	Game::Game( const Desc& _desc, Utils::ParsingInfos& _parsing_infos )
@@ -64,7 +129,7 @@ namespace SplitsMgr
 		_compute_game_stats();
 	}
 
-	void Game::display()
+	void Game::display( SplitDate& _last_split_date, bool& _display_alt_bg )
 	{
 		const Options::Data& options{ g_splits_app->get_options().get_options_datas() };
 		// Copying the current state to avoid it changing in the middle of the frame and have imgui push/pop mismatches.
@@ -104,8 +169,30 @@ namespace SplitsMgr
 				// Put here for better spacing in the app.
 				if( has_sessions() )
 				{
+					ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 4.f, 0.f } );
+					ImGui::PushStyleColor( ImGuiCol_FrameBg, ImGui_fzn::color::transparent );
+					
+					int split_id{ 0 };
+					bool edited{ false };
 					for( Split& split : m_splits )
-						display_split_infos( split, options.m_date_format );
+					{
+						if( _last_split_date != split.m_date )
+						{
+							_last_split_date = split.m_date;
+							_display_alt_bg = !_display_alt_bg;
+						}
+
+						edited |= display_split_infos( split, options.m_date_format, _display_alt_bg, ImGui::TableGetHoveredRow() == split_id );
+						++split_id;
+					}
+					ImGui::PopStyleColor();
+					ImGui::PopStyleVar();
+
+					if( edited )
+					{
+						_refresh_game_data();
+						g_pFZN_Core->PushEvent( new Event( Event::Type::game_data_changed ) );
+					}
 				}
 				ImGui::EndTable();
 			}
@@ -417,11 +504,7 @@ namespace SplitsMgr
 
 		m_state = _state;
 
-		_refresh_game_time();
-		_compute_game_stats();
-
-		if( are_sessions_over() == false )
-			compute_end_date();
+		_refresh_game_data();
 	}
 
 	/**
@@ -442,41 +525,10 @@ namespace SplitsMgr
 	**/
 	void Game::compute_end_date()
 	{
-		const SplitTime played{ m_played };
-		const SplitTime remaining_time{ m_estimation - played };
-		std::vector< ComboStat > played_days;
+		const SplitTime remaining_time{ m_estimation - m_played };
 
-		if( Utils::is_date_valid( m_stats.m_begin_date ) )
-		{
-			for( const Split& split : m_splits )
-			{
-				if( Utils::is_date_valid( split.m_date ) == false )
-					continue;
-
-				if( std::ranges::find( played_days, split.m_date, &ComboStat::m_date ) == played_days.end() )
-				{
-					played_days.push_back( { .m_date = split.m_date } );
-				}
-			}
-
-			if( played_days.empty() == false )
-			{
-				m_stats.m_played_days = played_days.size();
-				m_stats.m_avg_session_played_day = played / m_stats.m_played_days;
-				m_stats.m_remaining_played_days = remaining_time / m_stats.m_avg_session_played_day;
-
-				m_stats.m_avg_sessions_days = m_splits.size() / static_cast<float>( m_stats.m_played_days );
-			}
-
-			m_stats.m_days_since_start = Utils::days_between_dates( m_stats.m_begin_date, Utils::today() );
-
-			if( m_stats.m_days_since_start > 0 )
-				m_stats.m_avg_session_day = played / m_stats.m_days_since_start;
-			else
-				m_stats.m_avg_session_day = played;
-		}
 		// Approximation from global stats.
-		else
+		if( Utils::is_date_valid( m_stats.m_begin_date ) == false )
 		{
 			const auto& global_stats = g_splits_app->get_splits_manager().get_stats();
 
@@ -889,7 +941,7 @@ namespace SplitsMgr
 			if( ImGui::InputText( "##Estimate", &estimate, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsNoBlank ) )
 			{
 				m_estimation = Utils::get_time_from_string( estimate );
-				g_pFZN_Core->PushEvent( new Event( Event::Type::game_estimate_changed ) );
+				g_pFZN_Core->PushEvent( new Event( Event::Type::game_data_changed ) );
 			}
 			ImGui::TableNextColumn();
 
@@ -927,10 +979,25 @@ namespace SplitsMgr
 	}
 
 	/**
+	* @brief Game data full refresh, recompute game time and stats.
+	**/
+	void Game::_refresh_game_data()
+	{
+		_refresh_game_time();
+		_compute_game_stats();
+
+		if( are_sessions_over() == false )
+			compute_end_date();
+	}
+
+	/**
 	* @brief Compute all game stats from its estimate, time played and sessions.
 	**/
 	void Game::_compute_game_stats()
 	{
+		const SplitTime remaining_time{ m_estimation - m_played };
+		std::vector< ComboStat > played_days;
+
 		m_stats.m_average_session_time = SplitTime{};
 		m_stats.m_longest_sesion = SplitTime{};
 		m_stats.m_shortest_session = Utils::get_time_from_string( "99:59:59" );
@@ -951,6 +1018,14 @@ namespace SplitsMgr
 			{
 				m_stats.m_shortest_session = split.m_segment_time;
 			}
+
+			if( Utils::is_date_valid( split.m_date ) == false )
+				continue;
+
+			if( std::ranges::find( played_days, split.m_date, &ComboStat::m_date ) == played_days.end() )
+			{
+				played_days.push_back( { .m_date = split.m_date } );
+			}
 		}
 
 		m_stats.m_average_session_time /= m_splits.size();
@@ -959,6 +1034,22 @@ namespace SplitsMgr
 			return;
 
 		m_stats.m_days = Utils::days_between_dates( m_stats.m_begin_date, m_splits.back().m_date ) + 1;
+
+		if( played_days.empty() == false )
+		{
+			m_stats.m_played_days = played_days.size();
+			m_stats.m_avg_session_played_day = m_played / m_stats.m_played_days;
+			m_stats.m_remaining_played_days = remaining_time / m_stats.m_avg_session_played_day;
+
+			m_stats.m_avg_sessions_days = m_splits.size() / static_cast< float >( m_stats.m_played_days );
+		}
+
+		m_stats.m_days_since_start = Utils::days_between_dates( m_stats.m_begin_date, Utils::today() );
+
+		if( m_stats.m_days_since_start > 0 )
+			m_stats.m_avg_session_day = m_played / m_stats.m_days_since_start;
+		else
+			m_stats.m_avg_session_day = m_played;
 	}
 
 	/**

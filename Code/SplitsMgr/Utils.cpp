@@ -74,7 +74,23 @@ namespace SplitsMgr
 
 			return ret_date;
 		}
-		
+
+		SplitDate get_date_from_string( std::string_view _date, Options::DateFormat _format )
+		{
+			switch( _format )
+			{
+				case Options::DMYName:
+					return get_date_from_string( _date, "%d %b %Y" );
+
+				case Options::DateFormat::ISO8601:
+					return get_date_from_string( _date, "%F" );
+
+				default:
+					return {};
+			};
+		}
+
+
 		std::string time_to_str( const SplitTime& _time, bool _floor_seconds /*= true */, bool _separate_days /*= false*/ )
 		{
 			std::string time_string{};
