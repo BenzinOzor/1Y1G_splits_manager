@@ -41,8 +41,8 @@ namespace SplitsMgr
 
 		ImGui::BeginChild( "Games" );
 		
-		bool display_alt_bg{ true };
 		SplitDate current_date{ m_stats.get_begin_date() };
+		bool display_alt_bg{ Utils::is_date_valid( current_date ) };
 		
 		for( Game& game : m_games )
 		{

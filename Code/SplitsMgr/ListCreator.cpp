@@ -71,8 +71,8 @@ namespace SplitsMgr
 
 				ImGui::BeginChild( "Games", ImVec2{ 0.f, ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing() } );
 
-				bool display_alt_bg{ true };
-				SplitDate current_date{ m_games.front().get_begin_date() };
+				SplitDate current_date{ m_games.empty() ? SplitDate{} : m_games.front().get_begin_date() };
+				bool display_alt_bg{ Utils::is_date_valid( current_date ) };
 
 				for( Game& game : m_games )
 				{
