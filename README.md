@@ -42,7 +42,26 @@ La dernière ligne n'est visible que pour les jeux qui n'ont pas encore été te
 On y trouve d'abord le titre de la liste, puis les informations sur le jeu courant. Le titre du jeu se trouve juste sous le titre de la liste, avec sa jaquette en dessous si il lui en a été attribuée une, et les chronomètres à côté. Le plus gros représente la durée de la session, puis sont indiqués dessous le temps total passé sur le jeu, l'estimation du temps nécessaire pour le finir, puis le delta entre le temps passé et l'estimation qui peut servir de temps restant jusqu'à la fin supposée du jeu.
 Il y a ensuite plusieurs boutons permettant de gérer la session en cours, ils s'activent ou non suivant la situation et peuvent aussi changer de texte:
 - **Démarrer/Finir:** Cliquer sur démarrer lancera le chronomètre de la session. Si il est lancé, le bouton devient "Finir" et cliquer dessus termine non seulement la session mais aussi le jeu, changeant de fait son état et faisant apparaître une popup de fin de jeu dont on reparlera [plus tard](#terminer-un-jeu).
+- **Pause/Reprendre:** Mettre en pause le chronomètre ou reprendre la session.
+- **Arrêter:** Remettre le chronomètre à zéro et annuler la session en cours.
+
+Quand la session est en pause, le bouton "mise à jour" à droite devient actif, permettant d'ajouter la session actuelle au jeu courant et change son état (En cours, Terminé, Abandonné) si besoin.
+
+Le texte des chronomètres change de couleur en fonction de l'état de la session en cours:
+
+- **Blanc:** Il n'y a pas de session en cours ou elle vient d'être arrêtée.
+- **Vert:** Une session est en cours et le chronomètre défile.
+- **Gris:** Une session est en cours mais le chronomètre a été mis en pause.
 <p align="center"><img width="456" height="278" alt="image" src="https://github.com/user-attachments/assets/89b425b2-efb5-4994-abd3-c5cfbfb15e70" /></p>
 
+Enfin, il reste la partie statistiques, que je me suis beaucoup amusé à remplir.
+<p align="center"><img width="456" height="540" alt="image" src="https://github.com/user-attachments/assets/989b96a8-d3cd-4f1d-8e48-71f6371971ce" /></p>
+
+
 # Utilisation
+## Installation
+## Première mise en place
+## Ouvrir et sauvegarder une liste
+## Gérer le chronomètre
 ## Terminer un jeu
+## Options et raccourcis
