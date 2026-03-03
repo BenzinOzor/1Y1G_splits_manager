@@ -163,7 +163,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)FrameWork\FrameWork\Code;$(SolutionDir)FrameWork\FrameWork\Dependencies\Includes;$(SolutionDir)Utilities\1Y1G Splits Manager\Code;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;IMGUI_DEFINE_MATH_OPERATORS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -196,7 +196,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)FrameWork\FrameWork\Code;$(SolutionDir)FrameWork\FrameWork\Dependencies\Includes;$(SolutionDir)Utilities\1Y1G Splits Manager\Code\SplitsMgr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;IMGUI_DEFINE_MATH_OPERATORS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
