@@ -42,18 +42,7 @@ La dernière ligne n'est visible que pour les jeux qui n'ont pas encore été te
 
 ## Partie droite
 On y trouve d'abord le titre de la liste, puis les informations sur le jeu courant. Le titre du jeu se trouve juste sous le titre de la liste, avec sa jaquette en dessous si il lui en a été attribuée une, et les chronomètres à côté. Le plus gros représente la durée de la session, puis sont indiqués dessous le temps total passé sur le jeu, l'estimation du temps nécessaire pour le finir, puis le delta entre le temps passé et l'estimation qui peut servir de temps restant jusqu'à la fin supposée du jeu.
-Il y a ensuite plusieurs boutons permettant de gérer la session en cours, ils s'activent ou non suivant la situation et peuvent aussi changer de texte:
-- **Démarrer/Finir:** Cliquer sur démarrer lancera le chronomètre de la session. Si il est lancé, le bouton devient "Finir" et cliquer dessus termine non seulement la session mais aussi le jeu, changeant de fait son état et faisant apparaître une popup de fin de jeu dont on reparlera [**plus tard**](#terminer-un-jeu).
-- **Pause/Reprendre:** Mettre en pause le chronomètre ou reprendre la session.
-- **Arrêter:** Remettre le chronomètre à zéro et annuler la session en cours.
-
-Quand la session est en pause, le bouton "mise à jour" à droite devient actif, permettant d'ajouter la session actuelle au jeu courant et change son état (En cours, Terminé, Abandonné) si besoin.
-
-Le texte des chronomètres change de couleur en fonction de l'état de la session en cours:
-
-- **Blanc:** Il n'y a pas de session en cours ou elle vient d'être arrêtée.
-- **Vert:** Une session est en cours et le chronomètre défile.
-- **Gris:** Une session est en cours mais le chronomètre a été mis en pause.
+Il y a ensuite plusieurs boutons permettant de gérer la session en cours, leur utilisation est détaillée [**plus bas**](#gérer-le-chronomètre).
 <p align="center"><img width="456" height="278" alt="image" src="https://github.com/user-attachments/assets/89b425b2-efb5-4994-abd3-c5cfbfb15e70" /></p>
 
 Enfin, il reste la partie statistiques, que je me suis beaucoup amusé à remplir.
@@ -66,7 +55,7 @@ Télécharger le fichier zip contenant la dernière version de l'application. Il
 Le reste de l'installation est classique, choisir l'endroit où installer l'application et tout devrait être opérationnel. L'exe permettant de la lancer se trouvera dans le dossier *"/1A1J Splits Manager/Bin/Release"*.
 
 ## Première mise en place
-Au premier lancement, rien ne sera affiché car il faut donner une liste au Splits Manager. Si une liste a déjà été créée, passer directement à [**Ouvrir et sauvegarder une liste**](#ouvrir-et-sauvegarder-une-liste). Pour créer une liste, aller dans *Fichier* en haut de la fenêtre puis *Créer*.
+Au premier lancement, rien ne sera affiché car il faut donner une liste au Splits Manager. Si une liste a déjà été créée, passer directement à [**Gérer le fichier contenant la liste**](#gérer-le-fichier-contenant-la-liste). Pour créer une liste, aller dans *Fichier* en haut de la fenêtre puis *Créer*.
 <p align="center"><img width="500" height="231" alt="image" src="https://github.com/user-attachments/assets/0c7d2bf6-47fb-4cb3-a443-d18b6d7851e4" /></p>
 
 Pour l'instant, le seul moyen pratique de créer une liste est de copier coller le contenu d'une liste de participant·e sur le Google Sheet dédié, l'application assume que les informations viennent de là et va donc s'attendre à la présence de certaines informations dans ce qui va être collé dans la fenêtre.
@@ -86,8 +75,35 @@ Il ne reste plus qu'à cliquer sur le bouton *"Générer Liste de Jeux"* pour av
 Une fois la liste générée, il est possible de vérifier si tout à été bien généré dans une section en bas de la fenêtre de création, puis il ne reste plus qu'à confirmer la création en cliquant sur le bouton *"Confirmer"*.
 <p align="center"><img width="560" height="275" alt="image" src="https://github.com/user-attachments/assets/48aaa018-d921-4694-a432-c263cf0912e2" /></p>
 
+## Gérer le fichier contenant la liste
+L'application peut gérer un fichier de liste de différentes manières, toutes accessibles depuis le menu *Fichier* en haut de la fenêtre:
 
-## Ouvrir et sauvegarder une liste
+- **Ouvrir...:** Permet de séléctionner un fichier de liste .json créé auparavant.
+- **Enregistrer:** Modifie le .json précédemment ouvert avec les modifications effectuées pendant la session. Le fichier concerné sera indiqué en survolant cette option.
+- **Enregistrer Sous...:** Enregistre la liste actuelle dans un nouveau fichier .json donc l'emplacement est choisi par l'utilisateur·ice.
+- **Rafraichir Json:** Permet de recharger l'état de la liste au moment de la dernière sauvegarde.
+
 ## Gérer le chronomètre
-## Terminer un jeu
-## Options et raccourcis
+Le chronomètre se gère par les boutons situés dans la partie droite ou par [**raccourcis clavier**](#options-et-raccourcis-clavier).
+Les boutons s'activent ou non suivant la situation et peuvent aussi changer de texte:
+- **Démarrer/Finir:** Cliquer sur démarrer lancera le chronomètre de la session. Si il est lancé, le bouton devient "Finir" et cliquer dessus termine non seulement la session mais aussi le jeu, changeant de fait son état et faisant apparaître une popup de fin de jeu avec des statistiques. Finir un jeu passe le prochain non terminé en "Courant".
+- **Pause/Reprendre:** Mettre en pause le chronomètre ou reprendre la session.
+- **Arrêter:** Remettre le chronomètre à zéro et annuler la session en cours.
+
+Quand la session est en pause, le bouton "mise à jour" à droite devient actif, permettant d'ajouter la session actuelle au jeu courant et change son état (En cours, Terminé, Abandonné) si besoin.
+
+Le texte des chronomètres change de couleur en fonction de l'état de la session en cours:
+
+- **Blanc:** Il n'y a pas de session en cours ou elle vient d'être arrêtée.
+- **Vert:** Une session est en cours et le chronomètre défile.
+- **Gris:** Une session est en cours mais le chronomètre a été mis en pause.
+<p align="center"><img width="453" height="216" alt="image" src="https://github.com/user-attachments/assets/bbf6121b-40f7-4516-9603-9db391f6a89d" /></p>
+
+## Options et raccourcis clavier
+Un menu d'option est disponible dans le menu *Fichier* en haut de la fenêtre. Il permet par exemple de changer la langue de l'application et le format d'affichage des dates.
+
+⚠️ Une option à garder en tête est celle des **Raccourcis Globaux**, permettant de détecter les raccourcis effectués en dehors de la fenêtre de l'application, quand elle n'a pas le focus. Très utile pour démarrer et arrêter le chronomètre sans avoir à réduire son jeu.
+
+Des raccourcis clavier sont disponibles pour chacune des actions des boutons de la partie droite de l'application et ont le même fonctionnement. Il en existe aussi un pour sauvegarder les modifications apportées à la liste.
+
+<p align="center"><img width="406" height="333" alt="image" src="https://github.com/user-attachments/assets/5f99a8e1-ab7c-4108-a44b-49ba4cbe4959" /></p>
