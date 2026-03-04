@@ -104,17 +104,20 @@
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <TargetExt>.exe</TargetExt>
+    <TargetName>1A1J Splits Manager</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Utilities\$(ProjectName)\Bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Utilities\$(ProjectName)\Intermediate\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
+    <TargetName>1A1J Splits Manager</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Retail|Win32'">
     <OutDir>$(SolutionDir)Utilities\$(ProjectName)\Bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Utilities\$(ProjectName)\Intermediate\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets />
+    <TargetName>1A1J Splits Manager</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

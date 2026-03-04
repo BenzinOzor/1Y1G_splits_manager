@@ -17,10 +17,9 @@ SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
 
 namespace SplitsMgr
 {
-	static constexpr uint32_t version_major = 4;
-	static constexpr uint32_t version_minor = 1;
-	static constexpr uint32_t version_feature = 1;
-	static constexpr uint32_t version_bugfix = 1;
+	static constexpr uint32_t version_major = 1;
+	static constexpr uint32_t version_minor = 0;
+	static constexpr uint32_t version_bugfix = 0;
 	static constexpr bool WIP_version = false;
 
 	/**
@@ -181,7 +180,7 @@ namespace SplitsMgr
 				ImGui::EndMenu();
 			}
 
-			const std::string version{ fzn::Tools::Sprintf( "Ver. %d.%d.%d.%d%s", version_major, version_minor, version_feature, version_bugfix, WIP_version ? " - WIP" : "" ) };
+			const std::string version{ fzn::Tools::Sprintf( "Ver. %d.%d.%d%s", version_major, version_minor, version_bugfix, WIP_version ? " - WIP" : "" ) };
 			const ImVec2 version_size{ ImGui::CalcTextSize( version.c_str() ) };
 			const sf::Vector2u window_size{ g_pFZN_WindowMgr->GetWindowSize() };
 
