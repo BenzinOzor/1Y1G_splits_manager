@@ -83,6 +83,11 @@ L'application peut gérer un fichier de liste de différentes manières, toutes 
 - **Enregistrer Sous...:** Enregistre la liste actuelle dans un nouveau fichier .json donc l'emplacement est choisi par l'utilisateur·ice.
 - **Rafraichir Json:** Permet de recharger l'état de la liste au moment de la dernière sauvegarde.
 
+Si le Splits Manager a été précédemment fermée alors qu'une liste avait été ouverte, cette dernière sera automatiquement réouverte à la prochaine utilisation de l'application.
+
+<p align="center"><img width="191" height="163" alt="image" src="https://github.com/user-attachments/assets/1a64b7c9-b9c5-41d1-a112-34bed4bd1a18" /></p>
+
+
 ## Gérer le chronomètre
 Le chronomètre se gère par les boutons situés dans la partie droite ou par [**raccourcis clavier**](#options-et-raccourcis-clavier).
 Les boutons s'activent ou non suivant la situation et peuvent aussi changer de texte:
@@ -107,3 +112,5 @@ Un menu d'option est disponible dans le menu *Fichier* en haut de la fenêtre. I
 Des raccourcis clavier sont disponibles pour chacune des actions des boutons de la partie droite de l'application et ont le même fonctionnement. Il en existe aussi un pour sauvegarder les modifications apportées à la liste.
 
 <p align="center"><img width="406" height="333" alt="image" src="https://github.com/user-attachments/assets/5f99a8e1-ab7c-4108-a44b-49ba4cbe4959" /></p>
+
+NB: À l'heure où ce ReadMe est rédigé, le menu des options n'a pas été complètement traduit, ce sera fait dans une future mise à jour.
