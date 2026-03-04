@@ -1,6 +1,8 @@
 # Présentation
 Pour la deuxième année consécutive, je me suis lancé le défi de faire un jeu pour chaque année depuis mon année de naissance. Je suis né en 1991, donc je fais un jeu de 91, puis un de 92, etc ... J'essaie de me chronométrer sur chacun pour voir combien de temps je mets à les finir mais aussi à faire la liste complète.
-Ce projet est parti d'un souhait de ma part de gérer un fichier [LiveSplit](https://livesplit.org/ "Logiciel de chronométrage utilisé par les speedruners"). Je voulais ajouter un split (segment de temps) par session de jeu, il fallait donc que je modifier le .lss pour ajouter un split, et un json que j'avais à côté pour une extension de Livesplit qui permet de sauvegarder sa progression et la reprendre.
+
+Ce projet est parti d'un souhait de ma part de gérer un fichier [**LiveSplit**](https://livesplit.org/ "Logiciel de chronométrage utilisé par les speedruners"). Je voulais ajouter un split (segment de temps) par session de jeu, il fallait donc que je modifier le .lss pour ajouter un split, et un json que j'avais à côté pour une extension de Livesplit qui permet de sauvegarder sa progression et la reprendre.
+
 J'ai fini par totalement dépasser cette idée et n'utiliser que le Splits Manager et implémenter directement le chronométrage dedans.
 
 # Interface
@@ -41,7 +43,7 @@ La dernière ligne n'est visible que pour les jeux qui n'ont pas encore été te
 ## Partie droite
 On y trouve d'abord le titre de la liste, puis les informations sur le jeu courant. Le titre du jeu se trouve juste sous le titre de la liste, avec sa jaquette en dessous si il lui en a été attribuée une, et les chronomètres à côté. Le plus gros représente la durée de la session, puis sont indiqués dessous le temps total passé sur le jeu, l'estimation du temps nécessaire pour le finir, puis le delta entre le temps passé et l'estimation qui peut servir de temps restant jusqu'à la fin supposée du jeu.
 Il y a ensuite plusieurs boutons permettant de gérer la session en cours, ils s'activent ou non suivant la situation et peuvent aussi changer de texte:
-- **Démarrer/Finir:** Cliquer sur démarrer lancera le chronomètre de la session. Si il est lancé, le bouton devient "Finir" et cliquer dessus termine non seulement la session mais aussi le jeu, changeant de fait son état et faisant apparaître une popup de fin de jeu dont on reparlera [plus tard](#terminer-un-jeu).
+- **Démarrer/Finir:** Cliquer sur démarrer lancera le chronomètre de la session. Si il est lancé, le bouton devient "Finir" et cliquer dessus termine non seulement la session mais aussi le jeu, changeant de fait son état et faisant apparaître une popup de fin de jeu dont on reparlera [**plus tard**](#terminer-un-jeu).
 - **Pause/Reprendre:** Mettre en pause le chronomètre ou reprendre la session.
 - **Arrêter:** Remettre le chronomètre à zéro et annuler la session en cours.
 
@@ -60,7 +62,31 @@ Enfin, il reste la partie statistiques, que je me suis beaucoup amusé à rempli
 
 # Utilisation
 ## Installation
+Télécharger le fichier zip contenant la dernière version de l'application. Il contient un fichier appelé **Setup.exe** et un autre, Splits Manager.msi. Le .msi installera l'application seule alors que l'exe installera aussi toutes les dépendances nécessaires pour faire tout faire marcher. **Il est recommandé d'utiliser Setup.exe!**
+Le reste de l'installation est classique, choisir l'endroit où installer l'application et tout devrait être opérationnel. L'exe permettant de la lancer se trouvera dans le dossier *"/1A1J Splits Manager/Bin/Release"*.
+
 ## Première mise en place
+Au premier lancement, rien ne sera affiché car il faut donner une liste au Splits Manager. Si une liste a déjà été créée, passer directement à [**Ouvrir et sauvegarder une liste**](#ouvrir-et-sauvegarder-une-liste). Pour créer une liste, aller dans *Fichier* en haut de la fenêtre puis *Créer*.
+<p align="center"><img width="500" height="231" alt="image" src="https://github.com/user-attachments/assets/0c7d2bf6-47fb-4cb3-a443-d18b6d7851e4" /></p>
+
+Pour l'instant, le seul moyen pratique de créer une liste est de copier coller le contenu d'une liste de participant·e sur le Google Sheet dédié, l'application assume que les informations viennent de là et va donc s'attendre à la présence de certaines informations dans ce qui va être collé dans la fenêtre.
+Une feuille typique de 1 Année 1 Jeu ressemble à ça (certaines colonnes sont optionnelles):
+
+<p align="center"><img width="1096" height="417" alt="image" src="https://github.com/user-attachments/assets/4a1f0e91-cd6e-4549-82c7-37c2f0f98aff" /></p>
+
+Les colonnes utiles pour le Splits Manager vont de l'état de complétion au temps passé sur le jeu. Une fois la séléction dans la feuille faite et le contenu copié dans la fenêtre de création, il est possible de séléctionner quelles colonnes sont présentes dans le texte copié collé.
+
+Les colonnes *Genre, Plateforme et Version* ne servent pas à l'application en tant que telles mais il est important de les cocher si elles font partie du texte collé car elle va s'en servir pour compter les colonnes et arriver à celles qui sont importantes pour en récupérer les informations. Il ne faut décocher les colonnes QUE si elles n'ont pas été copiées et ne sont pas présentes sur la feuille source, ce n'est pas une sélection de ce qui va être utilisé ou non dans l'application.
+
+Dans le Google Sheet, l'année et le titre des jeux sont séparés, la dernière option cochable permet de fusionner les deux pour créer un nom sous le format `<année> - <titre>` si l'utilisateur·ice le désire.
+Il ne reste plus qu'à cliquer sur le bouton *"Générer Liste de Jeux"* pour avoir un aperçu de ce que sera la liste dans l'application. À noter que chaque jeu n'aura qu'une session, le Splits Manager n'étant pas en mesure de les déduire depuis les informations données.
+
+<p align="center"><img width="524" height="687" alt="image" src="https://github.com/user-attachments/assets/88e0b4b1-03a3-4362-a330-709ebd8e1e86" /></p>
+
+Une fois la liste générée, il est possible de vérifier si tout à été bien généré dans une section en bas de la fenêtre de création, puis il ne reste plus qu'à confirmer la création en cliquant sur le bouton *"Confirmer"*.
+<p align="center"><img width="560" height="275" alt="image" src="https://github.com/user-attachments/assets/48aaa018-d921-4694-a432-c263cf0912e2" /></p>
+
+
 ## Ouvrir et sauvegarder une liste
 ## Gérer le chronomètre
 ## Terminer un jeu
