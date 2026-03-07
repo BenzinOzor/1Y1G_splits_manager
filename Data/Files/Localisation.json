@@ -619,6 +619,79 @@
             [ "english", "Paused" ],
             [ "french", "En pause" ]
          ]
+      },
+      {
+         "name" : "bind_start_split",
+         "translations" : [
+            [ "english", "Start / Split" ],
+            [ "french", "D\u00e9marrer / Finir" ]
+         ]
+      },
+      {
+         "name" : "bind_pause_resume",
+         "translations" : [
+            [ "english", "Pause / Resume" ],
+            [ "french", "Pause / Reprendre" ]
+         ]
+      },
+      {
+         "name" : "keybinds",
+         "translations" : [
+            [ "english", "Keybinds" ],
+            [ "french", "Raccourcis" ]
+         ]
+      },
+      {
+         "name" : "bind_set",
+         "translations" : [
+            [ "english", "Set" ],
+            [ "french", "Attribuer" ]
+         ]
+      },
+      {
+         "name" : "bind_replace",
+         "translations" : [
+            [ "english", "Replace" ],
+            [ "french", "Remplacer" ]
+         ]
+      },
+      {
+         "name" : "bind_replace_title",
+         "translations" : [
+            [ "english", "Replace binding" ],
+            [ "french", "Remplacer le raccourcis" ]
+         ]
+      },
+      {
+         "name" : "bind_replace_text",
+         "translations" : [
+            [ "english", "Press any key to replace this binding." ],
+            [
+               "french",
+               "Appuyer sur n'importe quelle touche pour remplacer ce raccourcis."
+            ]
+         ]
+      },
+      {
+         "name" : "bind_delete_tooltip",
+         "translations" : [
+            [ "english", "Delete shortcut" ],
+            [ "french", "Supprimer le raccourcis" ]
+         ]
+      },
+      {
+         "name" : "bind_reset_to_default",
+         "translations" : [
+            [ "english", "Reset To Default" ],
+            [ "french", "R\u00e9initialiser Raccourcis" ]
+         ]
+      },
+      {
+         "name" : "bind_empty",
+         "translations" : [
+            [ "english", "Empty" ],
+            [ "french", "Vide" ]
+         ]
       }
    ]
 }

@@ -96,5 +96,15 @@ enum class LocID
 	game_finished_title,		// Game finished!
 	timer_running_title,		// Running
 	timer_paused_title,		// Paused
+	bind_start_split,		// Start / Split
+	bind_pause_resume,		// Pause / Resume
+	keybinds,		// Keybinds
+	bind_set,		// Set
+	bind_replace,		// Replace
+	bind_replace_title,		// Replace binding
+	bind_replace_text,		// Press any key to replace this binding.
+	bind_delete_tooltip,		// Delete shortcut
+	bind_reset_to_default,		// Reset To Default
+	bind_empty,		// Empty
 	COUNT
 };

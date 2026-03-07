@@ -17,6 +17,16 @@ namespace SplitsMgr
 	Options::Options():
 		AppOptions()
 	{
+		_set_option_loc_entry( OptionsLocEntry::bindings_title,				LocID::keybinds );
+		_set_option_loc_entry( OptionsLocEntry::bindings_empty,				LocID::bind_empty );
+		_set_option_loc_entry( OptionsLocEntry::bindings_set,				LocID::bind_set );
+		_set_option_loc_entry( OptionsLocEntry::bindings_replace,			LocID::bind_replace );
+		_set_option_loc_entry( OptionsLocEntry::bindings_replace_title,		LocID::bind_replace_title );
+		_set_option_loc_entry( OptionsLocEntry::bindings_replace_text,		LocID::bind_replace_text );
+		_set_option_loc_entry( OptionsLocEntry::bindings_replace_cancel,	LocID::cancel );
+		_set_option_loc_entry( OptionsLocEntry::bindings_delete_tooltip,	LocID::bind_delete_tooltip );
+		_set_option_loc_entry( OptionsLocEntry::bindings_reset_default,		LocID::bind_reset_to_default );
+
 		g_pFZN_Core->AddCallback( this, &Options::on_event, fzn::DataCallbackType::Event );
 
 		_load_options();

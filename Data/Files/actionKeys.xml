@@ -1,14 +1,14 @@
 <Actions>
-	<Action Name="Start / Split">
+	<Action Name="Start / Split" LocID="bind_start_split">
 		<Input Type="Keyboard" Map="Space"/>
 	</Action>
-	<Action Name="Pause">
+	<Action Name="Pause" LocID="bind_pause_resume">
 		<Input Type="Keyboard" Map="P"/>
 	</Action>
-	<Action Name="Stop">
+	<Action Name="Stop" LocID="btn_stop">
 		<Input Type="Keyboard" Map="S"/>
 	</Action>
-	<Action Name="Save">
+	<Action Name="Save" LocID="save">
 		<Input Type="Keyboard" Map="LControl + S"/>
 	</Action>
 </Actions>
