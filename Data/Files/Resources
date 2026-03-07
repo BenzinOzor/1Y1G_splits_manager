@@ -1,9 +1,10 @@
-<Resources path="../../Data/">
+<Resources Path="../../Data/">
 
-	<Folder path="Display/">
+	<Folder Path="Display/">
+		<Picture Name="TrashCanIcon"					Path="TrashCanIcon.png" />
 	</Folder>
 
-	<Folder path="Audio/">
+	<Folder Path="Audio/">
 	</Folder>
 
 </Resources>
