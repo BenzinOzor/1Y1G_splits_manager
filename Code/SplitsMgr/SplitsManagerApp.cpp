@@ -17,11 +17,6 @@ SplitsMgr::SplitsManagerApp* g_splits_app = nullptr;
 
 namespace SplitsMgr
 {
-	static constexpr uint32_t version_major = 1;
-	static constexpr uint32_t version_minor = 2;
-	static constexpr uint32_t version_bugfix = 0;
-	static constexpr bool WIP_version = false;
-
 	/**
 	* @brief Construction of the application, will look for lss and json files path in the options json and read them if there are any saved.
 	**/
@@ -180,12 +175,16 @@ namespace SplitsMgr
 				ImGui::EndMenu();
 			}
 
-			const std::string version{ fzn::Tools::Sprintf( "Ver. %d.%d.%d%s", version_major, version_minor, version_bugfix, WIP_version ? " - WIP" : "" ) };
-			const ImVec2 version_size{ ImGui::CalcTextSize( version.c_str() ) };
-			const sf::Vector2u window_size{ g_pFZN_WindowMgr->GetWindowSize() };
+			const std::string version{ g_pFZN_Core->get_project_version() };
 
-			ImGui::SameLine( window_size.x - ImGui::CalcTextSize( version.c_str() ).x - 2.f * ImGui::GetStyle().WindowPadding.x );
-			ImGui::TextColored( ImGui_fzn::color::light_gray, version.c_str() );
+			if( version.empty() == false )
+			{
+				const ImVec2 version_size{ ImGui::CalcTextSize( version.c_str() ) };
+				const sf::Vector2u window_size{ g_pFZN_WindowMgr->GetWindowSize() };
+
+				ImGui::SameLine( window_size.x - ImGui::CalcTextSize( version.c_str() ).x - 2.f * ImGui::GetStyle().WindowPadding.x );
+				ImGui::TextColored( ImGui_fzn::color::light_gray, version.c_str() );
+			}
 
 			ImGui::EndMainMenuBar();
 		}

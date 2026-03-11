@@ -8,6 +8,7 @@
 #include <FZN/Managers/DataManager.h>
 #include <FZN/Managers/WindowManager.h>
 #include <FZN/Managers/LocalisationManager.h>
+#include <FZN/Managers/VersionsManager.h>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
@@ -16,9 +17,10 @@
 
 int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
-	fzn::FazonCore::ProjectDesc desc{ "1Y1G Splits Manager", FZNProjectType::Application };
+	fzn::FazonCore::ProjectDesc desc{ "1A1J Splits Manager", FZNProjectType::Application };
 	fzn::Tools::MaskRaiseFlag( desc.m_uModules, fzn::FazonCore::CoreModuleFlags_InputModule );
 	fzn::Tools::MaskRaiseFlag( desc.m_uModules, fzn::FazonCore::CoreModuleFlags_LocalisationModule );
+	fzn::Tools::MaskRaiseFlag( desc.m_uModules, fzn::FazonCore::CoreModuleFlags_VersionsModule );
 
 	fzn::FazonCore::CreateInstance( desc );
 
@@ -33,6 +35,7 @@ int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 	g_pFZN_DataMgr->LoadResourceFile( DATAPATH( "Files/Resources" ) );
 	g_pFZN_LocMgr->load_entries( DATAPATH( "Files/Localisation.json" ) );
 	g_pFZN_InputMgr->load_default_action_keys_from_xml( DATAPATH( "Files/ActionKeys.xml" ) );
+	g_pFZN_VersionsMgr->open_versions_file( DATAPATH( "Files/Versions.json" ) );
 
 	g_pFZN_WindowMgr->AddWindow( 900, 830, sf::Style::Close | sf::Style::Resize, g_pFZN_Core->GetProjectName().c_str() );
 	g_pFZN_WindowMgr->SetWindowFramerate(60);

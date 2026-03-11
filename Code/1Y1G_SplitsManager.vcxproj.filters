@@ -43,6 +43,7 @@
   <ItemGroup>
     <None Include="..\Data\Files\Localisation.json" />
     <None Include="..\Data\Files\Resources" />
+    <None Include="..\Data\Files\Versions.json" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\Data\Files\actionKeys.xml" />
